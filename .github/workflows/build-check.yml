@@ -1,0 +1,27 @@
+name: Compile check
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Install JavaFX SDK
+        run: |
+          curl -L -o javafx.zip https://download2.gluonhq.com/openjfx/8.0.202/openjfx-8u202-sdk-linux.zip
+          unzip javafx.zip -d javafx
+
+      - name: Compile all sources
+        run: |
+          mkdir -p out
+          find src -name "*.java" > sources.txt
+          javac -cp "javafx/javafx-sdk-8.0.202/lib/*" -d out @sources.txt
