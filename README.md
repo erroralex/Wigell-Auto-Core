@@ -1,3 +1,36 @@
+# Struktur:
+
+```
+src/                                    # sourceroot
+└── com/wac/autocore/
+    ├── data/                           
+    ├── model/                          
+    ├── service/                        
+    ├── Main.java                       
+    └── view/                           # Alla JavaFX-vyer
+        ├── AutoCoreApp.java                # Application, main(), scen-uppsättning
+        ├── MainLayout.java                 # BorderPane-skal: sidomeny + innehållsyta
+        ├── NavigationItem.java             # enum: de 8 sektionerna + ikon/etikett
+        ├── CustomerView.java
+        ├── VehicleView.java
+        ├── BookingView.java
+        ├── ServiceItemView.java
+        ├── MechanicView.java
+        ├── WorkOrderView.java
+        ├── InvoiceView.java
+        ├── PaymentView.java
+        ├── dialog/
+        │   ├── CreateCustomerDialog.java
+        │   ├── CreateVehicleDialog.java
+        │   ├── CreateBookingDialog.java
+        │   ├── CreateWorkOrderDialog.java
+        │   ├── CreateInvoiceDialog.java
+        │   └── ProcessPaymentDialog.java
+        └── util/
+            └── AlertHelper.java             # gemensam fel-/bekräftelsedialog
+```
+
+
 # Git-flöde: från branch till Pull Request
 
 ## 1. Uppdatera main lokalt
