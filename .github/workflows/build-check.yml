@@ -9,19 +9,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 8
+      - name: Set up JDK 8 with JavaFX
         uses: actions/setup-java@v4
         with:
+          distribution: 'liberica'
           java-version: '8'
-          distribution: 'temurin'
-
-      - name: Install JavaFX SDK
-        run: |
-          curl -L -o javafx.zip https://download2.gluonhq.com/openjfx/8.0.202/openjfx-8u202-sdk-linux.zip
-          unzip javafx.zip -d javafx
+          java-package: 'jdk+fx'
 
       - name: Compile all sources
         run: |
           mkdir -p out
           find src -name "*.java" > sources.txt
-          javac -cp "javafx/javafx-sdk-8.0.202/lib/*" -d out @sources.txt
+          javac -d out @sources.txt
