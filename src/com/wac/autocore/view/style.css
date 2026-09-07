@@ -1,0 +1,7 @@
+/*
+ * Parameter nedanför endast för test av css-path
+ */
+.root {
+    -fx-background-color: #212121;
+    -fx-base: #212121;
+}
