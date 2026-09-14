@@ -1,10 +1,105 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.data.Database;
+import com.wac.autocore.model.ServiceItem;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.*;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
 
 /**
  * <b>ServiceItemView</b>
  * <p>Ansvar: Visar och hanterar servicepunkter i användargränssnittet.</p>
  */
 public class ServiceItemView extends VBox {
+
+    private final ObservableList<ServiceItem> serviceItemList;
+
+    public ServiceItemView() {
+        this.serviceItemList = FXCollections.observableArrayList(Database.getServiceItems());
+        this.getStyleClass().add("service-item-view");
+
+        show();
+    }
+
+    private void show() {
+        renderTitle();
+        renderTable();
+    }
+
+    private void renderTitle() {
+        Label title = new Label("SERVICE");
+        title.setId("h1");
+        getChildren().add(title);
+    }
+
+    private void renderTable() {
+        TableView<ServiceItem> itemTableView = new TableView<>();
+
+        itemTableView.setEditable(false);
+        itemTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        VBox.setVgrow(itemTableView, Priority.ALWAYS);
+
+        TableColumn<ServiceItem, String> nameColumn = new TableColumn<>("Name");
+        TableColumn<ServiceItem, String> descColumn = new TableColumn<>("Description");
+        TableColumn<ServiceItem, Double> priceColumn = new TableColumn<>("Price (SEK)");
+        TableColumn<ServiceItem, Integer> durationColumn = new TableColumn<>("Estimated Duration (Minutes)");
+
+        nameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getName())
+        );
+
+        descColumn.setCellValueFactory(cellData ->
+                new SimpleObjectProperty<>(cellData.getValue().getDescription()));
+
+        setPriceColumn(priceColumn);
+
+        durationColumn.setCellValueFactory(cellData->
+                new SimpleObjectProperty<>(cellData.getValue().getEstimatedMinutes()));
+
+        itemTableView.getColumns().add(nameColumn);
+        itemTableView.getColumns().add(descColumn);
+        itemTableView.getColumns().add(priceColumn);
+        itemTableView.getColumns().add(durationColumn);
+
+        itemTableView.setItems(serviceItemList);
+
+        getChildren().add(itemTableView);
+    }
+
+    private void setPriceColumn(TableColumn<ServiceItem, Double> priceColumn) {
+        priceColumn.setCellValueFactory(cellData ->
+                new SimpleObjectProperty<>(cellData.getValue().getPrice()));
+
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("sv", "SE"));
+        formatter.setMinimumFractionDigits(2);
+        formatter.setMaximumFractionDigits(2);
+
+        priceColumn.setCellFactory(column -> new TableCell<ServiceItem, Double>() {
+            @Override
+            protected void updateItem(Double price, boolean empty) {
+                super.updateItem(price, empty);
+
+                if (empty || price == null) {
+                    setText(null);
+                } else {
+                    setText(formatter.format(price) + ";-");
+                }
+            }
+        });
+    }
+
+
+
+
+
+
 }
