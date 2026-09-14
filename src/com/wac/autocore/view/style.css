@@ -5,3 +5,47 @@
     -fx-background-color: #212121;
     -fx-base: #212121;
 }
+
+/*********************/
+/* SERVICE ITEM VIEW */
+/*********************/
+.service-item-view {
+}
+
+.service-item-view .table-row-cell:hover{
+    -fx-background-color: #66A3FF;
+    -fx-cursor: hand;
+}
+
+.service-item-view .table-row-cell:selected {
+    -fx-background-color: #333333;
+}
+
+.service-item-view .table-view {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.service-item-view #h1 {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-padding: 10px 0 10px 0;
+}
+
+.service-item-view .table-cell {
+    -fx-font-size: 14px;
+    -fx-padding: 8px;
+}
+
+.service-item-view .column-header {
+    -fx-font-size: 14px;
+}
+
+.service-item-view .column-header .label {
+    -fx-font-size: 16px;
+}
+
+.service-item-view .column-header:hover {
+    -fx-background-color: #66A3FF;
+    -fx-cursor: hand;
+}
