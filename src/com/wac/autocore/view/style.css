@@ -33,16 +33,16 @@
 }
 
 .service-item-view .table-cell {
-    -fx-font-size: 14px;
+    -fx-font-size: 12px;
     -fx-padding: 8px;
 }
 
 .service-item-view .column-header {
-    -fx-font-size: 14px;
+    -fx-font-size: 12px;
 }
 
 .service-item-view .column-header .label {
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
 }
 
 .service-item-view .column-header:hover {

@@ -48,10 +48,10 @@ public class ServiceItemView extends VBox {
 
         VBox.setVgrow(itemTableView, Priority.ALWAYS);
 
-        TableColumn<ServiceItem, String> nameColumn = new TableColumn<>("Namn");
-        TableColumn<ServiceItem, String> descColumn = new TableColumn<>("Beskrivning");
-        TableColumn<ServiceItem, Double> priceColumn = new TableColumn<>("Pris (SEK)");
-        TableColumn<ServiceItem, Integer> durationColumn = new TableColumn<>("Estimerad tid (Minuter)");
+        TableColumn<ServiceItem, String> nameColumn = new TableColumn<>("Name");
+        TableColumn<ServiceItem, String> descColumn = new TableColumn<>("Description");
+        TableColumn<ServiceItem, Double> priceColumn = new TableColumn<>("Price (SEK)");
+        TableColumn<ServiceItem, Integer> durationColumn = new TableColumn<>("Estimated Duration (Minutes)");
 
         nameColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getName())
