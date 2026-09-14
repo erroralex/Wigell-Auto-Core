@@ -5,14 +5,14 @@ package com.wac.autocore.view;
  * <p>Ansvar: Definierar applikationens navigerbara sektioner och deras visningsetiketter.</p>
  */
 public enum NavigationItem {
-    CUSTOMERS(      "Kunder"),
-    VEHICLES(       "Fordon"),
-    BOOKINGS(       "Bokningar"),
-    SERVICE_ITEMS(  "Servicepunkter"),
-    MECHANICS(      "Mekaniker"),
-    WORK_ORDERS(    "Arbetsordrar"),
-    INVOICES(       "Fakturor"),
-    PAYMENTS(       "Betalningar");
+    CUSTOMERS(      "Customers"),
+    VEHICLES(       "Vehicles"),
+    BOOKINGS(       "Bookings"),
+    SERVICE_ITEMS(  "Service Items"),
+    MECHANICS(      "Mechanics"),
+    WORK_ORDERS(    "Work Orders"),
+    INVOICES(       "Invoices"),
+    PAYMENTS(       "Payments"),;
 
     private final String label;
 

@@ -18,7 +18,7 @@ public class SideNavigation extends VBox {
     public SideNavigation(MainLayout mainLayout) {
         this.mainLayout = mainLayout;
 
-        this.getStyleClass().add("side_navigation");
+        this.getStyleClass().add("side-navigation");
         this.setSpacing(8);
         this.setPadding(new Insets(20));
 
@@ -60,7 +60,7 @@ public class SideNavigation extends VBox {
             case WORK_ORDERS:   return new WorkOrderView();
             case INVOICES:      return new InvoiceView();
             case PAYMENTS:      return new PaymentView();
-            default:            throw new IllegalStateException("Okänt NavigationItem: " + item);
+            default:            throw new IllegalStateException("Unknown NavigationItem: " + item);
         }
     }
 
