@@ -1,51 +1,210 @@
-/*
- * Parameter nedanför endast för test av css-path
- */
+/* Theme tokens */
 .root {
+    -fx-font-family: "Segoe UI", "System";
     -fx-background-color: #212121;
     -fx-base: #212121;
+    -fx-control-inner-background: #2B2B2B;
+    -fx-accent: #4A90E2;
+    -fx-focus-color: #66A3FF;
+    -fx-faint-focus-color: rgba(102, 163, 255, 0.20);
+    -fx-text-fill: #F2F2F2;
 }
 
-/*********************/
-/* SERVICE ITEM VIEW */
-/*********************/
-.service-item-view {
+.main-layout {
+    -fx-background-color: #212121;
 }
 
-.service-item-view .table-row-cell:hover{
+.side-navigation {
+    -fx-background-color: #2B2B2B;
+    -fx-padding: 20px;
+    -fx-spacing: 8px;
+    -fx-border-color: #3D3D3D;
+    -fx-border-width: 0 1px 0 0;
+}
+
+.content-area {
+    -fx-background-color: #212121;
+    -fx-padding: 24px;
+}
+
+.surface {
+    -fx-background-color: #2B2B2B;
+    -fx-background-radius: 8px;
+    -fx-border-color: #3D3D3D;
+    -fx-border-radius: 8px;
+}
+
+.surface-elevated {
+    -fx-background-color: #333333;
+    -fx-background-radius: 8px;
+    -fx-border-color: #3D3D3D;
+    -fx-border-radius: 8px;
+}
+
+.card {
+    -fx-background-color: #2B2B2B;
+    -fx-background-radius: 8px;
+    -fx-border-color: #3D3D3D;
+    -fx-border-radius: 8px;
+    -fx-padding: 20px;
+}
+
+.nav-button,
+.btn,
+.button {
+    -fx-background-color: #333333;
+    -fx-text-fill: #F2F2F2;
+    -fx-background-radius: 6px;
+    -fx-border-color: #3D3D3D;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 14px;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+.nav-button:hover,
+.btn:hover,
+.button:hover {
+    -fx-background-color: #3A3A3A;
+}
+
+.nav-button:focused,
+.btn:focused,
+.button:focused,
+.text-field:focused,
+.combo-box:focused,
+.date-picker:focused,
+.text-area:focused {
+    -fx-border-color: #66A3FF;
+    -fx-focus-color: #66A3FF;
+}
+
+.nav-button-active,
+.btn-primary {
+    -fx-background-color: #4A90E2;
+    -fx-border-color: #4A90E2;
+    -fx-text-fill: #F2F2F2;
+}
+
+.btn-primary:hover,
+.nav-button-active:hover {
     -fx-background-color: #66A3FF;
-    -fx-cursor: hand;
+    -fx-border-color: #66A3FF;
 }
 
-.service-item-view .table-row-cell:selected {
+.btn-secondary {
+    -fx-background-color: #2B2B2B;
+    -fx-border-color: #3D3D3D;
+}
+
+.btn-danger {
+    -fx-background-color: #E57373;
+    -fx-border-color: #E57373;
+    -fx-text-fill: #212121;
+}
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #B5B5B5;
+}
+
+.label {
+    -fx-text-fill: #F2F2F2;
+}
+
+.text-muted,
+.helper-text,
+.text-secondary {
+    -fx-text-fill: #B5B5B5;
+}
+
+.text-caption {
+    -fx-font-size: 12px;
+}
+
+.text-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+}
+
+.text-section {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.input,
+.text-field,
+.text-area,
+.combo-box,
+.date-picker {
+    -fx-background-color: #2B2B2B;
+    -fx-text-fill: #F2F2F2;
+    -fx-prompt-text-fill: #7A7A7A;
+    -fx-border-color: #3D3D3D;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+
+.input-error,
+.state-error {
+    -fx-border-color: #E57373;
+}
+
+.state-success {
+    -fx-text-fill: #4CAF50;
+}
+
+.state-warning {
+    -fx-text-fill: #F2C94C;
+}
+
+.state-info {
+    -fx-text-fill: #66A3FF;
+}
+
+.table-view {
+    -fx-background-color: #2B2B2B;
+    -fx-border-color: #3D3D3D;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.table-view .column-header-background {
     -fx-background-color: #333333;
 }
 
-.service-item-view .table-view {
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: #333333;
+    -fx-border-color: #3D3D3D;
 }
 
-.service-item-view #h1 {
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-    -fx-padding: 10px 0 10px 0;
+.table-view .table-row-cell {
+    -fx-background-color: #2B2B2B;
+    -fx-text-background-color: #F2F2F2;
 }
 
-.service-item-view .table-cell {
-    -fx-font-size: 12px;
-    -fx-padding: 8px;
+.table-view .table-row-cell:hover {
+    -fx-background-color: #333333;
 }
 
-.service-item-view .column-header {
-    -fx-font-size: 12px;
+.table-view .table-row-cell:selected {
+    -fx-background-color: #4A90E2;
 }
 
-.service-item-view .column-header .label {
-    -fx-font-size: 14px;
+.dialog-pane {
+    -fx-background-color: #333333;
 }
 
-.service-item-view .column-header:hover {
-    -fx-background-color: #66A3FF;
-    -fx-cursor: hand;
+.dialog-pane .header-panel {
+    -fx-background-color: #333333;
+}
+
+.dialog-pane .content.label {
+    -fx-text-fill: #F2F2F2;
+}
+
+.alert {
+    -fx-background-color: #333333;
 }
