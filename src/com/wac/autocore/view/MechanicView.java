@@ -6,6 +6,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -24,7 +26,10 @@ public class MechanicView extends VBox {
 
     public MechanicView() {
         this.mechanicObservableList = FXCollections.observableArrayList(Database.getMechanics());
-        this.getStyleClass().add("mechanic-view");
+        this.getStyleClass().add("content-area");
+        this.setSpacing(20);
+        this.setPadding(new Insets(20));
+        this.setAlignment(Pos.TOP_LEFT);
 
         show();
     }
@@ -38,6 +43,7 @@ public class MechanicView extends VBox {
         Label title = new Label("MECHANICS");
         title.setId("h1");
         getChildren().add(title);
+        title.getStyleClass().add("text-title");
     }
 
     private void renderMechanics() {
