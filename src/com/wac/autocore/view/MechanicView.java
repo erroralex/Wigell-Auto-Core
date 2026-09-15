@@ -30,7 +30,14 @@ public class MechanicView extends VBox {
     }
 
     private void show() {
+        renderTitle();
         renderMechanics();
+    }
+
+    private void renderTitle() {
+        Label title = new Label("MECHANICS");
+        title.setId("h1");
+        getChildren().add(title);
     }
 
     private void renderMechanics() {
