@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Mechanic;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -36,7 +37,7 @@ public class MechanicView extends VBox {
 
     private void show() {
         renderTitle();
-        renderMechanics();
+        renderTable();
     }
 
     private void renderTitle() {
@@ -45,7 +46,7 @@ public class MechanicView extends VBox {
         title.getStyleClass().add("text-title");
     }
 
-    private void renderMechanics() {
+    private void renderTable() {
         TableView<Mechanic> mechanicTableView = new TableView<>();
 
         mechanicTableView.setEditable(false);
@@ -57,6 +58,7 @@ public class MechanicView extends VBox {
         TableColumn<Mechanic, String> phoneColumn = new TableColumn<>("Phone Num");
         TableColumn<Mechanic, String> specColumn = new TableColumn<>("Specialization");
         TableColumn<Mechanic, String> availabilityColumn = new TableColumn<>("Available");
+        TableColumn<Mechanic, Number> idColumn = new TableColumn<>("ID");
 
         nameColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getName())
@@ -77,10 +79,14 @@ public class MechanicView extends VBox {
            return new SimpleStringProperty("Unavailable");
         });
 
+        idColumn.setCellValueFactory(cellData ->
+                new SimpleIntegerProperty(cellData.getValue().getId()));
+
         mechanicTableView.getColumns().add(nameColumn);
         mechanicTableView.getColumns().add(phoneColumn);
         mechanicTableView.getColumns().add(specColumn);
         mechanicTableView.getColumns().add(availabilityColumn);
+        mechanicTableView.getColumns().add(idColumn);
 
         mechanicTableView.setItems(mechanicObservableList);
 
