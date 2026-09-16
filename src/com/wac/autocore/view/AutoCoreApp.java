@@ -25,6 +25,8 @@ public class AutoCoreApp extends Application {
 
             primaryStage.setTitle("Wigell Auto");
             primaryStage.setScene(scene);
+            primaryStage.setMaximized(true);
+            primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
             primaryStage.show();
 
         } catch (Exception e) {
