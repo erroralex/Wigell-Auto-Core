@@ -25,6 +25,7 @@ public class AutoCoreApp extends Application {
 
             primaryStage.setTitle("Wigell Auto");
             primaryStage.setScene(scene);
+            primaryStage.setMaximized(true);
             primaryStage.show();
 
         } catch (Exception e) {
