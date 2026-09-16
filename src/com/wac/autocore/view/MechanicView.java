@@ -41,7 +41,6 @@ public class MechanicView extends VBox {
 
     private void renderTitle() {
         Label title = new Label("MECHANICS");
-        title.setId("h1");
         getChildren().add(title);
         title.getStyleClass().add("text-title");
     }
