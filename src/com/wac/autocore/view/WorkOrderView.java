@@ -3,6 +3,7 @@ package com.wac.autocore.view;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -34,6 +35,7 @@ public class WorkOrderView extends VBox {
 
     private final Button btnStart = new Button("Start");
     private final Button btnComplete = new Button("Complete");
+    private final Button btnCreate = new Button("Create new");
 
     public WorkOrderView() {
         this.getStyleClass().add("content-area");
@@ -86,6 +88,11 @@ public class WorkOrderView extends VBox {
                 new SimpleStringProperty(String.valueOf(c.getValue().getMechanicId()))
         );
 
+        TableColumn<WorkOrder, String> itemCountCol = new TableColumn<>("No. of Items");
+        itemCountCol.setCellValueFactory(c ->
+                new SimpleStringProperty(String.valueOf(c.getValue().getServiceItemIds().size()))
+        );
+
         TableColumn<WorkOrder, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(c ->
                 new SimpleStringProperty(String.valueOf(c.getValue().getStatus()))
@@ -93,19 +100,42 @@ public class WorkOrderView extends VBox {
 
         // -------------------------------------------------------------------------------------------------------------
 
-        workOrderTable.getColumns().addAll(idCol, bookingCol, mechanicCol, statusCol);
+        workOrderTable.getColumns().addAll(idCol, bookingCol, mechanicCol, itemCountCol, statusCol);
         workOrderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         workOrderTable.setItems(masterData);
     }
 
+    private void openCreateWorkOrderDialog() {
+        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog();
+        dialog.showAndWait().ifPresent(result -> {
+            WorkOrder newWorkOrder = garageSystem.createWorkOrder(
+                    result.getBookingId(),
+                    result.getMechanicId(),
+                    result.getServiceItemIds()
+            );
+            if (newWorkOrder != null) {
+                refreshData();
+                AlertHelper.showInfo("Work order created", "A new work order has been created");
+            } else {
+                AlertHelper.showError("Work order could not be created", "Please check availability of mechanics");
+            }
+        });
+    }
+
     private HBox createButtonBar() {
-        btnStart.getStyleClass().addAll("btn", "btn-primary");
+        String btnPrimary = "btn-primary";
+
+        btnStart.getStyleClass().addAll("btn", btnPrimary);
         btnStart.setOnAction(event -> startSelectedWorkOrder());
 
-        btnComplete.getStyleClass().addAll("btn", "btn-primary");
+        btnComplete.getStyleClass().addAll("btn", btnPrimary);
         btnComplete.setOnAction(event -> completeSelectedWorkOrder());
 
-        HBox box = new HBox(15, btnStart, btnComplete);
+        btnCreate.getStyleClass().addAll("btn", btnPrimary);
+        btnCreate.setOnAction(event -> openCreateWorkOrderDialog());
+
+
+        HBox box = new HBox(15, btnStart, btnComplete,  btnCreate);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
@@ -119,7 +149,7 @@ public class WorkOrderView extends VBox {
         }
         String status = selected.getStatus();
         btnStart.setDisable(!STATUS_CREATED.equals(status));
-        btnComplete.setDisable(!STATUS_COMPLETED.equals(status));
+        btnComplete.setDisable(!STATUS_IN_PROGRESS.equals(status));
     }
 
     private void startSelectedWorkOrder() {
