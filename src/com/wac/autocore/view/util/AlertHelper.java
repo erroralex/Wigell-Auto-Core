@@ -2,6 +2,7 @@ package com.wac.autocore.view.util;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 
 import java.util.Optional;
 
@@ -20,12 +21,14 @@ public class AlertHelper {
     private AlertHelper() {
     }
 
+
     // Visar ett enkelt felmeddelande med OK-knapp
     public static void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogUtil.applyTheme(alert.getDialogPane());
         alert.showAndWait();
     }
 
@@ -35,6 +38,7 @@ public class AlertHelper {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogUtil.applyTheme(alert.getDialogPane());
         alert.showAndWait();
     }
 
@@ -44,6 +48,7 @@ public class AlertHelper {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        DialogUtil.applyTheme(alert.getDialogPane());
 
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
