@@ -52,6 +52,7 @@ public class SideNavigation extends VBox {
     // Skapar en ny instans av rätt vy för varje NavigationItem.
     private Node resolveView(NavigationItem item) {
         switch (item) {
+            case HOME:          return new HomeView();
             case CUSTOMERS:     return new CustomerView();
             case VEHICLES:      return new VehicleView();
             case BOOKINGS:      return new BookingView();
