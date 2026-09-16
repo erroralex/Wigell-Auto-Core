@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.view.util.DialogUtil;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -28,7 +29,8 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         setTitle("New Work Order");
         setHeaderText("Create Work Order");
 
-        getDialogPane().getStylesheets().add(getClass().getResource("/com/wac/autocore/view/style.css").toExternalForm());
+        // Hämta css-styling och applicera på nya dialog:
+        DialogUtil.applyTheme(getDialogPane());
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
