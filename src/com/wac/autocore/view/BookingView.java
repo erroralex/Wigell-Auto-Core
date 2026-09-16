@@ -19,6 +19,8 @@ import javafx.scene.text.Text;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <b>BookingView</b>
@@ -28,8 +30,15 @@ public class BookingView extends VBox {
 
     private final ObservableList<Booking> bookingObservableList;
 
+    private final Map<Integer, Vehicle> vehicleMap;
+
     public BookingView() {
         this.bookingObservableList = FXCollections.observableArrayList(Database.getBookings());
+
+        vehicleMap = Database.getVehicles()
+                .stream()
+                .collect(Collectors.toMap(Vehicle::getId, vehicle -> vehicle));
+
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));
@@ -100,13 +109,11 @@ public class BookingView extends VBox {
     }
 
     private String fetchRegId(int vehicleId) {
+        
+        Vehicle vehicle = vehicleMap.get(vehicleId);
 
-        List<Vehicle> vehicleList = Database.getVehicles();
-
-        for (Vehicle vehicle : vehicleList) {
-            if (vehicleId == vehicle.getId()) {
-                return vehicle.getRegistrationNumber();
-            }
+        if (vehicle != null) {
+            return vehicle.getRegistrationNumber();
         }
 
         return "NOT FOUND";
