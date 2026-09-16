@@ -15,8 +15,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
-import javax.xml.crypto.Data;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -40,6 +40,7 @@ public class BookingView extends VBox {
 
     private void show() {
         renderTitle();
+        renderDescText();
         renderTable();
     }
 
@@ -48,6 +49,12 @@ public class BookingView extends VBox {
         title.setId("h1");
         getChildren().add(title);
         title.getStyleClass().add("text-title");
+    }
+
+    private void renderDescText() {
+        Label description = new Label("Bookings are shown in a descending order based on date (Newest to Oldest)");
+        description.getStyleClass().add("text-secondary");
+        getChildren().add(description);
     }
 
     private void renderTable() {
@@ -72,6 +79,7 @@ public class BookingView extends VBox {
 
         dateColumn.setCellValueFactory(cellData ->
                 new SimpleObjectProperty<>(cellData.getValue().getDate()));
+        dateColumn.setSortType(TableColumn.SortType.DESCENDING);
 
         descriptionColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getDescription()));
@@ -86,6 +94,7 @@ public class BookingView extends VBox {
         bookingTableView.getColumns().add(statusColumn);
 
         bookingTableView.setItems(bookingObservableList);
+        bookingTableView.getSortOrder().add(dateColumn);
 
         getChildren().add(bookingTableView);
     }
