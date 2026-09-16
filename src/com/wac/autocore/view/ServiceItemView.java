@@ -6,6 +6,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -24,7 +26,10 @@ public class ServiceItemView extends VBox {
 
     public ServiceItemView() {
         this.serviceItemList = FXCollections.observableArrayList(Database.getServiceItems());
-        this.getStyleClass().add("service-item-view");
+        this.getStyleClass().add("content-area");
+        this.setSpacing(20);
+        this.setPadding(new Insets(20));
+        this.setAlignment(Pos.TOP_LEFT);
 
         show();
     }
@@ -38,6 +43,7 @@ public class ServiceItemView extends VBox {
         Label title = new Label("SERVICE");
         title.setId("h1");
         getChildren().add(title);
+        title.getStyleClass().add("text-title");
     }
 
     private void renderTable() {
