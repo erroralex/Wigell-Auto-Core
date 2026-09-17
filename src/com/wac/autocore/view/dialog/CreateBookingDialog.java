@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
@@ -66,9 +67,19 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     }
 
     private void handleInput() {
+
+        inputEventListeners();
+
+        vehicleComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                vehicleComboBox.getStyleClass().removeAll("input-error");
+            }
+        });
+
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
+
             if (descriptionTextField.getText().isEmpty()) {
                 errorLabel.setText("Please provide a description for the booking.");
                 descriptionTextField.getStyleClass().add("input-error");
@@ -91,7 +102,9 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 LocalDate date = datePicker.getValue();
                 int vehicleId = vehicleComboBox.getValue().getId();
                 if (isVehicleBooked(vehicleId, date)) {
-                    errorLabel.setText("Booking already exists on the selected date.");
+                    AlertHelper.showError("Could not complete booking",
+                            "Vehicle: " + vehicleComboBox.getValue()
+                                    + "is already booked at this date.");
                     event.consume();
                 }
             } catch (NullPointerException e) {
@@ -113,6 +126,26 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             }
 
             return null;
+        });
+    }
+
+    private void inputEventListeners() {
+        vehicleComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                vehicleComboBox.getStyleClass().removeAll("input-error");
+            }
+        });
+
+        datePicker.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                datePicker.getStyleClass().removeAll("input-error");
+            }
+        });
+
+        descriptionTextField.textProperty().addListener((obs, oldVal, newVal) -> {
+          if (newVal != null) {
+              descriptionTextField.getStyleClass().removeAll("input-error");
+          }
         });
     }
 
