@@ -1,6 +1,8 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
@@ -44,7 +46,7 @@ public class WorkOrderView extends VBox {
         this.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(workOrderTable, Priority.ALWAYS);
 
-        Label title = new Label("Work Orders");
+        Label title = new Label("WORK ORDERS");
         title.getStyleClass().add("text-title");
 
         loadMasterData();
@@ -78,15 +80,21 @@ public class WorkOrderView extends VBox {
                 new SimpleStringProperty(String.valueOf(c.getValue().getId()))
         );
 
-        TableColumn<WorkOrder, String> bookingCol = new TableColumn<>("Booking-ID");
-        bookingCol.setCellValueFactory(c ->
-                new SimpleStringProperty(String.valueOf(c.getValue().getBookingId()))
-        );
+        TableColumn<WorkOrder, String> bookingCol = new TableColumn<>("Booking Task");
+        bookingCol.setCellValueFactory(c -> {
+            Booking booking = findBooking(c.getValue().getBookingId());
+            String display = booking != null
+                    ? booking.getDescription()
+                    : "Unknown (#" + c.getValue().getBookingId() + ")";
+            return new SimpleStringProperty(display);
+        });
 
-        TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>("Mechanic-ID");
-        mechanicCol.setCellValueFactory(c ->
-                new SimpleStringProperty(String.valueOf(c.getValue().getMechanicId()))
-        );
+        TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>("Mechanic");
+        mechanicCol.setCellValueFactory(c -> {
+            Mechanic mechanic = findMechanic(c.getValue().getMechanicId());
+            String display = mechanic != null ? mechanic.getName() : "Unknown (#" + c.getValue().getMechanicId() + ")";
+            return new SimpleStringProperty(display);
+        });
 
         TableColumn<WorkOrder, String> itemCountCol = new TableColumn<>("No. of Items");
         itemCountCol.setCellValueFactory(c ->
@@ -108,16 +116,20 @@ public class WorkOrderView extends VBox {
     private void openCreateWorkOrderDialog() {
         CreateWorkOrderDialog dialog = new CreateWorkOrderDialog();
         dialog.showAndWait().ifPresent(result -> {
-            WorkOrder newWorkOrder = garageSystem.createWorkOrder(
-                    result.getBookingId(),
-                    result.getMechanicId(),
-                    result.getServiceItemIds()
-            );
-            if (newWorkOrder != null) {
-                refreshData();
-                AlertHelper.showInfo("Work order created", "A new work order has been created");
-            } else {
-                AlertHelper.showError("Work order could not be created", "Please check availability of mechanics");
+            try {
+                WorkOrder newWorkOrder = garageSystem.createWorkOrder(
+                        result.getBookingId(),
+                        result.getMechanicId(),
+                        result.getServiceItemIds()
+                );
+                if (newWorkOrder != null) {
+                    refreshData();
+                    AlertHelper.showInfo("Work order created", "A new work order has been created");
+                } else {
+                    AlertHelper.showError("Work order could not be created", "Please check availability of mechanics");
+                }
+            } catch (Exception e) {
+                AlertHelper.showException("Unexpected error", "Something went wrong while creating the work order.", e);
             }
         });
     }
@@ -193,5 +205,23 @@ public class WorkOrderView extends VBox {
                     "Could not complete",
                     "The work order could not be completed");
         }
+    }
+
+    private Booking findBooking(int id) {
+        for (Booking booking : Database.getBookings()) {
+            if (booking.getId() == id) {
+                return booking;
+            }
+        }
+        return null;
+    }
+
+    private Mechanic findMechanic(int id) {
+        for (Mechanic mechanic : Database.getMechanics()) {
+            if (mechanic.getId() == id) {
+                return mechanic;
+            }
+        }
+        return null;
     }
 }
