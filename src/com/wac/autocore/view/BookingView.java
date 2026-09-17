@@ -3,6 +3,9 @@ package com.wac.autocore.view;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.view.dialog.CreateBookingDialog;
+import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -10,9 +13,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -28,9 +33,13 @@ import java.util.stream.Collectors;
  */
 public class BookingView extends VBox {
 
+    private final GarageSystem garageSystem = new GarageSystem();
+
     private final ObservableList<Booking> bookingObservableList;
 
     private final Map<Integer, Vehicle> vehicleMap;
+
+    private final Button btnCreate = new Button("Create New");
 
     public BookingView() {
         this.bookingObservableList = FXCollections.observableArrayList(Database.getBookings());
@@ -68,6 +77,7 @@ public class BookingView extends VBox {
 
     private void renderTable() {
         TableView<Booking> bookingTableView = new TableView<>();
+        HBox buttonBar = createButtonBar();
 
         bookingTableView.setEditable(false);
         bookingTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -105,11 +115,11 @@ public class BookingView extends VBox {
         bookingTableView.setItems(bookingObservableList);
         bookingTableView.getSortOrder().add(dateColumn);
 
-        getChildren().add(bookingTableView);
+        getChildren().addAll(buttonBar, bookingTableView);
     }
 
     private String fetchRegId(int vehicleId) {
-        
+
         Vehicle vehicle = vehicleMap.get(vehicleId);
 
         if (vehicle != null) {
@@ -117,6 +127,36 @@ public class BookingView extends VBox {
         }
 
         return "NOT FOUND";
+    }
+
+    private HBox createButtonBar() {
+        String btnPrimary = "btn-primary";
+
+        btnCreate.getStyleClass().addAll("btn", btnPrimary);
+        btnCreate.setOnAction(event -> openCreateBookingDialog());
+
+        HBox hBox = new HBox(15, btnCreate);
+        hBox.setPadding(new Insets(15, 0, 0, 0));
+        hBox.setAlignment(Pos.CENTER_LEFT);
+        return hBox;
+    }
+
+    private void openCreateBookingDialog() {
+        CreateBookingDialog dialog = new CreateBookingDialog();
+
+        dialog.showAndWait().ifPresent(result -> {
+            Booking newBooking = garageSystem.createBooking(
+                    result.getVehicleId(),
+                    result.getDate(),
+                    result.getDescription()
+            );
+            if (newBooking != null) {
+                bookingObservableList.setAll(Database.getBookings());
+                AlertHelper.showInfo("Booking created", "A new booking has been created");
+            } else {
+                AlertHelper.showError("Booking could not be created", "...");
+            }
+        });
     }
 
 
