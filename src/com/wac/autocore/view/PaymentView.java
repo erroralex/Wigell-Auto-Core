@@ -1,5 +1,6 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.view.dialog.ProcessPaymentDialog;
 import javafx.scene.layout.VBox;
 
 /**
@@ -7,4 +8,13 @@ import javafx.scene.layout.VBox;
  * <p>Ansvar: Visar och hanterar betalningar i användargränssnittet.</p>
  */
 public class PaymentView extends VBox {
+
+
+    public PaymentView() {
+
+        ProcessPaymentDialog dialog = new ProcessPaymentDialog();
+        dialog.showAndWait();
+    }
+
+
 }
