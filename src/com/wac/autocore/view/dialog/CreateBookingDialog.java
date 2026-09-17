@@ -70,50 +70,53 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         inputEventListeners();
 
-        vehicleComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                vehicleComboBox.getStyleClass().removeAll("input-error");
-            }
-        });
-
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
 
-            if (descriptionTextField.getText().isEmpty()) {
-                errorLabel.setText("Please provide a description for the booking.");
+            if (descriptionTextField.getText().isEmpty()
+                    && vehicleComboBox.getValue() == null
+                    && datePicker.getValue() == null) {
+                errorLabel.setText("Please fill in the required fields.");
+                vehicleComboBox.getStyleClass().add("input-error");
+                datePicker.getStyleClass().add("input-error");
                 descriptionTextField.getStyleClass().add("input-error");
                 event.consume();
+                return;
             }
 
             if (vehicleComboBox.getValue() == null) {
                 errorLabel.setText("Please select a vehicle.");
                 vehicleComboBox.getStyleClass().add("input-error");
                 event.consume();
+                return;
             }
 
             if (datePicker.getValue() == null) {
                 errorLabel.setText("Please select a date.");
                 datePicker.getStyleClass().add("input-error");
                 event.consume();
+                return;
             }
 
-            try {
-                LocalDate date = datePicker.getValue();
-                int vehicleId = vehicleComboBox.getValue().getId();
-                if (isVehicleBooked(vehicleId, date)) {
+            if (descriptionTextField.getText().isEmpty()) {
+                errorLabel.setText("Please provide a description for the booking.");
+                descriptionTextField.getStyleClass().add("input-error");
+                event.consume();
+                return;
+            }
+
+
+            LocalDate date = datePicker.getValue();
+            int vehicleId = vehicleComboBox.getValue().getId();
+
+            if (isVehicleBooked(vehicleId, date)) {
                     AlertHelper.showError("Could not complete booking",
                             "Vehicle: " + vehicleComboBox.getValue()
-                                    + "is already booked at this date.");
+                                    + "is already booked at this date."
+                    );
                     event.consume();
-                }
-            } catch (NullPointerException e) {
-                errorLabel.setText("Cannot create booking with empty fields.");
-                vehicleComboBox.getStyleClass().add("input-error");
-                datePicker.getStyleClass().add("input-error");
-                descriptionTextField.getStyleClass().add("input-error");
             }
-
         });
 
         setResultConverter(buttonType -> {
@@ -124,7 +127,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                         descriptionTextField.getText()
                 );
             }
-
             return null;
         });
     }
