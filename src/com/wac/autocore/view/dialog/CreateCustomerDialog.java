@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -13,7 +14,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-
 import java.util.regex.Pattern;
 
 /**
@@ -37,7 +37,7 @@ public class CreateCustomerDialog {
         dialog.setTitle("New Customer");
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
         dialog.getDialogPane().setContent(createContent());
-
+        DialogUtil.applyTheme(dialog.getDialogPane());
         configureFields();
         configureButtons();
         dialog.setResultConverter(buttonType -> buttonType == saveButtonType);
