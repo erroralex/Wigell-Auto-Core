@@ -36,7 +36,6 @@ public class InvoiceView extends VBox {
 
     private final Button btnCreateInvoice = new Button("Create");
 
-
     public InvoiceView() {
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
@@ -65,17 +64,17 @@ public class InvoiceView extends VBox {
 
     private void initializeTable() {
 
-        TableColumn<Invoice, Integer> idCol = new TableColumn<>("ID");
+        TableColumn<Invoice, Integer> idCol = new TableColumn<>("Invoice-ID");
         idCol.setCellValueFactory(c ->
                 new SimpleIntegerProperty(c.getValue().getId()).asObject()
         );
 
-        TableColumn<Invoice, Integer> workOrderIdCol = new TableColumn<>("Order-Id");
+        TableColumn<Invoice, Integer> workOrderIdCol = new TableColumn<>("Order-ID");
         workOrderIdCol.setCellValueFactory(c ->
                 new SimpleIntegerProperty(c.getValue().getWorkOrderId()).asObject()
         );
 
-        TableColumn<Invoice, LocalDate> dateCol = new TableColumn<>("Date");
+        TableColumn<Invoice, LocalDate> dateCol = new TableColumn<>("Invoice Date");
         dateCol.setCellValueFactory(c ->
                 new SimpleObjectProperty<>(c.getValue().getInvoiceDate())
         );
@@ -99,6 +98,7 @@ public class InvoiceView extends VBox {
         paidCol.setCellValueFactory(c ->
                 new SimpleBooleanProperty(c.getValue().isPaid()).asObject()
         );
+
         paidCol.setCellFactory(col -> new TableCell<Invoice, Boolean>() {
             @Override
             protected void updateItem(Boolean paid, boolean empty) {
@@ -127,9 +127,6 @@ public class InvoiceView extends VBox {
         btnCreateInvoice.getStyleClass().addAll("btn", btnPrimary);
         btnCreateInvoice.setOnAction(event -> this.openCreateInvoiceDialog());
 
-
-
-
         HBox box = new HBox(15, btnCreateInvoice);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
@@ -138,15 +135,20 @@ public class InvoiceView extends VBox {
 
     private void openCreateInvoiceDialog() {
         CreateInvoiceDialog dialog = new CreateInvoiceDialog();
+
         dialog.showAndWait().ifPresent(result -> {
-            Invoice inv = garageSystem.createInvoice(
+
+            Invoice invoice = garageSystem.createInvoice(
                     result.getWorkOrderId(),
                     result.getDiscountCode()
             );
-            if (inv != null) {
+
+            if (invoice != null) {
                 refreshData();
                 AlertHelper.showInfo("Invoice created", "A new invoice has been created");
-            } else {
+            }
+
+            else {
                 AlertHelper.showError("Could not create", "Check that work order is COMPLETED");
             }
         });
