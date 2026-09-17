@@ -5,6 +5,7 @@ import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -37,7 +38,7 @@ public class CreateVehicleDialog {
         dialog.setTitle("New Vehicle");
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
         dialog.getDialogPane().setContent(createContent());
-
+        DialogUtil.applyTheme(dialog.getDialogPane());
         configureFields();
         configureCustomerComboBox();
         configureButtons();
