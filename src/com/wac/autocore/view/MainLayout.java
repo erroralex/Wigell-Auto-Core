@@ -16,10 +16,9 @@ public class MainLayout extends BorderPane {
 
         this.sideNavigation = new SideNavigation(this);
         this.setLeft(sideNavigation);
-        sideNavigation.setPrefWidth(220);
 
-        // Kundvyn visas som standard vid uppstart
-        setContent(new CustomerView());
+        // Hemvyn visas som standard vid uppstart
+        setContent(new HomeView());
     }
 
     // Byter ut det centrala innehållet. Anropas av SideNavigation vid varje sektionsbyte.

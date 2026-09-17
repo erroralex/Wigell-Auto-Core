@@ -5,6 +5,7 @@ package com.wac.autocore.view;
  * <p>Ansvar: Definierar applikationens navigerbara sektioner och deras visningsetiketter.</p>
  */
 public enum NavigationItem {
+    HOME(           "Home"),
     CUSTOMERS(      "Customers"),
     VEHICLES(       "Vehicles"),
     BOOKINGS(       "Bookings"),
