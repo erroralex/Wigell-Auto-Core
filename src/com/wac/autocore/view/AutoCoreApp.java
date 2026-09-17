@@ -3,7 +3,6 @@ package com.wac.autocore.view;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 
 /**
