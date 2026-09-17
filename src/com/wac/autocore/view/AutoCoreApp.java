@@ -21,7 +21,6 @@ public class AutoCoreApp extends Application {
     private static final double BASE_FONT_SIZE = 13;
     private double currentZoom = 1.0;
 
-
     @Override
     public void start(Stage primaryStage) {
         try {
@@ -50,8 +49,7 @@ public class AutoCoreApp extends Application {
             primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
             primaryStage.show();
 
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
