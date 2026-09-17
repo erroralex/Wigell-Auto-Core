@@ -16,7 +16,6 @@ public class MainLayout extends BorderPane {
 
         this.sideNavigation = new SideNavigation(this);
         this.setLeft(sideNavigation);
-        sideNavigation.setPrefWidth(220);
 
         // Hemvyn visas som standard vid uppstart
         setContent(new HomeView());
