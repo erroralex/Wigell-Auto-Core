@@ -127,6 +127,10 @@
     -fx-font-weight: 700;
 }
 
+.text-error {
+    -fx-text-fill: #E57373;
+}
+
 .text-section {
     -fx-font-size: 18px;
     -fx-font-weight: 700;
