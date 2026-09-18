@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -23,9 +24,7 @@ public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
         this.setTitle("New Invoice");
         this.setHeaderText("Create Invoice");
 
-        this.getDialogPane().getStylesheets().add(
-                this.getClass().getResource("/com/wac/autocore/view/style.css").toExternalForm()
-        );
+        DialogUtil.applyTheme(getDialogPane());
 
         ComboBox<WorkOrder> workOrderSelection = new ComboBox<>();
         TextField discountCodeInput = new TextField();
