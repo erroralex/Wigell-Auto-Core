@@ -24,7 +24,7 @@ public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
         this.setTitle("New Payment");
         this.setHeaderText("Register Payment");
 
-        DialogUtil.applyTheme(getDialogPane());
+        DialogUtil.applyTheme(this);
 
         ComboBox<String> paymentTypeSelection = new ComboBox<>();
 

@@ -32,7 +32,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         setHeaderText("Create Work Order");
 
         // Hämta css-styling och applicera på nya dialog:
-        DialogUtil.applyTheme(getDialogPane());
+        DialogUtil.applyTheme(this);
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 

@@ -32,7 +32,7 @@ public class AlertHelper {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        DialogUtil.applyTheme(alert.getDialogPane());
+        DialogUtil.applyTheme(alert);
         alert.showAndWait();
     }
 
@@ -42,7 +42,7 @@ public class AlertHelper {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        DialogUtil.applyTheme(alert.getDialogPane());
+        DialogUtil.applyTheme(alert);
         alert.showAndWait();
     }
 
@@ -52,7 +52,7 @@ public class AlertHelper {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        DialogUtil.applyTheme(alert.getDialogPane());
+        DialogUtil.applyTheme(alert);
 
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
@@ -64,7 +64,7 @@ public class AlertHelper {
         alert.setTitle(title);
         alert.setHeaderText(message);
         alert.setContentText(e.toString());
-        DialogUtil.applyTheme(alert.getDialogPane());
+        DialogUtil.applyTheme(alert);
 
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);

@@ -34,7 +34,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         setTitle("New Booking");
         setHeaderText("Create Booking");
 
-        DialogUtil.applyTheme(getDialogPane());
+        DialogUtil.applyTheme(this);
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 

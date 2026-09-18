@@ -38,7 +38,7 @@ public class CreateVehicleDialog {
         dialog.setTitle("New Vehicle");
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
         dialog.getDialogPane().setContent(createContent());
-        DialogUtil.applyTheme(dialog.getDialogPane());
+        DialogUtil.applyTheme(dialog);
         configureFields();
         configureCustomerComboBox();
         configureButtons();

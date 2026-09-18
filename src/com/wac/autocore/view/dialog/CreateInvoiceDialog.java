@@ -24,7 +24,7 @@ public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
         this.setTitle("New Invoice");
         this.setHeaderText("Create Invoice");
 
-        DialogUtil.applyTheme(getDialogPane());
+        DialogUtil.applyTheme(this);
 
         ComboBox<WorkOrder> workOrderSelection = new ComboBox<>();
         TextField discountCodeInput = new TextField();

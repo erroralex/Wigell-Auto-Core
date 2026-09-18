@@ -11,6 +11,7 @@ import javafx.stage.Stage;
  */
 public class AutoCoreApp extends Application {
 
+    private static Stage primaryStage;
     private static final int WIDTH = 1200;
     private static final int HEIGHT = 800;
 
@@ -24,6 +25,7 @@ public class AutoCoreApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
+            AutoCoreApp.primaryStage = primaryStage;
             MainLayout layout = new MainLayout();
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
             scene.setFill(javafx.scene.paint.Color.web("#212121"));
@@ -52,6 +54,10 @@ public class AutoCoreApp extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static Stage getPrimaryStage() {
+        return primaryStage;
     }
 
     public static void main(String[] args) {
