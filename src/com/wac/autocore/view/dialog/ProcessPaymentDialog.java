@@ -1,6 +1,7 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Invoice;
+import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -23,9 +24,7 @@ public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
         this.setTitle("New Payment");
         this.setHeaderText("Register Payment");
 
-        this.getDialogPane().getStylesheets().add(
-                this.getClass().getResource("/com/wac/autocore/view/style.css").toExternalForm()
-        );
+        DialogUtil.applyTheme(this);
 
         ComboBox<String> paymentTypeSelection = new ComboBox<>();
 
