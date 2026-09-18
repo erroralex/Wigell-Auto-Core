@@ -38,7 +38,7 @@ public class HomeView extends VBox {
                         "to manage customers, vehicles, bookings, and work orders."
         );
 
-        welcomeLabel.getStyleClass().add("text-title");
+        welcomeLabel.getStyleClass().add("text-content");
         welcomeLabel.setWrapText(true);
         welcomeLabel.setMaxWidth(900);
 
