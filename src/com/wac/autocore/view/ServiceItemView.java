@@ -40,7 +40,7 @@ public class ServiceItemView extends VBox {
     }
 
     private void renderTitle() {
-        Label title = new Label("SERVICE");
+        Label title = new Label("Service");
         title.setId("h1");
         getChildren().add(title);
         title.getStyleClass().add("text-title");

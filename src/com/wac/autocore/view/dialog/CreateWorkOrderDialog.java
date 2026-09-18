@@ -23,6 +23,8 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
     private final ListView<ServiceItem> serviceItemList = new ListView<>();
     private final Label totalLabel = new Label("Sum: 0.00 kr");
 
+    private static final String BOOKING_STATUS_BOOKED = "BOOKED";
+
     private final ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
 
     public CreateWorkOrderDialog() {
@@ -36,7 +38,12 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
 
         // -------------------------------------------------------------------------------------------------------------
 
-        bookingCombo.getItems().addAll(Database.getBookings());
+        for (Booking booking : Database.getBookings()) {
+            if (BOOKING_STATUS_BOOKED.equals(booking.getStatus())) {
+                bookingCombo.getItems().add(booking);
+            }
+        }
+
         bookingCombo.setConverter(new StringConverter<Booking>() {
 
             @Override
