@@ -113,7 +113,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             if (isVehicleBooked(vehicleId, date)) {
                     AlertHelper.showError("Could not complete booking",
                             "Vehicle: " + vehicleComboBox.getValue()
-                                    + "is already booked at this date."
+                                    + " is already booked at this date."
                     );
                     event.consume();
             }
