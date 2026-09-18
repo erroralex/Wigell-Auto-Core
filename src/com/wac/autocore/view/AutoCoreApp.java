@@ -15,7 +15,7 @@ public class AutoCoreApp extends Application {
     private static final int HEIGHT = 800;
 
     private static final double MIN_ZOOM = 0.7;
-    private static final double MAX_ZOOM = 2.0;
+    private static final double MAX_ZOOM = 3.0;
     private static final double ZOOM_STEP = 1.05;
 
     private static final double BASE_FONT_SIZE = 13;
