@@ -154,7 +154,7 @@ public class BookingView extends VBox {
                 bookingObservableList.setAll(Database.getBookings());
                 AlertHelper.showInfo("Booking created", "A new booking has been created");
             } else {
-                AlertHelper.showError("Booking could not be created", "...");
+                AlertHelper.showError("Booking could not be created", "Something went wrong: Booking could not be created.");
             }
         });
     }
