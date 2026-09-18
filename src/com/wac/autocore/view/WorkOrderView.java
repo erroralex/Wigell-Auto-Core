@@ -46,7 +46,7 @@ public class WorkOrderView extends VBox {
         this.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(workOrderTable, Priority.ALWAYS);
 
-        Label title = new Label("WORK ORDERS");
+        Label title = new Label("Work Orders");
         title.getStyleClass().add("text-title");
 
         loadMasterData();

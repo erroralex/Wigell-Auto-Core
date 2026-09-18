@@ -63,7 +63,7 @@ public class BookingView extends VBox {
     }
 
     private void renderTitle() {
-        Label title = new Label("BOOKINGS");
+        Label title = new Label("Bookings");
         title.setId("h1");
         getChildren().add(title);
         title.getStyleClass().add("text-title");
