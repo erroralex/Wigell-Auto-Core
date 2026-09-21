@@ -33,7 +33,7 @@ src/                                    # sourceroot
 
 # Git-flöde: från branch till Pull Request
 
-## 1. Uppdatera main lokalt
+## 1. Uppdatera dev lokalt
 Byt till dev och hämta senaste versionen från GitHub innan du börjar något nytt:
 ```bash
 git checkout dev
@@ -84,5 +84,5 @@ Gå till repot på GitHub, öppna en PR från din branch mot `dev`. Skriv gärna
 **Krav innan merge (branch protection):**
 - ✅ Minst 1 godkänd review
 - ✅ `compile`-checken är grön
-- ✅ Branchen är uppdaterad mot `main`
+- ✅ Branchen är uppdaterad mot `dev`
 - ✅ Alla kommentarer/konversationer är lösta
