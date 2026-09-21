@@ -34,10 +34,10 @@ src/                                    # sourceroot
 # Git-flöde: från branch till Pull Request
 
 ## 1. Uppdatera main lokalt
-Byt till main och hämta senaste versionen från GitHub innan du börjar något nytt:
+Byt till dev och hämta senaste versionen från GitHub innan du börjar något nytt:
 ```bash
-git checkout main
-git pull origin main
+git checkout dev
+git pull origin dev
 ```
 
 ## 2. Skapa och checka ut en ny branch
@@ -79,7 +79,7 @@ git push -u origin namn-pa-branch
 Flaggan `-u` kopplar ihop din lokala branch med samma branch på GitHub, så du bara kan skriva `git push` nästa gång.
 
 ## 8. Öppna en Pull Request
-Gå till repot på GitHub, öppna en PR från din branch mot `main`. Skriv gärna en kort beskrivning av vad ändringen gör.
+Gå till repot på GitHub, öppna en PR från din branch mot `dev`. Skriv gärna en kort beskrivning av vad ändringen gör.
 
 **Krav innan merge (branch protection):**
 - ✅ Minst 1 godkänd review
