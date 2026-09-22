@@ -1,4 +1,4 @@
-package main.java.com.wac.autocore;
+package com.wac.autocore;
 
 import com.wac.autocore.view.AutoCoreApp;
 
