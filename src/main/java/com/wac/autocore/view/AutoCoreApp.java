@@ -1,5 +1,6 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.service.LanguageManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
@@ -45,7 +46,9 @@ public class AutoCoreApp extends Application {
                 }
             });
 
-            primaryStage.setTitle("Wigell Auto");
+            // Fönstertiteln binds, annars ligger den kvar på svenska efter språkbyte
+            primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
+
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
             primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));

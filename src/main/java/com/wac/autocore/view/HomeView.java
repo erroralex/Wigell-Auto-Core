@@ -1,5 +1,6 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.service.LanguageManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -7,7 +8,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
+import java.net.URL;
+
 public class HomeView extends VBox {
+
+    private static final String LOGO_PATH = "assets/wigell-auto-logo.png";
+    private final LanguageManager lang = LanguageManager.getInstance();
 
     public HomeView() {
         this.getStyleClass().add("content-area");
@@ -15,36 +21,30 @@ public class HomeView extends VBox {
         this.setPadding(new Insets(20));
         this.setAlignment(Pos.TOP_LEFT);
 
-        Label logo = new Label();
-        Image logoImage = null;
-        try {
-            logoImage = new Image(getClass().getResource("assets/wigell-auto-logo.png").toExternalForm());
-        } catch (Exception e) {
-            System.err.println("Error loading status image: " + "wigell-auto-logo.png" + ". Using text placeholder.");
-        }
-
-        if (logoImage != null) {
-            ImageView statusImageView = new ImageView(logoImage);
-            statusImageView.setFitWidth(800);
-            statusImageView.setPreserveRatio(true);
-            logo.setGraphic(statusImageView);
-            logo.setAlignment(Pos.TOP_CENTER);
-        } else {
-            logo.setText("Wigell Auto");
-        }
-
-        Label welcomeLabel = new Label(
-                "Welcome to Wigell Auto's service management tool. Use the menu on the left" + "\n" +
-                        "to manage customers, vehicles, bookings, and work orders."
-        );
-
+        Label welcomeLabel = new Label();
+        welcomeLabel.textProperty().bind(lang.bind("home.welcome"));
         welcomeLabel.getStyleClass().add("text-content");
         welcomeLabel.setWrapText(true);
         welcomeLabel.setMaxWidth(900);
 
-        this.getChildren().addAll(logo, welcomeLabel);
-
+        this.getChildren().addAll(createLogo(), welcomeLabel);
     }
 
+    // Visar logotypen, eller appens namn som text om bilden inte kan laddas
+    private Label createLogo() {
+        Label logo = new Label();
+        URL logoUrl = getClass().getResource(LOGO_PATH);
 
+        if (logoUrl != null) {
+            ImageView imageView = new ImageView(new Image(logoUrl.toExternalForm()));
+            imageView.setFitWidth(800);
+            imageView.setPreserveRatio(true);
+            logo.setGraphic(imageView);
+            logo.setAlignment(Pos.TOP_CENTER);
+        } else {
+            System.err.println("Could not load " + LOGO_PATH + ". Using text placeholder.");
+            logo.textProperty().bind(lang.bind("app.title"));
+        }
+        return logo;
+    }
 }

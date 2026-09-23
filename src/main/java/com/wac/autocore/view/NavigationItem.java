@@ -5,23 +5,23 @@ package com.wac.autocore.view;
  * <p>Ansvar: Definierar applikationens navigerbara sektioner och deras visningsetiketter.</p>
  */
 public enum NavigationItem {
-    HOME(           "Home"),
-    CUSTOMERS(      "Customers"),
-    VEHICLES(       "Vehicles"),
-    BOOKINGS(       "Bookings"),
-    SERVICE_ITEMS(  "Service Items"),
-    MECHANICS(      "Mechanics"),
-    WORK_ORDERS(    "Work Orders"),
-    INVOICES(       "Invoices"),
-    PAYMENTS(       "Payments"),;
+    HOME(           "nav.home"),
+    CUSTOMERS(      "nav.customers"),
+    VEHICLES(       "nav.vehicles"),
+    BOOKINGS(       "nav.bookings"),
+    SERVICE_ITEMS(  "nav.serviceItems"),
+    MECHANICS(      "nav.mechanics"),
+    WORK_ORDERS(    "nav.workOrders"),
+    INVOICES(       "nav.invoices"),
+    PAYMENTS(       "nav.payments");
 
-    private final String label;
+    private final String key;
 
-    NavigationItem(String label){
-        this.label = label;
+    NavigationItem(String key){
+        this.key = key;
     }
 
-    public String getLabel(){
-        return label;
+    public String getKey(){
+        return key;
     }
 }
