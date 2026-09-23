@@ -146,6 +146,7 @@ public class Database {
                 LocalDate.now().plusDays(4),
                 "Noise from front brakes"
         ));
+
     }
 
     public static List<Customer> getCustomers() {
@@ -178,5 +179,36 @@ public class Database {
 
     public static List<Payment> getPayments() {
         return payments;
+    }
+
+    public static List<Booking> getBookingsForMechanic(int mechanicId) {
+        List<Booking> result = new ArrayList<>();
+        for (WorkOrder wo : workOrders) {
+            if (wo.getMechanicId() == mechanicId) {
+                Booking booking = getBookingById(wo.getBookingId());
+                if (booking != null) {
+                    result.add(booking);
+                }
+            }
+        }
+        return result;
+    }
+
+    public static Booking getBookingById(int id) {
+        for (Booking b : bookings) {
+            if (b.getId() == id) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    public static Vehicle getVehicleById(int id) {
+        for (Vehicle v : vehicles) {
+            if (v.getId() == id) {
+                return v;
+            }
+        }
+        return null;
     }
 }

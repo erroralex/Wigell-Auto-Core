@@ -245,6 +245,7 @@ public class GarageSystem {
         Database.getWorkOrders().add(workOrder);
 
         booking.setStatus("WORK_ORDER_CREATED");
+        mechanic.setAvailable(false);
 
         System.out.println("Work order created successfully.");
         System.out.println(workOrder);
