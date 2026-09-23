@@ -68,7 +68,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label("Date"), datePicker,
                 new Label("Description"), descriptionTextField,
                 new Label("Mechanic"), mechanicComboBox,
-                new Label("Service"), serviceItemComboBox
+                new Label("Service"), serviceItemComboBox,
+                new Label("Estimated time: "), estimatedTimeLabel
         );
         getDialogPane().setContent(content);
 
