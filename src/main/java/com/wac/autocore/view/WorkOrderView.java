@@ -5,6 +5,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleStringProperty;
@@ -26,6 +27,8 @@ import javafx.scene.layout.VBox;
  */
 public class WorkOrderView extends VBox {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private static final String STATUS_CREATED = "CREATED";
     private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
     private static final String STATUS_COMPLETED = "COMPLETED";
@@ -35,9 +38,9 @@ public class WorkOrderView extends VBox {
 
     private final GarageSystem garageSystem = new GarageSystem();
 
-    private final Button btnStart = new Button("Start");
-    private final Button btnComplete = new Button("Complete");
-    private final Button btnCreate = new Button("Create new");
+    private final Button btnStart = new Button(lang.get("btn.start"));
+    private final Button btnComplete = new Button(lang.get("btn.complete"));
+    private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
     public WorkOrderView() {
         this.getStyleClass().add("content-area");
@@ -46,7 +49,7 @@ public class WorkOrderView extends VBox {
         this.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(workOrderTable, Priority.ALWAYS);
 
-        Label title = new Label("Work Orders");
+        Label title = new Label(lang.get("workOrder.title"));
         title.getStyleClass().add("text-title");
 
         loadMasterData();
@@ -75,41 +78,43 @@ public class WorkOrderView extends VBox {
 
         // -------------------------------------------------------------------------------------------------------------
 
-        TableColumn<WorkOrder, String> idCol = new TableColumn<>("Order-ID");
+        TableColumn<WorkOrder, String> idCol = new TableColumn<>(lang.get("table.workOrderId"));
         idCol.setCellValueFactory(c ->
                 new SimpleStringProperty(String.valueOf(c.getValue().getId()))
         );
 
-        TableColumn<WorkOrder, String> bookingCol = new TableColumn<>("Booking Task");
+        TableColumn<WorkOrder, String> bookingCol = new TableColumn<>(lang.get("table.bookingTask"));
         bookingCol.setCellValueFactory(c -> {
             Booking booking = findBooking(c.getValue().getBookingId());
             String display = booking != null
                     ? booking.getDescription()
-                    : "Unknown (#" + c.getValue().getBookingId() + ")";
+                    : lang.get("common.unknownId", c.getValue().getBookingId());
             return new SimpleStringProperty(display);
         });
 
-        TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>("Mechanic");
+        TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>(lang.get("table.mechanic"));
         mechanicCol.setCellValueFactory(c -> {
             Mechanic mechanic = findMechanic(c.getValue().getMechanicId());
-            String display = mechanic != null ? mechanic.getName() : "Unknown (#" + c.getValue().getMechanicId() + ")";
+            String display = mechanic != null ? mechanic.getName() : lang.get("common.unknownId", c.getValue().getMechanicId());
             return new SimpleStringProperty(display);
         });
 
-        TableColumn<WorkOrder, String> itemCountCol = new TableColumn<>("No. of Items");
+        TableColumn<WorkOrder, String> itemCountCol = new TableColumn<>(lang.get("table.itemCount"));
         itemCountCol.setCellValueFactory(c ->
                 new SimpleStringProperty(String.valueOf(c.getValue().getServiceItemIds().size()))
         );
 
-        TableColumn<WorkOrder, String> statusCol = new TableColumn<>("Status");
+        // Statusen sparas som CREATED/IN_PROGRESS/COMPLETED, bara visningen översätts
+        TableColumn<WorkOrder, String> statusCol = new TableColumn<>(lang.get("table.status"));
         statusCol.setCellValueFactory(c ->
-                new SimpleStringProperty(String.valueOf(c.getValue().getStatus()))
+                new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
         );
 
         // -------------------------------------------------------------------------------------------------------------
 
         workOrderTable.getColumns().addAll(idCol, bookingCol, mechanicCol, itemCountCol, statusCol);
         workOrderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        workOrderTable.setPlaceholder(new Label(lang.get("table.empty")));
         workOrderTable.setItems(masterData);
     }
 
@@ -124,12 +129,12 @@ public class WorkOrderView extends VBox {
                 );
                 if (newWorkOrder != null) {
                     refreshData();
-                    AlertHelper.showInfo("Work order created", "A new work order has been created");
+                    AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
                 } else {
-                    AlertHelper.showError("Work order could not be created", "Please check availability of mechanics");
+                    AlertHelper.showError(lang.get("error.workOrder"), lang.get("error.workOrderCreate"));
                 }
             } catch (Exception e) {
-                AlertHelper.showException("Unexpected error", "Something went wrong while creating the work order.", e);
+                AlertHelper.showException(lang.get("error.unexpected"), lang.get("error.workOrderUnexpected"), e);
             }
         });
     }
@@ -176,12 +181,12 @@ public class WorkOrderView extends VBox {
         if (!statusBefore.equals(statusAfter) && STATUS_IN_PROGRESS.equals(statusAfter)) {
             refreshData();
             AlertHelper.showInfo(
-                    "Work order started",
-                    "The work order has been started");
+                    lang.get("workOrder.started"),
+                    lang.get("workOrder.startedMsg"));
         } else  {
             AlertHelper.showError(
-                    "Could not start",
-                    "The work order could not be started. Check availability of the mechanic");
+                    lang.get("error.workOrderStart"),
+                    lang.get("error.workOrderStartMsg"));
         }
     }
 
@@ -198,12 +203,12 @@ public class WorkOrderView extends VBox {
         if (!statusBefore.equals(statusAfter) && STATUS_COMPLETED.equals(statusAfter)) {
             refreshData();
             AlertHelper.showInfo(
-                    "Workorder completed",
-                    "The work order has been completed and is ready for invoice");
+                    lang.get("workOrder.completed"),
+                    lang.get("workOrder.completedMsg"));
         }  else  {
             AlertHelper.showError(
-                    "Could not complete",
-                    "The work order could not be completed");
+                    lang.get("error.workOrderComplete"),
+                    lang.get("error.workOrderCompleteMsg"));
         }
     }
 

@@ -3,6 +3,7 @@ package com.wac.autocore.view;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -27,6 +28,8 @@ import java.time.LocalDate;
  */
 public class InvoiceView extends VBox {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private final GarageSystem garageSystem = new GarageSystem();
 
     private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
@@ -34,7 +37,7 @@ public class InvoiceView extends VBox {
 
     private final TableView<Invoice> invoiceTable = new TableView<>();
 
-    private final Button btnCreateInvoice = new Button("Create");
+    private final Button btnCreateInvoice = new Button(lang.get("btn.create"));
 
     public InvoiceView() {
         this.getStyleClass().add("content-area");
@@ -43,7 +46,7 @@ public class InvoiceView extends VBox {
         this.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(invoiceTable, Priority.ALWAYS);
 
-        Label title = new Label("Invoices");
+        Label title = new Label(lang.get("invoice.title"));
         title.getStyleClass().add("text-title");
 
         this.loadMasterData();
@@ -64,37 +67,37 @@ public class InvoiceView extends VBox {
 
     private void initializeTable() {
 
-        TableColumn<Invoice, Integer> idCol = new TableColumn<>("Invoice-ID");
+        TableColumn<Invoice, Integer> idCol = new TableColumn<>(lang.get("table.invoiceId"));
         idCol.setCellValueFactory(c ->
                 new SimpleIntegerProperty(c.getValue().getId()).asObject()
         );
 
-        TableColumn<Invoice, Integer> workOrderIdCol = new TableColumn<>("Order-ID");
+        TableColumn<Invoice, Integer> workOrderIdCol = new TableColumn<>(lang.get("table.workOrderId"));
         workOrderIdCol.setCellValueFactory(c ->
                 new SimpleIntegerProperty(c.getValue().getWorkOrderId()).asObject()
         );
 
-        TableColumn<Invoice, LocalDate> dateCol = new TableColumn<>("Invoice Date");
+        TableColumn<Invoice, LocalDate> dateCol = new TableColumn<>(lang.get("table.invoiceDate"));
         dateCol.setCellValueFactory(c ->
                 new SimpleObjectProperty<>(c.getValue().getInvoiceDate())
         );
 
-        TableColumn<Invoice, Double> amountCol = new TableColumn<>("Amount");
+        TableColumn<Invoice, Double> amountCol = new TableColumn<>(lang.get("table.amount"));
         amountCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getAmount()).asObject()
         );
 
-        TableColumn<Invoice, Double> discountCol = new TableColumn<>("Discount");
+        TableColumn<Invoice, Double> discountCol = new TableColumn<>(lang.get("table.discount"));
         discountCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getDiscount()).asObject()
         );
 
-        TableColumn<Invoice, Double> totalCol = new TableColumn<>("Total");
+        TableColumn<Invoice, Double> totalCol = new TableColumn<>(lang.get("table.total"));
         totalCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getTotalAmount()).asObject()
         );
 
-        TableColumn<Invoice, Boolean> paidCol = new TableColumn<>("Paid");
+        TableColumn<Invoice, Boolean> paidCol = new TableColumn<>(lang.get("table.paid"));
         paidCol.setCellValueFactory(c ->
                 new SimpleBooleanProperty(c.getValue().isPaid()).asObject()
         );
@@ -106,7 +109,7 @@ public class InvoiceView extends VBox {
                 if (empty || paid == null) {
                     setText(null);
                 } else {
-                    setText(paid ? "Yes" : "No");
+                    setText(paid ? lang.get("common.yes") : lang.get("common.no"));
                 }
             }
         });
@@ -116,6 +119,7 @@ public class InvoiceView extends VBox {
         );
 
         this.invoiceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        this.invoiceTable.setPlaceholder(new Label(lang.get("table.empty")));
 
         this.sortedData.comparatorProperty().bind(this.invoiceTable.comparatorProperty());
         this.invoiceTable.setItems(this.sortedData);
@@ -145,11 +149,11 @@ public class InvoiceView extends VBox {
 
             if (invoice != null) {
                 refreshData();
-                AlertHelper.showInfo("Invoice created", "A new invoice has been created");
+                AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
             }
 
             else {
-                AlertHelper.showError("Could not create", "Check that work order is COMPLETED");
+                AlertHelper.showError(lang.get("error.invoice"), lang.get("error.invoiceCreate"));
             }
         });
     }

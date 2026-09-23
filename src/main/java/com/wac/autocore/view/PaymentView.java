@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.ProcessPaymentDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -30,6 +31,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class PaymentView extends VBox {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private final GarageSystem garageSystem = new GarageSystem();
 
     private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
@@ -37,7 +40,7 @@ public class PaymentView extends VBox {
 
     private final TableView<Invoice> invoiceTable = new TableView<>();
 
-    private final Button btnPay = new Button("Pay");
+    private final Button btnPay = new Button(lang.get("btn.pay"));
 
     public PaymentView() {
         this.getStyleClass().add("content-area");
@@ -46,7 +49,7 @@ public class PaymentView extends VBox {
         this.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(invoiceTable, Priority.ALWAYS);
 
-        Label title = new Label("Payments");
+        Label title = new Label(lang.get("payment.title"));
         title.getStyleClass().add("text-title");
 
         this.loadMasterData();
@@ -74,47 +77,48 @@ public class PaymentView extends VBox {
 
     private void initializeTable() {
 
-        TableColumn<Invoice, Integer> idCol = new TableColumn<>("Invoice-ID");
+        TableColumn<Invoice, Integer> idCol = new TableColumn<>(lang.get("table.invoiceId"));
         idCol.setCellValueFactory(c ->
                 new SimpleIntegerProperty(c.getValue().getId()).asObject()
         );
 
-        TableColumn<Invoice, Double> amountCol = new TableColumn<>("Amount");
+        TableColumn<Invoice, Double> amountCol = new TableColumn<>(lang.get("table.amount"));
         amountCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getAmount()).asObject()
         );
 
-        TableColumn<Invoice, Double> discountCol = new TableColumn<>("Discount");
+        TableColumn<Invoice, Double> discountCol = new TableColumn<>(lang.get("table.discount"));
         discountCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getDiscount()).asObject()
         );
 
-        TableColumn<Invoice, Double> totalCol = new TableColumn<>("Total");
+        TableColumn<Invoice, Double> totalCol = new TableColumn<>(lang.get("table.total"));
         totalCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getTotalAmount()).asObject()
         );
 
-        TableColumn<Invoice, String> typeCol = new TableColumn<>("Payment Type");
+        TableColumn<Invoice, String> typeCol = new TableColumn<>(lang.get("table.paymentType"));
         typeCol.setCellValueFactory(c -> {
             Payment payment = this.findPayment(c.getValue());
 
             if (payment == null)
                 return new SimpleStringProperty("–");
 
-            return new SimpleStringProperty(payment.getPaymentType());
+            // Samma nycklar som i ProcessPaymentDialog: CARD/SWISH/CASH översätts vid visning
+            return new SimpleStringProperty(lang.get("payment.type." + payment.getPaymentType()));
         });
 
-        TableColumn<Invoice, String> successfulCol = new TableColumn<>("Successful");
+        TableColumn<Invoice, String> successfulCol = new TableColumn<>(lang.get("table.successful"));
         successfulCol.setCellValueFactory(c -> {
             Payment payment = this.findPayment(c.getValue());
 
             if (payment == null)
                 return new SimpleStringProperty("–");
 
-            return new SimpleStringProperty(payment.isSuccessful() ? "Yes" : "No");
+            return new SimpleStringProperty(payment.isSuccessful() ? lang.get("common.yes") : lang.get("common.no"));
         });
 
-        TableColumn<Invoice, String> dateCol = new TableColumn<>("Date");
+        TableColumn<Invoice, String> dateCol = new TableColumn<>(lang.get("table.date"));
         dateCol.setCellValueFactory(c -> {
             Payment payment = this.findPayment(c.getValue());
 
@@ -131,6 +135,7 @@ public class PaymentView extends VBox {
         );
 
         this.invoiceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        this.invoiceTable.setPlaceholder(new Label(lang.get("table.empty")));
 
         this.sortedData.comparatorProperty().bind(this.invoiceTable.comparatorProperty());
         this.invoiceTable.setItems(this.sortedData);
@@ -185,11 +190,11 @@ public class PaymentView extends VBox {
 
             if (payment != null && payment.isSuccessful()) {
                 refreshData();
-                AlertHelper.showInfo("Payment registered", "The payment was successful");
+                AlertHelper.showInfo(lang.get("payment.registered"), lang.get("payment.registeredMsg"));
             }
 
             else {
-                AlertHelper.showError("Could not pay", "The payment could not be processed");
+                AlertHelper.showError(lang.get("error.payment"), lang.get("error.paymentProcess"));
             }
         });
     }

@@ -3,6 +3,7 @@ package com.wac.autocore.view;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateVehicleDialog;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -29,7 +30,10 @@ import java.util.Map;
  */
 public class VehicleView extends VBox {
 
-    private static final Customer ALL_CUSTOMERS = new Customer(0, "All Customers", "", "");
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
+    // Markörobjekt för "alla kunder". Namnet visas aldrig, texten kommer från converter nedan
+    private static final Customer ALL_CUSTOMERS = new Customer(0, "", "", "");
 
     private final TableView<Vehicle> vehicleTable = new TableView<>();
     private final ObservableList<Vehicle> masterData = FXCollections.observableArrayList();
@@ -45,7 +49,7 @@ public class VehicleView extends VBox {
         this.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(vehicleTable, Priority.ALWAYS);
 
-        Label title = new Label("Vehicles");
+        Label title = new Label(lang.get("vehicle.title"));
         title.getStyleClass().add("text-title");
 
         loadCustomers();
@@ -71,37 +75,38 @@ public class VehicleView extends VBox {
 
     private void refreshData() {
         loadCustomers();
+        customerFilterOptions.add(0, ALL_CUSTOMERS);
         masterData.setAll(Database.getVehicles());
         applyCustomerFilter(customerFilter.getValue());
     }
 
     private void initializeTable() {
-        TableColumn<Vehicle, String> idColumn = new TableColumn<>("Id");
+        TableColumn<Vehicle, String> idColumn = new TableColumn<>(lang.get("table.id"));
         idColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(String.valueOf(cellData.getValue().getId()))
         );
 
-        TableColumn<Vehicle, String> registrationNumberColumn = new TableColumn<>("Registration Number");
+        TableColumn<Vehicle, String> registrationNumberColumn = new TableColumn<>(lang.get("table.regNumber"));
         registrationNumberColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getRegistrationNumber())
         );
 
-        TableColumn<Vehicle, String> makeColumn = new TableColumn<>("Make");
+        TableColumn<Vehicle, String> makeColumn = new TableColumn<>(lang.get("table.make"));
         makeColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getBrand())
         );
 
-        TableColumn<Vehicle, String> modelColumn = new TableColumn<>("Model");
+        TableColumn<Vehicle, String> modelColumn = new TableColumn<>(lang.get("table.model"));
         modelColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getModel())
         );
 
-        TableColumn<Vehicle, String> yearColumn = new TableColumn<>("Year");
+        TableColumn<Vehicle, String> yearColumn = new TableColumn<>(lang.get("table.year"));
         yearColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(String.valueOf(cellData.getValue().getYear()))
         );
 
-        TableColumn<Vehicle, String> ownerColumn = new TableColumn<>("Owner");
+        TableColumn<Vehicle, String> ownerColumn = new TableColumn<>(lang.get("table.owner"));
         ownerColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(resolveOwnerName(cellData.getValue().getCustomerId()))
         );
@@ -115,16 +120,21 @@ public class VehicleView extends VBox {
                 ownerColumn
         );
         vehicleTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        vehicleTable.setPlaceholder(new Label(lang.get("table.empty")));
         vehicleTable.setItems(filteredData);
     }
 
     private void configureCustomerFilter() {
         customerFilter.getStyleClass().add("combo-box");
-        customerFilter.setPromptText("Filter by Customer");
+        customerFilter.setPromptText(lang.get("vehicle.filterPrompt"));
         customerFilter.setConverter(new StringConverter<Customer>() {
             @Override
             public String toString(Customer customer) {
-                return customer == null ? "" : customer.getName();
+                if (customer == null) {
+                    return "";
+                }
+                // Markörobjektet översätts här, eftersom ett static-fält inte kan följa språkbyten
+                return customer == ALL_CUSTOMERS ? lang.get("vehicle.allCustomers") : customer.getName();
             }
 
             @Override
@@ -155,7 +165,7 @@ public class VehicleView extends VBox {
     }
 
     private HBox createToolbar() {
-        Button newVehicleButton = new Button("New Vehicle");
+        Button newVehicleButton = new Button(lang.get("vehicle.new"));
         newVehicleButton.getStyleClass().addAll("btn", "btn-primary");
         newVehicleButton.setOnAction(event -> openCreateVehicleDialog());
 
@@ -171,5 +181,4 @@ public class VehicleView extends VBox {
             refreshData();
         }
     }
-
 }
