@@ -1,7 +1,10 @@
 package com.wac.autocore.view.util;
 
 import com.wac.autocore.service.LanguageManager;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 
 import java.io.PrintWriter;
@@ -13,8 +16,9 @@ import java.util.Optional;
  * <p>Ansvar: Hjälpklass för att visa dialogrutor och varningar i användargränssnittet.</p>
  * <p><b>Exempel på användning:</b></p>
  * <pre>{@code
+LanguageManager lang = LanguageManager.getInstance();
  * if (nameField.getText().isEmpty()) {
- *     AlertHelper.showError("Valideringsfel", "Namn måste anges.");
+ *     AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.name")));
  *     return;
  * }
  * }</pre>
