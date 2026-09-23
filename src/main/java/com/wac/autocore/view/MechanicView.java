@@ -124,8 +124,6 @@ public class MechanicView extends VBox {
                 contentColumn.getChildren().remove(bookingsView);
                 bookingsView = null;
             });
-           /* bookingsView.setPrefWidth(280);
-            bookingsView.setMinWidth(200);*/
             HBox.setHgrow(bookingsView, Priority.NEVER);
             contentColumn.getChildren().add(bookingsView);
         } else {
