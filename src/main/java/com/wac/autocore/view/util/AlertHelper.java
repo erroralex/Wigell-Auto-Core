@@ -1,9 +1,7 @@
 package com.wac.autocore.view.util;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.TextArea;
+import com.wac.autocore.service.LanguageManager;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 
 import java.io.PrintWriter;
@@ -22,13 +20,16 @@ import java.util.Optional;
  * }</pre>
  */
 public class AlertHelper {
+
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private AlertHelper() {
     }
 
 
     // Visar ett enkelt felmeddelande med OK-knapp
     public static void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.ERROR, "", okButton());
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
@@ -38,7 +39,7 @@ public class AlertHelper {
 
     // Visar ett informationsmeddelande med OK-knapp
     public static void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "", okButton());
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
@@ -48,19 +49,19 @@ public class AlertHelper {
 
     // Visar en bekräftelsedialog med OK/Avbryt och returnerar true om användaren bekräftade
     public static boolean showConfirmation(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "", okButton(), cancelButton());
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         DialogUtil.applyTheme(alert);
 
         Optional<ButtonType> result = alert.showAndWait();
-        return result.isPresent() && result.get() == ButtonType.OK;
+        return result.isPresent() && result.get().getButtonData() == ButtonBar.ButtonData.OK_DONE;
     }
 
     // Visar ett felmeddelande med utfällbar stack trace, för oväntade fel
     public static void showException(String title, String message, Exception e) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.ERROR, "", okButton());
         alert.setTitle(title);
         alert.setHeaderText(message);
         alert.setContentText(e.toString());
@@ -85,5 +86,13 @@ public class AlertHelper {
         alert.getDialogPane().setExpandableContent(content);
 
         alert.showAndWait();
+    }
+
+    private static ButtonType okButton() {
+        return new ButtonType(lang.get("btn.ok"), ButtonBar.ButtonData.OK_DONE);
+    }
+
+    private static ButtonType cancelButton() {
+        return new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     }
 }
