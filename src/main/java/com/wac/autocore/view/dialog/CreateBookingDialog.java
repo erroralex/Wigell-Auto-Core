@@ -2,6 +2,8 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
@@ -22,7 +24,10 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
     private final TextField descriptionTextField = new TextField();
+    private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
+    private final ComboBox<ServiceItem> serviceItemComboBox = new ComboBox<>();
     private final Label errorLabel = new Label();
+    private final Label estimatedTimeLabel = new Label();
     private final List<Booking> bookingList = Database.getBookings();
 
     private final ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
@@ -39,6 +44,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
         vehicleComboBox.getItems().addAll(Database.getVehicles());
+        mechanicComboBox.getItems().addAll(Database.getMechanics());
+        serviceItemComboBox.getItems().addAll(Database.getServiceItems());
 
         setContent();
     }
@@ -59,7 +66,9 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 errorLabel,
                 new Label("Vehicle"), vehicleComboBox,
                 new Label("Date"), datePicker,
-                new Label("Description"), descriptionTextField
+                new Label("Description"), descriptionTextField,
+                new Label("Mechanic"), mechanicComboBox,
+                new Label("Service"), serviceItemComboBox
         );
         getDialogPane().setContent(content);
 
