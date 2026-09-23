@@ -29,3 +29,17 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Build
+target/
+out/
+
+# IDE
+.idea/
+*.iml
+
+# Sonar cache
+.sonar/
+
+# Local database
+*.db

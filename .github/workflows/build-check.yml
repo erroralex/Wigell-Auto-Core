@@ -15,9 +15,7 @@ jobs:
           distribution: 'liberica'
           java-version: '8'
           java-package: 'jdk+fx'
+          cache: 'maven'
 
-      - name: Compile all sources
-        run: |
-          mkdir -p out
-          find src -name "*.java" > sources.txt
-          javac -d out @sources.txt
+      - name: Build and test
+        run: ./mvnw -B clean verify

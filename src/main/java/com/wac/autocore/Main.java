@@ -1,3 +1,4 @@
+package com.wac.autocore;
 
 import com.wac.autocore.view.AutoCoreApp;
 
