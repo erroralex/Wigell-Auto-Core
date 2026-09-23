@@ -68,6 +68,7 @@ public final class LanguageManager {
 
     /** Ansvar: Byter aktivt språk och uppdaterar alla bundna texter. */
     public void setLocale(Locale newLocale) {
+        Locale.setDefault(newLocale);
         bundle.set(ResourceBundle.getBundle(BUNDLE_NAME, newLocale, UTF8_CONTROL));
         locale.set(newLocale);
     }

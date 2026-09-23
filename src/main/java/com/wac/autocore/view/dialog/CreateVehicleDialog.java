@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
@@ -24,6 +25,8 @@ import javafx.util.StringConverter;
  */
 public class CreateVehicleDialog {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private final GarageSystem garageSystem = new GarageSystem();
     private final Dialog<Boolean> dialog = new Dialog<>();
     private final TextField registrationNumberField = new TextField();
@@ -31,11 +34,11 @@ public class CreateVehicleDialog {
     private final TextField modelField = new TextField();
     private final TextField yearField = new TextField();
     private final ComboBox<Customer> customerComboBox = new ComboBox<>();
-    private final ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-    private final ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
 
     public CreateVehicleDialog() {
-        dialog.setTitle("New Vehicle");
+        dialog.setTitle(lang.get("vehicle.new"));
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
         dialog.getDialogPane().setContent(createContent());
         DialogUtil.applyTheme(dialog);
@@ -50,10 +53,10 @@ public class CreateVehicleDialog {
     }
 
     private void configureFields() {
-        registrationNumberField.setPromptText("Registration Number");
-        makeField.setPromptText("Make");
-        modelField.setPromptText("Model");
-        yearField.setPromptText("Year");
+        registrationNumberField.setPromptText(lang.get("table.regNumber"));
+        makeField.setPromptText(lang.get("table.make"));
+        modelField.setPromptText(lang.get("table.model"));
+        yearField.setPromptText(lang.get("table.year"));
 
         registrationNumberField.getStyleClass().add("input");
         makeField.getStyleClass().add("input");
@@ -64,7 +67,7 @@ public class CreateVehicleDialog {
 
     private void configureCustomerComboBox() {
         customerComboBox.getItems().setAll(Database.getCustomers());
-        customerComboBox.setPromptText("Customer");
+        customerComboBox.setPromptText(lang.get("table.customer"));
         customerComboBox.setConverter(new StringConverter<Customer>() {
             @Override
             public String toString(Customer customer) {
@@ -98,15 +101,15 @@ public class CreateVehicleDialog {
         grid.setVgap(10);
         grid.setPadding(new Insets(10, 0, 0, 0));
 
-        grid.add(new Label("Registration Number"), 0, 0);
+        grid.add(new Label(lang.get("table.regNumber")), 0, 0);
         grid.add(registrationNumberField, 1, 0);
-        grid.add(new Label("Make"), 0, 1);
+        grid.add(new Label(lang.get("table.make")), 0, 1);
         grid.add(makeField, 1, 1);
-        grid.add(new Label("Model"), 0, 2);
+        grid.add(new Label(lang.get("table.model")), 0, 2);
         grid.add(modelField, 1, 2);
-        grid.add(new Label("Year"), 0, 3);
+        grid.add(new Label(lang.get("table.year")), 0, 3);
         grid.add(yearField, 1, 3);
-        grid.add(new Label("Customer"), 0, 4);
+        grid.add(new Label(lang.get("table.customer")), 0, 4);
         grid.add(customerComboBox, 1, 4);
 
         return grid;
@@ -123,12 +126,12 @@ public class CreateVehicleDialog {
 
         if (registrationNumber.isEmpty()) {
             markFieldError(registrationNumberField);
-            AlertHelper.showError("Validation Error", "Registration Number must be provided.");
+            AlertHelper.showError(lang.get("error.validation"),lang.get("error.requiredField", lang.get("table.regNumber")));
             return false;
         }
 
         if (selectedCustomer == null) {
-            AlertHelper.showError("Validation Error", "Customer must be selected.");
+            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField",lang.get("table.customer")));
             return false;
         }
 
@@ -137,7 +140,7 @@ public class CreateVehicleDialog {
             year = Integer.parseInt(yearValue);
         } catch (NumberFormatException exception) {
             markFieldError(yearField);
-            AlertHelper.showError("Validation Error", "Year must be a whole number.");
+            AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidYear"));
             return false;
         }
 
@@ -150,7 +153,7 @@ public class CreateVehicleDialog {
         );
 
         if (vehicle == null) {
-            AlertHelper.showError("Could not create vehicle", "The vehicle could not be saved.");
+            AlertHelper.showError(lang.get("error.vehicle"), lang.get("error.vehicleSave"));
             return false;
         }
 

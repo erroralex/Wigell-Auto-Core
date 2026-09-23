@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
@@ -19,24 +20,27 @@ import java.util.List;
  */
 public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
     private final TextField descriptionTextField = new TextField();
     private final Label errorLabel = new Label();
     private final List<Booking> bookingList = Database.getBookings();
 
-    private final ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
+    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
     public CreateBookingDialog() {
 
         errorLabel.getStyleClass().add("text-error");
 
-        setTitle("New Booking");
-        setHeaderText("Create Booking");
+        setTitle(lang.get("booking.new"));
+        setHeaderText(lang.get("booking.create"));
 
         DialogUtil.applyTheme(this);
 
-        getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
         vehicleComboBox.getItems().addAll(Database.getVehicles());
 
@@ -57,9 +61,9 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
                 errorLabel,
-                new Label("Vehicle"), vehicleComboBox,
-                new Label("Date"), datePicker,
-                new Label("Description"), descriptionTextField
+                new Label(lang.get("table.vehicle")), vehicleComboBox,
+                new Label(lang.get("table.date")), datePicker,
+                new Label(lang.get("table.desc")), descriptionTextField
         );
         getDialogPane().setContent(content);
 
@@ -77,7 +81,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             if (descriptionTextField.getText().isEmpty()
                     && vehicleComboBox.getValue() == null
                     && datePicker.getValue() == null) {
-                errorLabel.setText("Please fill in the required fields.");
+                errorLabel.setText(lang.get("error.fields"));
                 vehicleComboBox.getStyleClass().add("input-error");
                 datePicker.getStyleClass().add("input-error");
                 descriptionTextField.getStyleClass().add("input-error");
@@ -86,21 +90,21 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             }
 
             if (vehicleComboBox.getValue() == null) {
-                errorLabel.setText("Please select a vehicle.");
+                errorLabel.setText(lang.get("error.vehicleSelect"));
                 vehicleComboBox.getStyleClass().add("input-error");
                 event.consume();
                 return;
             }
 
             if (datePicker.getValue() == null) {
-                errorLabel.setText("Please select a date.");
+                errorLabel.setText(lang.get("error.dateSelect"));
                 datePicker.getStyleClass().add("input-error");
                 event.consume();
                 return;
             }
 
             if (descriptionTextField.getText().isEmpty()) {
-                errorLabel.setText("Please provide a description for the booking.");
+                errorLabel.setText(lang.get("error.desc"));
                 descriptionTextField.getStyleClass().add("input-error");
                 event.consume();
                 return;
@@ -111,10 +115,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             int vehicleId = vehicleComboBox.getValue().getId();
 
             if (isVehicleBooked(vehicleId, date)) {
-                    AlertHelper.showError("Could not complete booking",
-                            "Vehicle: " + vehicleComboBox.getValue()
-                                    + " is already booked at this date."
-                    );
+                    AlertHelper.showError(lang.get("error.booking"),
+                            lang.get("error.vehicleBooked", vehicleComboBox.getValue().getRegistrationNumber()));
                     event.consume();
             }
         });
