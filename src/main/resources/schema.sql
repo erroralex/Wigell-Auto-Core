@@ -44,10 +44,13 @@ CREATE TABLE IF NOT EXISTS vehicle (
 CREATE TABLE IF NOT EXISTS booking (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     vehicle_id   INTEGER NOT NULL,
+    mechanic_id  INTEGER NOT NULL,
     date         TEXT NOT NULL,
+    start_time   TEXT NOT NULL,
     description  TEXT NOT NULL,
     status       TEXT NOT NULL DEFAULT 'BOOKED',
-    FOREIGN KEY (vehicle_id) REFERENCES vehicle(id)
+    FOREIGN KEY (vehicle_id) REFERENCES vehicle(id),
+    FOREIGN KEY (mechanic_id) REFERENCES mechanic(id)
     );
 
 -- work_order:
@@ -84,7 +87,6 @@ CREATE TABLE IF NOT EXISTS payment (
     );
 
 -- booking_service_item: join table between booking and service_item.
--- !!! In this version Booking currently has no service item-relation in code (unlike WorkOrder).
 -- This table is created with a composite primary key to avoid duplicate relations, per the explicit Jira requirement.
 CREATE TABLE IF NOT EXISTS booking_service_item (
     booking_id       INTEGER NOT NULL,
