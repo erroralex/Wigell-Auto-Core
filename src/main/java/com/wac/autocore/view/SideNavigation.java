@@ -3,7 +3,6 @@ package com.wac.autocore.view;
 import com.wac.autocore.service.LanguageManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -69,22 +68,6 @@ public class SideNavigation extends VBox {
 
         btn.setOnAction(e -> lang.toggleLanguage());
         return btn;
-    }
-
-    // Skapar en ny instans av rätt vy för varje NavigationItem.
-    private Node resolveView(NavigationItem item) {
-        switch (item) {
-            case HOME:          return new HomeView();
-            case CUSTOMERS:     return new CustomerView();
-            case VEHICLES:      return new VehicleView();
-            case BOOKINGS:      return new BookingView();
-            case SERVICE_ITEMS: return new ServiceItemView();
-            case MECHANICS:     return new MechanicView();
-            case WORK_ORDERS:   return new WorkOrderView();
-            case INVOICES:      return new InvoiceView();
-            case PAYMENTS:      return new PaymentView();
-            default:            throw new IllegalStateException("Unknown NavigationItem: " + item);
-        }
     }
 
     // Uppdaterar CSS-klass för att visuellt markera vilken sektion som är vald

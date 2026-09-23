@@ -21,10 +21,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -115,6 +113,7 @@ public class BookingView extends VBox {
         bookingTableView.getColumns().add(descriptionColumn);
         bookingTableView.getColumns().add(statusColumn);
 
+        bookingTableView.setPlaceholder(new Label(lang.get("table.empty")));
         bookingTableView.setItems(bookingObservableList);
         bookingTableView.getSortOrder().add(dateColumn);
 

@@ -10,6 +10,10 @@ import javafx.scene.layout.VBox;
 
 import java.net.URL;
 
+/**
+ * <b>HomeView</b>
+ * <p>Ansvar: Startvy som visar logotyp och välkomsttext.</p>
+ */
 public class HomeView extends VBox {
 
     private static final String LOGO_PATH = "assets/wigell-auto-logo.png";
