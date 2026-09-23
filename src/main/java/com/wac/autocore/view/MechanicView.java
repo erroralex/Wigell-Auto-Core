@@ -11,7 +11,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -24,12 +26,15 @@ import javafx.scene.layout.VBox;
 public class MechanicView extends VBox {
 
     private final ObservableList<Mechanic> mechanicObservableList;
+    private final VBox contentColumn = new VBox(20);
+    private final VBox tableContainer = new VBox();
+    private MechanicBookingsView bookingsView;
 
     public MechanicView() {
         this.mechanicObservableList = FXCollections.observableArrayList(Database.getMechanics());
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
-        this.setPadding(new Insets(20));
+        this.setPadding(new Insets(10));
         this.setAlignment(Pos.TOP_LEFT);
 
         show();
@@ -37,13 +42,23 @@ public class MechanicView extends VBox {
 
     private void show() {
         renderTitle();
-        renderTable();
+        renderContentColumn();
     }
 
     private void renderTitle() {
         Label title = new Label("Mechanics");
         getChildren().add(title);
         title.getStyleClass().add("text-title");
+    }
+
+    private void renderContentColumn() {
+        VBox.setVgrow(tableContainer, Priority.ALWAYS);
+        VBox.setVgrow(contentColumn, Priority.ALWAYS);
+
+        contentColumn.getChildren().add(tableContainer);
+        getChildren().add(contentColumn);
+
+        renderTable();
     }
 
     private void renderTable() {
@@ -90,6 +105,31 @@ public class MechanicView extends VBox {
 
         mechanicTableView.setItems(mechanicObservableList);
 
-        getChildren().add(mechanicTableView);
+        mechanicTableView.setRowFactory(tv -> {
+            TableRow<Mechanic> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    showBookingsFor(row.getItem());
+                }
+            });
+            return row;
+        });
+
+        tableContainer.getChildren().add(mechanicTableView);
+    }
+
+    private void showBookingsFor(Mechanic mechanic) {
+        if (bookingsView == null) {
+            bookingsView = new MechanicBookingsView(mechanic, () -> {
+                contentColumn.getChildren().remove(bookingsView);
+                bookingsView = null;
+            });
+           /* bookingsView.setPrefWidth(280);
+            bookingsView.setMinWidth(200);*/
+            HBox.setHgrow(bookingsView, Priority.NEVER);
+            contentColumn.getChildren().add(bookingsView);
+        } else {
+            bookingsView.setMechanic(mechanic);
+        }
     }
 }
