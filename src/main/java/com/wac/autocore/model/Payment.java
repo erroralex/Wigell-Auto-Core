@@ -1,15 +1,23 @@
 package com.wac.autocore.model;
 
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "payment")
 public class Payment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private int invoiceId;
     private double amount;
     private String paymentType;
     private LocalDateTime paymentDate;
-    private boolean successful;
+    private boolean successful = false;
+
+    protected Payment() {}
 
     public Payment(int id, int invoiceId, double amount, String paymentType) {
         this.id = id;
@@ -22,10 +30,6 @@ public class Payment {
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public int getInvoiceId() {

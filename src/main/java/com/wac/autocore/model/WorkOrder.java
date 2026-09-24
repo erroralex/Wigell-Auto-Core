@@ -1,30 +1,36 @@
 package com.wac.autocore.model;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "work_order")
 public class WorkOrder {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private int bookingId;
     private int mechanicId;
-    private List<Integer> serviceItemIds;
-    private String status;
 
-    public WorkOrder(int id, int bookingId, int mechanicId) {
-        this.id = id;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "work_order_service_item", joinColumns = @JoinColumn(name = "work_order_id"))
+    @Column(name = "service_item_id")
+    private List<Integer> serviceItemIds = new ArrayList<>();
+
+    private String status = "CREATED";
+
+    protected WorkOrder() {}
+
+    public WorkOrder(int bookingId, int mechanicId) {
         this.bookingId = bookingId;
         this.mechanicId = mechanicId;
-        this.serviceItemIds = new ArrayList<Integer>();
-        this.status = "CREATED";
     }
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public int getBookingId() {
@@ -60,7 +66,9 @@ public class WorkOrder {
     }
 
     public void addServiceItem(int serviceItemId) {
-        serviceItemIds.add(serviceItemId);
+        if (!serviceItemIds.contains(serviceItemId)) {
+            serviceItemIds.add(serviceItemId);
+        }
     }
 
     public void removeServiceItem(int serviceItemId) {

@@ -1,17 +1,25 @@
 package com.wac.autocore.model;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "vehicle")
 public class Vehicle {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String registrationNumber;
     private String brand;
     private String model;
     private int year;
     private int customerId;
 
-    public Vehicle(int id, String registrationNumber, String brand,
+    protected Vehicle() {}
+
+    public Vehicle(String registrationNumber, String brand,
                    String model, int year, int customerId) {
-        this.id = id;
         this.registrationNumber = registrationNumber;
         this.brand = brand;
         this.model = model;
@@ -21,10 +29,6 @@ public class Vehicle {
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getRegistrationNumber() {
