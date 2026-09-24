@@ -4,7 +4,9 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.PaymentService;
 import com.wac.autocore.view.dialog.ProcessPaymentDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -33,7 +35,8 @@ public class PaymentView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private final GarageSystem garageSystem;
+    private final InvoiceService invoiceService;
+    private final PaymentService paymentService;
 
     private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
     private final SortedList<Invoice> sortedData = new SortedList<>(invoiceMasterData);
@@ -42,8 +45,9 @@ public class PaymentView extends VBox {
 
     private final Button btnPay = new Button(lang.get("btn.pay"));
 
-    public PaymentView(GarageSystem garageSystem) {
-        this.garageSystem = garageSystem;
+    public PaymentView(InvoiceService invoiceService, PaymentService paymentService) {
+        this.invoiceService = invoiceService;
+        this.paymentService = paymentService;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));
@@ -69,11 +73,11 @@ public class PaymentView extends VBox {
     }
 
     private void loadMasterData() {
-        this.invoiceMasterData.setAll(Database.getInvoices());
+        this.invoiceMasterData.setAll(invoiceService.findAll());
     }
 
     private void refreshData() {
-        this.invoiceMasterData.setAll(Database.getInvoices());
+        this.invoiceMasterData.setAll(invoiceService.findAll());
     }
 
     private void initializeTable() {
@@ -144,7 +148,7 @@ public class PaymentView extends VBox {
 
     private Payment findPayment(Invoice invoice) {
 
-        for (Payment payment : Database.getPayments()) {
+        for (Payment payment : paymentService.findAll()) {
 
             if (payment.getInvoiceId() == invoice.getId())
                 return payment;
@@ -184,7 +188,7 @@ public class PaymentView extends VBox {
 
         dialog.showAndWait().ifPresent(result -> {
 
-            Payment payment = garageSystem.processPayment(
+            Payment payment = paymentService.processPayment(
                     result.getInvoiceId(),
                     result.getPaymentType()
             );
