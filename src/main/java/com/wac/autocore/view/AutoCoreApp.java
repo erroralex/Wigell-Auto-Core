@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -51,7 +52,8 @@ public class AutoCoreApp extends Application {
             AutoCoreApp.primaryStage = primaryStage;
 
             GarageSystem garageSystem = springContext.getBean(GarageSystem.class);
-            MainLayout layout = new MainLayout(garageSystem);
+            InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
+            MainLayout layout = new MainLayout(garageSystem, invoiceService);
 
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
             scene.setFill(javafx.scene.paint.Color.web("#212121"));

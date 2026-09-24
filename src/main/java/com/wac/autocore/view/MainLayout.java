@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
@@ -13,10 +14,12 @@ import javafx.scene.layout.BorderPane;
 public class MainLayout extends BorderPane {
 
     private final GarageSystem garageSystem;
+    private final InvoiceService invoiceService;
     private final SideNavigation sideNavigation;
     private NavigationItem currentItem;
 
-    public MainLayout(GarageSystem garageSystem) {
+    public MainLayout(GarageSystem garageSystem, InvoiceService invoiceService) {
+        this.invoiceService = invoiceService;
         this.garageSystem = garageSystem;
         this.getStyleClass().add("main-layout");
 
@@ -49,7 +52,7 @@ public class MainLayout extends BorderPane {
             case SERVICE_ITEMS: return new ServiceItemView(garageSystem);
             case MECHANICS:     return new MechanicView(garageSystem);
             case WORK_ORDERS:   return new WorkOrderView(garageSystem);
-            case INVOICES:      return new InvoiceView(garageSystem);
+            case INVOICES:      return new InvoiceView(invoiceService);
             case PAYMENTS:      return new PaymentView(garageSystem);
             default:            throw new IllegalStateException("Unknown NavigationItem: " + item);
         }
