@@ -9,9 +9,13 @@ import com.wac.autocore.model.Payment;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.model.WorkOrder;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 
+@Service
+@Transactional
 public class GarageSystem {
 
     public void showCustomers() {
