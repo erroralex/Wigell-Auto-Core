@@ -3,6 +3,8 @@ package com.wac.autocore.model;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "booking")
@@ -12,21 +14,42 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "vehicle_id", nullable = false)
     private int vehicleId;
+
+    @Column(name = "mechanic_id", nullable = false)
     private int mechanicId;
+
+    @Column(nullable = false)
     private LocalDate date;
+
+    @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
+
+    @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
+
+    @Column(nullable = false)
     private String description;
+
+    @Column(nullable = false)
     private String status = "BOOKED";
+
+    @ManyToMany
+    @JoinTable(
+            name = "booking_service_item",
+            joinColumns = @JoinColumn(name = "booking_id"),
+            inverseJoinColumns = @JoinColumn(name = "service_item_id")
+    )
+    private Set<ServiceItem> serviceItems = new HashSet<>();
 
     protected Booking() {}
 
-    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+/*    @Deprecated // Tillfällig tills dess att repositories ersätter Database
     public Booking(int id, int vehicleId, LocalDate date, String description) {
         this(vehicleId, 0, date, null, null, description);
         this.id = id;
-    }
+    }*/
 
     public Booking(int vehicleId, int mechanicId, LocalDate date,
                    LocalTime startTime, LocalTime endTime, String description) {
@@ -46,7 +69,7 @@ public class Booking {
         return vehicleId;
     }
 
-    public void setVehicleId(int vehicleId) {
+    protected void setVehicleId(int vehicleId) {
         this.vehicleId = vehicleId;
     }
 

@@ -1,5 +1,6 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
@@ -24,6 +25,7 @@ public class MainLayout extends BorderPane {
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.garageSystem = garageSystem;
+        this.bookingService = bookingService;
         this.getStyleClass().add("main-layout");
 
         // Bygger om aktuell vy när språket växlas, så vyer utan bindningar också byter språk
@@ -51,7 +53,7 @@ public class MainLayout extends BorderPane {
             case HOME:          return new HomeView();
             case CUSTOMERS:     return new CustomerView(garageSystem);
             case VEHICLES:      return new VehicleView(garageSystem);
-            case BOOKINGS:      return new BookingView(garageSystem);
+            case BOOKINGS:      return new BookingView(garageSystem, bookingService);
             case SERVICE_ITEMS: return new ServiceItemView(garageSystem);
             case MECHANICS:     return new MechanicView(garageSystem);
             case WORK_ORDERS:   return new WorkOrderView(garageSystem);

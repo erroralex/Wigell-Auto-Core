@@ -4,6 +4,9 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.repo.BookingRepository;
+import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.BookingServiceImpl;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
@@ -24,6 +27,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -37,19 +41,27 @@ public class BookingView extends VBox {
 
     private final GarageSystem garageSystem;
 
+    private final BookingService bookingService;
+
     private final ObservableList<Booking> bookingObservableList;
 
     private final Map<Integer, Vehicle> vehicleMap;
 
+    private final Map<Integer, Mechanic> mechanicMap;
+
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
-    public BookingView(GarageSystem garageSystem) {
+    public BookingView(GarageSystem garageSystem, BookingService bookingService) {
         this.garageSystem = garageSystem;
-        this.bookingObservableList = FXCollections.observableArrayList(Database.getBookings());
+        this.bookingService = bookingService;
+        this.bookingObservableList = FXCollections.observableArrayList(bookingService.listAll());
 
         vehicleMap = Database.getVehicles()
                 .stream()
                 .collect(Collectors.toMap(Vehicle::getId, vehicle -> vehicle));
+        mechanicMap = Database.getMechanics()
+                .stream()
+                .collect(Collectors.toMap(Mechanic::getId, mechanic -> mechanic));
 
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
@@ -92,9 +104,9 @@ public class BookingView extends VBox {
         TableColumn<Booking, LocalDate> dateColumn =        new TableColumn<>(lang.get("table.date"));
         TableColumn<Booking, String> descriptionColumn =    new TableColumn<>(lang.get("table.desc"));
         TableColumn<Booking, String> statusColumn =         new TableColumn<>(lang.get("table.status"));
-        TableColumn<Booking, String> mechanicColumn =      new TableColumn<>(lang.get("table.mechanic"));   //TODO: CHANGE TO BOOKING ONCE DATABASE IS READY
-        TableColumn<Booking, LocalDate> startTimeColumn =   new TableColumn<>(lang.get("table.startTime"));
-        TableColumn<Booking, LocalDate> endTimeColumn =     new TableColumn<>(lang.get("table.endTime"));
+        TableColumn<Booking, String> mechanicColumn =       new TableColumn<>(lang.get("table.mechanic"));   //TODO: CHANGE TO BOOKING ONCE DATABASE IS READY
+        TableColumn<Booking, LocalTime> startTimeColumn =   new TableColumn<>(lang.get("table.startTime"));
+        TableColumn<Booking, LocalTime> endTimeColumn =     new TableColumn<>(lang.get("table.endTime"));
 
         bookingIdColumn.setCellValueFactory(cellData ->
                 new SimpleIntegerProperty(cellData.getValue().getId()));
@@ -112,14 +124,14 @@ public class BookingView extends VBox {
         statusColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(lang.get("booking.status." + cellData.getValue().getStatus())));
 
-       /* mechanicColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getName()));*/  //TODO: Add mechanic name to table.
+        mechanicColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(fetchMechanic(cellData.getValue().getMechanicId())));
 
-        /*startTimeColumn.setCellValueFactory(cellData ->
-                new SimpleObjectProperty<>(cellData.getValue()));
+        startTimeColumn.setCellValueFactory(cellData ->
+                new SimpleObjectProperty<>(cellData.getValue().getStartTime()));
 
         endTimeColumn.setCellValueFactory(cellData ->
-                new SimpleObjectProperty<>(cellData.getValue()));*/         //TODO: Add start time and end time.
+                new SimpleObjectProperty<>(cellData.getValue().getEndTime()));
 
         bookingTableView.getColumns().add(bookingIdColumn);
         bookingTableView.getColumns().add(regIdColumn);
@@ -137,6 +149,16 @@ public class BookingView extends VBox {
         getChildren().addAll(buttonBar, bookingTableView);
     }
 
+    private String fetchMechanic(int mechanicId) {
+        Mechanic mechanic = mechanicMap.get(mechanicId);
+
+        if (mechanic != null) {
+            return mechanic.getName();
+        }
+
+        return lang.get("table.notFound");
+    }
+
     private String fetchRegId(int vehicleId) {
 
         Vehicle vehicle = vehicleMap.get(vehicleId);
@@ -146,6 +168,16 @@ public class BookingView extends VBox {
         }
 
         return lang.get("table.notFound");
+    }
+
+    private LocalTime fetchStartTime(int bookingId) {
+        Booking booking = bookingService.findById(bookingId);
+
+        if (booking != null) {
+            return booking.getStartTime();
+        }
+
+        return null;
     }
 
     private HBox createButtonBar() {
@@ -161,16 +193,21 @@ public class BookingView extends VBox {
     }
 
     private void openCreateBookingDialog() {
-        CreateBookingDialog dialog = new CreateBookingDialog();
+        CreateBookingDialog dialog = new CreateBookingDialog(bookingService);
 
         dialog.showAndWait().ifPresent(result -> {
-            Booking newBooking = garageSystem.createBooking(
+            Booking newBooking = bookingService.create(
                     result.getVehicleId(),
+                    result.getMechanicId(),
                     result.getDate(),
+                    result.getStartTime(),
+                    result.getEndTime(),
                     result.getDescription()
             );
+
             if (newBooking != null) {
-                bookingObservableList.setAll(Database.getBookings());
+                bookingObservableList.setAll(bookingService.listAll());
+
                 AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
             } else {
                 AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));

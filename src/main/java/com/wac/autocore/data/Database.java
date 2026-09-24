@@ -133,7 +133,7 @@ public class Database {
                 "Diagnostics"
         ));
 
-        bookings.add(new Booking(
+    /*    bookings.add(new Booking(
                 1,
                 1,
                 LocalDate.now().plusDays(2),
@@ -145,7 +145,7 @@ public class Database {
                 2,
                 LocalDate.now().plusDays(4),
                 "Noise from front brakes"
-        ));
+        ));*/
 
     }
 

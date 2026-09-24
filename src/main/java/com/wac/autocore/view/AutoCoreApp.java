@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
+import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
