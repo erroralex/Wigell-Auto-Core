@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
@@ -90,6 +91,9 @@ public class BookingView extends VBox {
         TableColumn<Booking, LocalDate> dateColumn =        new TableColumn<>(lang.get("table.date"));
         TableColumn<Booking, String> descriptionColumn =    new TableColumn<>(lang.get("table.desc"));
         TableColumn<Booking, String> statusColumn =         new TableColumn<>(lang.get("table.status"));
+        TableColumn<Booking, String> mechanicColumn =      new TableColumn<>(lang.get("table.mechanic"));   //TODO: CHANGE TO BOOKING ONCE DATABASE IS READY
+        TableColumn<Booking, LocalDate> startTimeColumn =   new TableColumn<>(lang.get("table.startTime"));
+        TableColumn<Booking, LocalDate> endTimeColumn =     new TableColumn<>(lang.get("table.endTime"));
 
         bookingIdColumn.setCellValueFactory(cellData ->
                 new SimpleIntegerProperty(cellData.getValue().getId()));
@@ -107,11 +111,23 @@ public class BookingView extends VBox {
         statusColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(lang.get("booking.status." + cellData.getValue().getStatus())));
 
+       /* mechanicColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getName()));*/  //TODO: Add mechanic name to table.
+
+        /*startTimeColumn.setCellValueFactory(cellData ->
+                new SimpleObjectProperty<>(cellData.getValue()));
+
+        endTimeColumn.setCellValueFactory(cellData ->
+                new SimpleObjectProperty<>(cellData.getValue()));*/         //TODO: Add start time and end time.
+
         bookingTableView.getColumns().add(bookingIdColumn);
         bookingTableView.getColumns().add(regIdColumn);
         bookingTableView.getColumns().add(dateColumn);
         bookingTableView.getColumns().add(descriptionColumn);
         bookingTableView.getColumns().add(statusColumn);
+        bookingTableView.getColumns().add(mechanicColumn);
+        bookingTableView.getColumns().add(startTimeColumn);
+        bookingTableView.getColumns().add(endTimeColumn);
 
         bookingTableView.setPlaceholder(new Label(lang.get("table.empty")));
         bookingTableView.setItems(bookingObservableList);
