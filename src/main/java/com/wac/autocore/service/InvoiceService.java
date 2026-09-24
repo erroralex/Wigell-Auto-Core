@@ -19,7 +19,7 @@ public class InvoiceService {
 
     public Invoice create(int workOrderId, String discountCode) {
 
-        double amount = 0;
+        double amount = 0; //TODO ska komma från workorder
         double discount = 0;
 
         if (discountCode != null && !discountCode.trim().isEmpty()) {
@@ -43,5 +43,9 @@ public class InvoiceService {
 
     public List<Invoice> findAll() {
         return invoiceRepo.findAll();
+    }
+
+    public Invoice update(Invoice invoice) {
+        return invoiceRepo.save(invoice);
     }
 }

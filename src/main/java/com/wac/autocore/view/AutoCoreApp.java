@@ -4,6 +4,7 @@ import com.wac.autocore.AutoCoreConfig;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.PaymentService;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
@@ -53,7 +54,8 @@ public class AutoCoreApp extends Application {
 
             GarageSystem garageSystem = springContext.getBean(GarageSystem.class);
             InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
-            MainLayout layout = new MainLayout(garageSystem, invoiceService);
+            PaymentService paymentService = springContext.getBean(PaymentService.class);
+            MainLayout layout = new MainLayout(garageSystem, invoiceService, paymentService);
 
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
             scene.setFill(javafx.scene.paint.Color.web("#212121"));
