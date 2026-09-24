@@ -18,6 +18,8 @@ import java.time.LocalDate;
 @Transactional
 public class GarageSystem {
 
+
+
     public void showCustomers() {
         System.out.println();
         System.out.println("=== CUSTOMERS ===");
@@ -174,7 +176,7 @@ public class GarageSystem {
         return vehicle;
     }
 
-    public Booking createBooking(int vehicleId,
+    /*public Booking createBooking(int vehicleId,
                                  LocalDate date,
                                  String description) {
 
@@ -200,7 +202,7 @@ public class GarageSystem {
         System.out.println(booking);
 
         return booking;
-    }
+    }*/
 
     public WorkOrder createWorkOrder(int bookingId,
                                      int mechanicId,
