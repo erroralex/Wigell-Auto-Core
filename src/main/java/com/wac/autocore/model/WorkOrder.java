@@ -24,6 +24,12 @@ public class WorkOrder {
 
     protected WorkOrder() {}
 
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public WorkOrder(int id, int bookingId, int mechanicId) {
+        this(bookingId, mechanicId);
+        this.id = id;
+    }
+
     public WorkOrder(int bookingId, int mechanicId) {
         this.bookingId = bookingId;
         this.mechanicId = mechanicId;

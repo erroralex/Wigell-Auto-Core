@@ -20,6 +20,12 @@ public class Invoice {
 
     protected Invoice() {}
 
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public Invoice(int id, int workOrderId, LocalDate invoiceDate, double amount) {
+        this(workOrderId, invoiceDate, amount);
+        this.id = id;
+    }
+
     public Invoice(int workOrderId, LocalDate invoiceDate, double amount) {
         this.workOrderId = workOrderId;
         this.invoiceDate = invoiceDate;

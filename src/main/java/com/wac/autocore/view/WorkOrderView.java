@@ -36,13 +36,14 @@ public class WorkOrderView extends VBox {
     private final TableView<WorkOrder> workOrderTable =  new TableView<>();
     private final ObservableList<WorkOrder> masterData = FXCollections.observableArrayList();
 
-    private final GarageSystem garageSystem = new GarageSystem();
+    private final GarageSystem garageSystem;
 
     private final Button btnStart = new Button(lang.get("btn.start"));
     private final Button btnComplete = new Button(lang.get("btn.complete"));
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
-    public WorkOrderView() {
+    public WorkOrderView(GarageSystem garageSystem) {
+        this.garageSystem = garageSystem;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));

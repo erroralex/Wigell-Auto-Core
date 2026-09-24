@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -17,8 +18,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-
-
 /**
  * <b>MechanicView</b>
  * <p>Ansvar: Visar och hanterar mekaniker i användargränssnittet.</p>
@@ -26,13 +25,15 @@ import javafx.scene.layout.VBox;
 public class MechanicView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
+    private final GarageSystem garageSystem;
 
     private final ObservableList<Mechanic> mechanicObservableList;
     private final VBox contentColumn = new VBox(20);
     private final VBox tableContainer = new VBox();
     private MechanicBookingsView bookingsView;
 
-    public MechanicView() {
+    public MechanicView(GarageSystem garageSystem) {
+        this.garageSystem = garageSystem;
         this.mechanicObservableList = FXCollections.observableArrayList(Database.getMechanics());
         this.getStyleClass().add("content-area");
         this.setSpacing(20);

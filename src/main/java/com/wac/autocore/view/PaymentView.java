@@ -33,7 +33,7 @@ public class PaymentView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private final GarageSystem garageSystem = new GarageSystem();
+    private final GarageSystem garageSystem;
 
     private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
     private final SortedList<Invoice> sortedData = new SortedList<>(invoiceMasterData);
@@ -42,7 +42,8 @@ public class PaymentView extends VBox {
 
     private final Button btnPay = new Button(lang.get("btn.pay"));
 
-    public PaymentView() {
+    public PaymentView(GarageSystem garageSystem) {
+        this.garageSystem = garageSystem;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));

@@ -22,6 +22,12 @@ public class Booking {
 
     protected Booking() {}
 
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public Booking(int id, int vehicleId, LocalDate date, String description) {
+        this(vehicleId, 0, date, null, null, description);
+        this.id = id;
+    }
+
     public Booking(int vehicleId, int mechanicId, LocalDate date,
                    LocalTime startTime, LocalTime endTime, String description) {
         this.vehicleId = vehicleId;

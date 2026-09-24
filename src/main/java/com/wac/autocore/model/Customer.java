@@ -17,6 +17,12 @@ public class Customer {
 
     protected Customer() {}
 
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public Customer(int id, String name, String phone, String email) {
+        this(name, phone, email);
+        this.id = id;
+    }
+
     public Customer(String name, String phone, String email) {
         this.name = name;
         this.phone = phone;

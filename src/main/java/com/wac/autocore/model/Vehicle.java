@@ -18,6 +18,12 @@ public class Vehicle {
 
     protected Vehicle() {}
 
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public Vehicle(int id, String registrationNumber, String brand, String model, int year, int customerId) {
+        this(registrationNumber, brand, model, year, customerId);
+        this.id = id;
+    }
+
     public Vehicle(String registrationNumber, String brand,
                    String model, int year, int customerId) {
         this.registrationNumber = registrationNumber;

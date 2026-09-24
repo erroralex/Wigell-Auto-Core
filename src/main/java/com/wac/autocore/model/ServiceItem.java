@@ -17,6 +17,12 @@ public class ServiceItem {
 
     protected ServiceItem() {}
 
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public ServiceItem(int id, String name, String description, double price, int estimatedMinutes) {
+        this(name, description, price, estimatedMinutes);
+        this.id = id;
+    }
+
     public ServiceItem(String name, String description,
                        double price, int estimatedMinutes) {
         this.name = name;

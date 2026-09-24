@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
+import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
 import javafx.beans.property.SimpleStringProperty;
@@ -31,8 +32,10 @@ public class CustomerView extends VBox {
     private final ObservableList<Customer> masterData = FXCollections.observableArrayList();
     private final FilteredList<Customer> filteredData = new FilteredList<>(masterData, customer -> true);
     private final TextField searchField = new TextField();
+    private final GarageSystem garageSystem;
 
-    public CustomerView() {
+    public CustomerView(GarageSystem garageSystem) {
+        this.garageSystem = garageSystem;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));
