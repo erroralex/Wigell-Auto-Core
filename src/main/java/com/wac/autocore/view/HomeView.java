@@ -43,6 +43,7 @@ public class HomeView extends VBox {
             ImageView imageView = new ImageView(new Image(logoUrl.toExternalForm()));
             imageView.setFitWidth(800);
             imageView.setPreserveRatio(true);
+            imageView.getStyleClass().add("home-logo"); // CSS klass för skugga bakom logotypen
             logo.setGraphic(imageView);
             logo.setAlignment(Pos.TOP_CENTER);
         } else {
