@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
@@ -18,23 +19,26 @@ import javafx.util.StringConverter;
  */
 public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private final ComboBox<Booking> bookingCombo = new ComboBox<>();
     private final ComboBox<Mechanic> mechanicCombo = new ComboBox<>();
     private final ListView<ServiceItem> serviceItemList = new ListView<>();
-    private final Label totalLabel = new Label("Sum: 0.00 kr");
+    private final Label totalLabel = new Label();
 
     private static final String BOOKING_STATUS_BOOKED = "BOOKED";
 
-    private final ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
+    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
     public CreateWorkOrderDialog() {
-        setTitle("New Work Order");
-        setHeaderText("Create Work Order");
+        setTitle(lang.get("workOrder.new"));
+        setHeaderText(lang.get("workOrder.create"));
 
         // Hämta css-styling och applicera på nya dialog:
         DialogUtil.applyTheme(this);
 
-        getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
         // -------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +92,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
             protected void updateItem(ServiceItem item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null
-                        ? "" : item.getName() + " - " + String.format("%.2f kr", item.getPrice()));
+                        ? "" : item.getName() + " - " + lang.get("format.price", item.getPrice()));
             }
         });
 
@@ -104,12 +108,15 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         bookingCombo.valueProperty().addListener((obs, oldV, newV) -> validate(saveButton));
         mechanicCombo.valueProperty().addListener((obs, oldV, newV) -> validate(saveButton));
 
+        // Sätter startvärdet (0) via samma nyckel som vid uppdatering
+        updateTotal();
+
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
-                new Label("Bokning"), bookingCombo,
-                new Label("Mekaniker"), mechanicCombo,
-                new Label("Servicepunkter"), serviceItemList,
+                new Label(lang.get("table.booking")), bookingCombo,
+                new Label(lang.get("table.mechanic")), mechanicCombo,
+                new Label(lang.get("table.serviceItems")), serviceItemList,
                 totalLabel
         );
         getDialogPane().setContent(content);
@@ -135,7 +142,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
                 .stream()
                 .mapToDouble(ServiceItem::getPrice)
                 .sum();
-        totalLabel.setText(String.format("Summa: %.2f kr", total));
+        totalLabel.setText(lang.get("workOrder.total", total));
     }
 
     private void validate(Node saveButton) {

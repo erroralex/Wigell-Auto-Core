@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -24,6 +25,8 @@ import javafx.scene.layout.VBox;
  */
 public class CustomerView extends VBox {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private final TableView<Customer> customerTable = new TableView<>();
     private final ObservableList<Customer> masterData = FXCollections.observableArrayList();
     private final FilteredList<Customer> filteredData = new FilteredList<>(masterData, customer -> true);
@@ -36,7 +39,7 @@ public class CustomerView extends VBox {
         this.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(customerTable, Priority.ALWAYS);
 
-        Label title = new Label("Customers");
+        Label title = new Label(lang.get("customer.title"));
         title.getStyleClass().add("text-title");
 
         loadMasterData();
@@ -56,38 +59,39 @@ public class CustomerView extends VBox {
     }
 
     private void initializeTable() {
-        TableColumn<Customer, String> idColumn = new TableColumn<>("Id");
+        TableColumn<Customer, String> idColumn = new TableColumn<>(lang.get("table.id"));
         idColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(String.valueOf(cellData.getValue().getId()))
         );
 
-        TableColumn<Customer, String> nameColumn = new TableColumn<>("Name");
+        TableColumn<Customer, String> nameColumn = new TableColumn<>(lang.get("table.name"));
         nameColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getName())
         );
 
-        TableColumn<Customer, String> phoneColumn = new TableColumn<>("Phone number");
+        TableColumn<Customer, String> phoneColumn = new TableColumn<>(lang.get("table.phone"));
         phoneColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getPhone())
         );
 
-        TableColumn<Customer, String> emailColumn = new TableColumn<>("Email");
+        TableColumn<Customer, String> emailColumn = new TableColumn<>(lang.get("table.email"));
         emailColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getEmail())
         );
 
-        TableColumn<Customer, String> vipColumn = new TableColumn<>("VIP");
+        TableColumn<Customer, String> vipColumn = new TableColumn<>(lang.get("customer.vip"));
         vipColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().isVip() ? "Yes" : "No")
+                new SimpleStringProperty(cellData.getValue().isVip() ? lang.get("common.yes") : lang.get("common.no"))
         );
 
         customerTable.getColumns().addAll(idColumn, nameColumn, phoneColumn, emailColumn, vipColumn);
         customerTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        customerTable.setPlaceholder(new Label(lang.get("table.empty")));
         customerTable.setItems(filteredData);
     }
 
     private void configureSearch() {
-        searchField.setPromptText("Search by name or phone number...");
+        searchField.setPromptText(lang.get("customer.searchPrompt"));
         searchField.getStyleClass().add("input");
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilter(newValue));
     }
@@ -105,7 +109,7 @@ public class CustomerView extends VBox {
     }
 
     private HBox createToolbar() {
-        Button newCustomerButton = new Button("New Customer");
+        Button newCustomerButton = new Button(lang.get("customer.new"));
         newCustomerButton.getStyleClass().addAll("btn", "btn-primary");
         newCustomerButton.setOnAction(event -> openCreateCustomerDialog());
 

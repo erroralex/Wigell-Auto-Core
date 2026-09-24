@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar;
@@ -20,9 +21,11 @@ import javafx.util.StringConverter;
  */
 public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     public CreateInvoiceDialog() {
-        this.setTitle("New Invoice");
-        this.setHeaderText("Create Invoice");
+        this.setTitle(lang.get("invoice.new"));
+        this.setHeaderText(lang.get("invoice.create"));
 
         DialogUtil.applyTheme(this);
 
@@ -61,19 +64,20 @@ public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
             }
         });
 
-        discountCodeInput.setPromptText("Discount code (optional)");
+        discountCodeInput.setPromptText(lang.get("invoice.discountPrompt"));
 
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
-                new Label("Work order"), workOrderSelection,
-                new Label("Discount code"), discountCodeInput
+                new Label(lang.get("table.workOrder")), workOrderSelection,
+                new Label(lang.get("table.discountCode")), discountCodeInput
         );
 
         this.getDialogPane().setContent(content);
 
-        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
-        this.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+        ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        this.getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
         this.getDialogPane().lookupButton(saveButtonType).setDisable(true);
 

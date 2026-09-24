@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -20,10 +21,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -33,13 +32,15 @@ import java.util.stream.Collectors;
  */
 public class BookingView extends VBox {
 
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private final GarageSystem garageSystem = new GarageSystem();
 
     private final ObservableList<Booking> bookingObservableList;
 
     private final Map<Integer, Vehicle> vehicleMap;
 
-    private final Button btnCreate = new Button("Create New");
+    private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
     public BookingView() {
         this.bookingObservableList = FXCollections.observableArrayList(Database.getBookings());
@@ -63,14 +64,14 @@ public class BookingView extends VBox {
     }
 
     private void renderTitle() {
-        Label title = new Label("Bookings");
+        Label title = new Label(lang.get("booking.title"));
         title.setId("h1");
         getChildren().add(title);
         title.getStyleClass().add("text-title");
     }
 
     private void renderDescText() {
-        Label description = new Label("Bookings are shown in a descending order based on date (Newest to Oldest)");
+        Label description = new Label(lang.get("booking.sortInfo"));
         description.getStyleClass().add("text-secondary");
         getChildren().add(description);
     }
@@ -84,11 +85,11 @@ public class BookingView extends VBox {
 
         VBox.setVgrow(bookingTableView, Priority.ALWAYS);
 
-        TableColumn<Booking, Number> bookingIdColumn = new TableColumn<>("Booking ID");
-        TableColumn<Booking, String> regIdColumn = new TableColumn<>("Registration");
-        TableColumn<Booking, LocalDate> dateColumn = new TableColumn<>("Date");
-        TableColumn<Booking, String> descriptionColumn = new TableColumn<>("Description");
-        TableColumn<Booking, String> statusColumn = new TableColumn<>("Status");
+        TableColumn<Booking, Number> bookingIdColumn =      new TableColumn<>(lang.get("table.bookingId"));
+        TableColumn<Booking, String> regIdColumn =          new TableColumn<>(lang.get("table.regNumber"));
+        TableColumn<Booking, LocalDate> dateColumn =        new TableColumn<>(lang.get("table.date"));
+        TableColumn<Booking, String> descriptionColumn =    new TableColumn<>(lang.get("table.desc"));
+        TableColumn<Booking, String> statusColumn =         new TableColumn<>(lang.get("table.status"));
 
         bookingIdColumn.setCellValueFactory(cellData ->
                 new SimpleIntegerProperty(cellData.getValue().getId()));
@@ -104,7 +105,7 @@ public class BookingView extends VBox {
                 new SimpleStringProperty(cellData.getValue().getDescription()));
 
         statusColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getStatus()));
+                new SimpleStringProperty(lang.get("booking.status." + cellData.getValue().getStatus())));
 
         bookingTableView.getColumns().add(bookingIdColumn);
         bookingTableView.getColumns().add(regIdColumn);
@@ -112,6 +113,7 @@ public class BookingView extends VBox {
         bookingTableView.getColumns().add(descriptionColumn);
         bookingTableView.getColumns().add(statusColumn);
 
+        bookingTableView.setPlaceholder(new Label(lang.get("table.empty")));
         bookingTableView.setItems(bookingObservableList);
         bookingTableView.getSortOrder().add(dateColumn);
 
@@ -126,7 +128,7 @@ public class BookingView extends VBox {
             return vehicle.getRegistrationNumber();
         }
 
-        return "NOT FOUND";
+        return lang.get("table.notFound");
     }
 
     private HBox createButtonBar() {
@@ -152,9 +154,9 @@ public class BookingView extends VBox {
             );
             if (newBooking != null) {
                 bookingObservableList.setAll(Database.getBookings());
-                AlertHelper.showInfo("Booking created", "A new booking has been created");
+                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
             } else {
-                AlertHelper.showError("Booking could not be created", "Something went wrong: Booking could not be created.");
+                AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));
             }
         });
     }

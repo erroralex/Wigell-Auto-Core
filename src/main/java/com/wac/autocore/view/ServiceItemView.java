@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.service.LanguageManager;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,7 +14,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.text.NumberFormat;
-import java.util.Locale;
 
 
 /**
@@ -21,6 +21,8 @@ import java.util.Locale;
  * <p>Ansvar: Visar och hanterar servicepunkter i användargränssnittet.</p>
  */
 public class ServiceItemView extends VBox {
+
+    private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final ObservableList<ServiceItem> serviceItemList;
 
@@ -40,7 +42,7 @@ public class ServiceItemView extends VBox {
     }
 
     private void renderTitle() {
-        Label title = new Label("Service");
+        Label title = new Label(lang.get("serviceItem.title"));
         title.setId("h1");
         getChildren().add(title);
         title.getStyleClass().add("text-title");
@@ -51,13 +53,14 @@ public class ServiceItemView extends VBox {
 
         itemTableView.setEditable(false);
         itemTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        itemTableView.setPlaceholder(new Label(lang.get("table.empty")));
 
         VBox.setVgrow(itemTableView, Priority.ALWAYS);
 
-        TableColumn<ServiceItem, String> nameColumn = new TableColumn<>("Name");
-        TableColumn<ServiceItem, String> descColumn = new TableColumn<>("Description");
-        TableColumn<ServiceItem, Double> priceColumn = new TableColumn<>("Price (SEK)");
-        TableColumn<ServiceItem, Integer> durationColumn = new TableColumn<>("Estimated Duration (Minutes)");
+        TableColumn<ServiceItem, String> nameColumn = new TableColumn<>(lang.get("table.name"));
+        TableColumn<ServiceItem, String> descColumn = new TableColumn<>(lang.get("table.desc"));
+        TableColumn<ServiceItem, Double> priceColumn = new TableColumn<>(lang.get("table.price"));
+        TableColumn<ServiceItem, Integer> durationColumn = new TableColumn<>(lang.get("table.estimatedDuration"));
 
         nameColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getName())
@@ -85,7 +88,8 @@ public class ServiceItemView extends VBox {
         priceColumn.setCellValueFactory(cellData ->
                 new SimpleObjectProperty<>(cellData.getValue().getPrice()));
 
-        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("sv", "SE"));
+        // Följer valt språk: 1 097,50 på svenska, 1,097.50 på engelska
+        NumberFormat formatter = NumberFormat.getNumberInstance(lang.getLocale());
         formatter.setMinimumFractionDigits(2);
         formatter.setMaximumFractionDigits(2);
 
@@ -97,15 +101,9 @@ public class ServiceItemView extends VBox {
                 if (empty || price == null) {
                     setText(null);
                 } else {
-                    setText(formatter.format(price) + ";-");
+                    setText(formatter.format(price));
                 }
             }
         });
     }
-
-
-
-
-
-
 }

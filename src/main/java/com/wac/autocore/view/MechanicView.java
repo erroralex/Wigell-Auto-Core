@@ -2,8 +2,8 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.service.LanguageManager;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,6 +24,8 @@ import javafx.scene.layout.VBox;
  * <p>Ansvar: Visar och hanterar mekaniker i användargränssnittet.</p>
  */
 public class MechanicView extends VBox {
+
+    private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final ObservableList<Mechanic> mechanicObservableList;
     private final VBox contentColumn = new VBox(20);
@@ -46,7 +48,7 @@ public class MechanicView extends VBox {
     }
 
     private void renderTitle() {
-        Label title = new Label("Mechanics");
+        Label title = new Label(lang.get("mechanic.title"));
         getChildren().add(title);
         title.getStyleClass().add("text-title");
     }
@@ -66,14 +68,15 @@ public class MechanicView extends VBox {
 
         mechanicTableView.setEditable(false);
         mechanicTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        mechanicTableView.setPlaceholder(new Label(lang.get("table.empty")));
 
         VBox.setVgrow(mechanicTableView, Priority.ALWAYS);
 
-        TableColumn<Mechanic, String> nameColumn = new TableColumn<>("Name");
-        TableColumn<Mechanic, String> phoneColumn = new TableColumn<>("Phone Num");
-        TableColumn<Mechanic, String> specColumn = new TableColumn<>("Specialization");
-        TableColumn<Mechanic, String> availabilityColumn = new TableColumn<>("Available");
-        TableColumn<Mechanic, Number> idColumn = new TableColumn<>("ID");
+        TableColumn<Mechanic, String> nameColumn = new TableColumn<>(lang.get("table.name"));
+        TableColumn<Mechanic, String> phoneColumn = new TableColumn<>(lang.get("table.phone"));
+        TableColumn<Mechanic, String> specColumn = new TableColumn<>(lang.get("table.specialization"));
+        TableColumn<Mechanic, String> availabilityColumn = new TableColumn<>(lang.get("table.availability"));
+        TableColumn<Mechanic, Number> idColumn = new TableColumn<>(lang.get("table.id"));
 
         nameColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getName())
@@ -88,10 +91,10 @@ public class MechanicView extends VBox {
         );
 
         availabilityColumn.setCellValueFactory(cellData -> {
-           if (cellData.getValue().isAvailable()) {
-               return new SimpleStringProperty("Available");
-           }
-           return new SimpleStringProperty("Unavailable");
+            if (cellData.getValue().isAvailable()) {
+                return new SimpleStringProperty(lang.get("mechanic.available"));
+            }
+            return new SimpleStringProperty(lang.get("mechanic.unavailable"));
         });
 
         idColumn.setCellValueFactory(cellData ->
