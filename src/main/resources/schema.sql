@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS booking (
     mechanic_id  INTEGER NOT NULL,
     date         TEXT NOT NULL,
     start_time   TEXT NOT NULL,
+    end_time     TEXT NOT NULL,
     description  TEXT NOT NULL,
     status       TEXT NOT NULL DEFAULT 'BOOKED',
     FOREIGN KEY (vehicle_id) REFERENCES vehicle(id),
