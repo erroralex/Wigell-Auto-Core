@@ -1,16 +1,30 @@
 package com.wac.autocore.model;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "service_item")
 public class ServiceItem {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String name;
     private String description;
     private double price;
     private int estimatedMinutes;
 
-    public ServiceItem(int id, String name, String description,
-                       double price, int estimatedMinutes) {
+    protected ServiceItem() {}
+
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public ServiceItem(int id, String name, String description, double price, int estimatedMinutes) {
+        this(name, description, price, estimatedMinutes);
         this.id = id;
+    }
+
+    public ServiceItem(String name, String description,
+                       double price, int estimatedMinutes) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -19,10 +33,6 @@ public class ServiceItem {
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

@@ -1,14 +1,20 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.AutoCoreConfig;
+import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * <b>AutoCoreApp</b>
- * <p>Ansvar: Startar JavaFX-applikationen, skapar huvudfönstret och kopplar in CSS-stilmallen.</p>
+ * <p>Ansvar: Startar Spring-kontexten och JavaFX-applikationen, skapar huvudfönstret och kopplar in CSS-stilmallen.
+ * Stänger Spring-kontexten (och därmed databasanslutningen) när applikationen avslutas.</p>
  */
 public class AutoCoreApp extends Application {
 
@@ -23,11 +29,30 @@ public class AutoCoreApp extends Application {
     private static final double BASE_FONT_SIZE = 13;
     private double currentZoom = 1.0;
 
+    private ConfigurableApplicationContext springContext;
+
+    /*
+     * Körs på JavaFX-launcher-tråden innan start(). Startar Spring här så att databasen
+     * och tjänsterna är klara innan fönstret byggs.
+     */
+    @Override
+    public void init() {
+        Thread.currentThread().setContextClassLoader(AutoCoreApp.class.getClassLoader());
+
+        springContext = new SpringApplicationBuilder(AutoCoreConfig.class)
+                .web(WebApplicationType.NONE)
+                .headless(false)
+                .run(getParameters().getRaw().toArray(new String[0]));
+    }
+
     @Override
     public void start(Stage primaryStage) {
         try {
             AutoCoreApp.primaryStage = primaryStage;
-            MainLayout layout = new MainLayout();
+
+            GarageSystem garageSystem = springContext.getBean(GarageSystem.class);
+            MainLayout layout = new MainLayout(garageSystem);
+
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
             scene.setFill(javafx.scene.paint.Color.web("#212121"));
 
@@ -56,6 +81,14 @@ public class AutoCoreApp extends Application {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    // Körs när fönstret stängs. Stänger Spring-kontexten så att databasanslutningen släpps.
+    @Override
+    public void stop() {
+        if (springContext != null) {
+            springContext.close();
         }
     }
 

@@ -1,27 +1,36 @@
 package com.wac.autocore.model;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "mechanic")
 public class Mechanic {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String name;
     private String phone;
     private String specialization;
-    private boolean available;
+    private boolean available = true;
 
+    protected Mechanic() {}
+
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
     public Mechanic(int id, String name, String phone, String specialization) {
+        this(name, phone, specialization);
         this.id = id;
+    }
+
+    public Mechanic(String name, String phone, String specialization) {
         this.name = name;
         this.phone = phone;
         this.specialization = specialization;
-        this.available = true;
     }
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

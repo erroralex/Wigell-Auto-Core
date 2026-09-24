@@ -1,17 +1,31 @@
 package com.wac.autocore.model;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "vehicle")
 public class Vehicle {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String registrationNumber;
     private String brand;
     private String model;
     private int year;
     private int customerId;
 
-    public Vehicle(int id, String registrationNumber, String brand,
-                   String model, int year, int customerId) {
+    protected Vehicle() {}
+
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
+    public Vehicle(int id, String registrationNumber, String brand, String model, int year, int customerId) {
+        this(registrationNumber, brand, model, year, customerId);
         this.id = id;
+    }
+
+    public Vehicle(String registrationNumber, String brand,
+                   String model, int year, int customerId) {
         this.registrationNumber = registrationNumber;
         this.brand = brand;
         this.model = model;
@@ -21,10 +35,6 @@ public class Vehicle {
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getRegistrationNumber() {

@@ -3,6 +3,7 @@ package com.wac.autocore.view;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateVehicleDialog;
 import javafx.beans.property.SimpleStringProperty;
@@ -31,6 +32,7 @@ import java.util.Map;
 public class VehicleView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
+    private final GarageSystem garageSystem;
 
     // Markörobjekt för "alla kunder". Namnet visas aldrig, texten kommer från converter nedan
     private static final Customer ALL_CUSTOMERS = new Customer(0, "", "", "");
@@ -42,7 +44,8 @@ public class VehicleView extends VBox {
     private final ComboBox<Customer> customerFilter = new ComboBox<>();
     private final Map<Integer, String> customerNamesById = new HashMap<>();
 
-    public VehicleView() {
+    public VehicleView(GarageSystem garageSystem) {
+        this.garageSystem = garageSystem;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));

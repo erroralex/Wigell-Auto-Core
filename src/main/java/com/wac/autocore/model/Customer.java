@@ -1,27 +1,36 @@
 package com.wac.autocore.model;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "customer")
 public class Customer {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String name;
     private String phone;
     private String email;
-    private boolean vip;
+    private boolean vip = false;
 
+    protected Customer() {}
+
+    @Deprecated // Tillfällig tills dess att repositories ersätter Database
     public Customer(int id, String name, String phone, String email) {
+        this(name, phone, email);
         this.id = id;
+    }
+
+    public Customer(String name, String phone, String email) {
         this.name = name;
         this.phone = phone;
         this.email = email;
-        this.vip = false;
     }
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

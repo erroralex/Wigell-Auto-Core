@@ -35,7 +35,7 @@ public class BookingView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private final GarageSystem garageSystem = new GarageSystem();
+    private final GarageSystem garageSystem;
 
     private final ObservableList<Booking> bookingObservableList;
 
@@ -43,7 +43,8 @@ public class BookingView extends VBox {
 
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
-    public BookingView() {
+    public BookingView(GarageSystem garageSystem) {
+        this.garageSystem = garageSystem;
         this.bookingObservableList = FXCollections.observableArrayList(Database.getBookings());
 
         vehicleMap = Database.getVehicles()
