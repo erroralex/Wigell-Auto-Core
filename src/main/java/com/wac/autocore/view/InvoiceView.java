@@ -5,6 +5,7 @@ import com.wac.autocore.model.Invoice;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -30,9 +31,8 @@ import java.time.LocalDate;
 public class InvoiceView extends VBox {
 
     private final InvoiceService invoiceService;
+    private final WorkOrderService workOrderService;
     private static final LanguageManager lang = LanguageManager.getInstance();
-
-    //private final GarageSystem garageSystem;
 
     private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
     private final SortedList<Invoice> sortedData = new SortedList<>(invoiceMasterData);
@@ -41,8 +41,9 @@ public class InvoiceView extends VBox {
 
     private final Button btnCreateInvoice = new Button(lang.get("btn.create"));
 
-    public InvoiceView(InvoiceService invoiceService) {
+    public InvoiceView(InvoiceService invoiceService, WorkOrderService workOrderService) {
         this.invoiceService = invoiceService;
+        this.workOrderService = workOrderService;
         //this.garageSystem = garageSystem;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
@@ -142,7 +143,7 @@ public class InvoiceView extends VBox {
     }
 
     private void openCreateInvoiceDialog() {
-        CreateInvoiceDialog dialog = new CreateInvoiceDialog(invoiceService);
+        CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService);
 
         dialog.showAndWait().ifPresent(result -> {
 

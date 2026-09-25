@@ -2,8 +2,9 @@ package com.wac.autocore.service;
 
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.repository.BookingRepository;
+import com.wac.autocore.repo.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.WorkOrderRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <b>WorkOrderService</b>
@@ -24,6 +26,8 @@ public class WorkOrderService {
     public static final String STATUS_CREATED = "CREATED";
     public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
     public static final String STATUS_COMPLETED = "COMPLETED";
+
+    private static final String BOOKING_STATUS_BOOKED = "BOOKED";
 
     private final WorkOrderRepository workOrderRepository;
     private final BookingRepository bookingRepository;
@@ -60,9 +64,39 @@ public class WorkOrderService {
         return workOrderRepository.findCompletedNotInvoiced();
     }
 
-    // Skapar en arbetsorder för en bokning
+    @Transactional(readOnly = true)
+    public List<Booking> findBookableBookings() {
+        return bookingRepository.findAll().stream()
+                .filter(booking -> BOOKING_STATUS_BOOKED.equals(booking.getStatus()))
+                .filter(booking -> !workOrderRepository.existsByBookingId(booking.getId()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Booking> findAllBookings() {
+        return bookingRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Mechanic> findAllMechanics() {
+        return mechanicRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Mechanic> findAvailableMechanics() {
+        return mechanicRepository.findAll().stream()
+                .filter(Mechanic::isAvailable)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceItem> findAllServiceItems() {
+        return serviceItemRepository.findAll();
+    }
+
+    // Skapar en arbetsorder för en bokning. mechanicId 0 = använd bokningens mekaniker.
     public WorkOrder createWorkOrder(int bookingId, int mechanicId, int... serviceItemIds) {
-        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        Booking booking = bookingRepository.findById(bookingId);
         if (booking == null) {
             return null;
         }
@@ -102,25 +136,24 @@ public class WorkOrderService {
 
     // Startar en arbetsorder. Tillåts bara från status CREATED.
     public boolean startWorkOrder(int workOrderId) {
-
         WorkOrder workOrder = findById(workOrderId);
         if (workOrder == null || !STATUS_CREATED.equals(workOrder.getStatus())) {
             return false;
         }
+
         workOrder.setStatus(STATUS_IN_PROGRESS);
 
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus("IN_PROGRESS");
+        Booking booking = bookingRepository.findById(workOrder.getBookingId());
+        if (booking != null) {
+            booking.setStatus(STATUS_IN_PROGRESS);
             bookingRepository.save(booking);
-        });
+        }
 
         workOrderRepository.save(workOrder);
         return true;
     }
 
-
     // Avslutar en arbetsorder. Tillåts bara från status IN_PROGRESS.
-    // Mekanikern blir tillgänglig igen och bokningen markeras som klar.
     public boolean completeWorkOrder(int workOrderId) {
         WorkOrder workOrder = findById(workOrderId);
         if (workOrder == null || !STATUS_IN_PROGRESS.equals(workOrder.getStatus())) {
@@ -134,10 +167,11 @@ public class WorkOrderService {
             mechanicRepository.save(mechanic);
         });
 
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus("COMPLETED");
+        Booking booking = bookingRepository.findById(workOrder.getBookingId());
+        if (booking != null) {
+            booking.setStatus(STATUS_COMPLETED);
             bookingRepository.save(booking);
-        });
+        }
 
         workOrderRepository.save(workOrder);
         return true;
