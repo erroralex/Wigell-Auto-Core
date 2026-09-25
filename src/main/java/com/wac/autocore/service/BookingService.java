@@ -46,7 +46,15 @@ public class BookingService {
     public Booking create(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description) {
         Booking booking = new Booking(
                 vehicleId, mechanicId, date, startTime, endTime, description);
-        return bookingRepository.save(booking);
+
+        Booking savedBooking = bookingRepository.save(booking);
+
+        mechanicRepository.findById(mechanicId).ifPresent(mechanic -> {
+            mechanic.setAvailable(false);
+            mechanicRepository.save(mechanic);
+        });
+
+        return savedBooking;
     }
 
 
@@ -61,4 +69,5 @@ public class BookingService {
     public List<Mechanic> listAllMechanics() {
         return mechanicRepository.findAll();
     }
+
 }
