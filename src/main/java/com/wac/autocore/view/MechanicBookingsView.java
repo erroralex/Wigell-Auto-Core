@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.service.LanguageManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,6 +25,7 @@ public class MechanicBookingsView extends VBox {
     private final TableView<Booking> bookingTableView = new TableView<>();
     private final Label nameLabel = new Label();
     private Label titleLabel;
+    private static final LanguageManager lang =  LanguageManager.getInstance();
 
     public MechanicBookingsView(Mechanic mechanic, Runnable onClose) {
         this.getStyleClass().add("content-area");
@@ -32,7 +34,7 @@ public class MechanicBookingsView extends VBox {
 
         nameLabel.getStyleClass().add("text-content");
 
-        titleLabel = new Label("Mechanic Booking Details");
+        titleLabel = new Label(lang.get("mechanic.bookingsTitle"));
         titleLabel.getStyleClass().add("text-title");
 
         Region spacer = new Region();
@@ -48,7 +50,7 @@ public class MechanicBookingsView extends VBox {
     }
 
     private Button closeButton(Runnable onClose) {
-        Button close = new Button("✕");
+        Button close = new Button(lang.get("btn.close"));
         close.getStyleClass().add("btn-secondary");
         close.setOnAction(e -> onClose.run());
         return close;
@@ -64,24 +66,24 @@ public class MechanicBookingsView extends VBox {
         bookingTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         VBox.setVgrow(bookingTableView, Priority.ALWAYS);
 
-        TableColumn<Booking, String> dateColumn = new TableColumn<>("Date"); // ALEXANDER TODO: ENG TO SWE LANGUAGE SWITCH
+        TableColumn<Booking, String> dateColumn = new TableColumn<>(lang.get("table.date"));
         dateColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getDate().toString()));
 
-        TableColumn<Booking, String> vehicleColumn = new TableColumn<>("Vehicle"); // ALEXANDER TODO: ENG TO SWE LANGUAGE SWITCH
+        TableColumn<Booking, String> vehicleColumn = new TableColumn<>(lang.get("table.vehicle"));
         vehicleColumn.setCellValueFactory(cellData -> {
             Vehicle v = Database.getVehicleById(cellData.getValue().getVehicleId());
-            String label = (v != null) ? v.getBrand() + " " + v.getModel() : "Unknown";
+            String label = (v != null) ? v.getBrand() + " " + v.getModel() : lang.get("table.unknown");
             return new SimpleStringProperty(label);
         });
 
-        TableColumn<Booking, String> descColumn = new TableColumn<>("Description");
+        TableColumn<Booking, String> descColumn = new TableColumn<>(lang.get("table.desc"));
         descColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getDescription()));
 
-        TableColumn<Booking, String> statusColumn = new TableColumn<>("Status");
+        TableColumn<Booking, String> statusColumn = new TableColumn<>(lang.get("table.status"));
         statusColumn.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getStatus()));
+                        new SimpleStringProperty(lang.get("booking.status." + cellData.getValue().getStatus())));
 
         bookingTableView.getColumns().add(dateColumn);
         bookingTableView.getColumns().add(vehicleColumn);

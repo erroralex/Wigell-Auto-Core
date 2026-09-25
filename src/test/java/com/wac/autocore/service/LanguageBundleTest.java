@@ -46,7 +46,8 @@ class LanguageBundleTest {
     private static final String[] DYNAMIC_KEYS = {
             "booking.status.BOOKED", "booking.status.COMPLETED", "booking.status.CANCELLED",
             "workOrder.status.CREATED", "workOrder.status.IN_PROGRESS", "workOrder.status.COMPLETED",
-            "payment.type.CARD", "payment.type.SWISH", "payment.type.CASH"
+            "payment.type.CARD", "payment.type.SWISH", "payment.type.CASH","booking.status.BOOKED", "booking.status.COMPLETED", "booking.status.CANCELLED",
+            "booking.status.WORK_ORDER_CREATED", "booking.status.IN_PROGRESS"
     };
 
     // Nycklar som används utanför lang.get/bind, t.ex. via NavigationItem.getKey()
