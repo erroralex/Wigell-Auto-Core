@@ -1,12 +1,11 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.model.Booking;
-import com.wac.autocore.repo.BookingRepository;
+import com.wac.autocore.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 
 @Service

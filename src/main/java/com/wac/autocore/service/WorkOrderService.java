@@ -4,7 +4,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.repo.BookingRepository;
+import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.WorkOrderRepository;

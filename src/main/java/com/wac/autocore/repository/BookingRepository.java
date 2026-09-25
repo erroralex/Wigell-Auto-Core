@@ -1,7 +1,6 @@
-package com.wac.autocore.repo;
+package com.wac.autocore.repository;
 
 import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.Mechanic;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
