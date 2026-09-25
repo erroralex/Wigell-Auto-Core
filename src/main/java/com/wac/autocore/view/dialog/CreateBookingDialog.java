@@ -55,42 +55,10 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         DialogUtil.applyTheme(this);
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
-
+        
         vehicleComboBox.getItems().addAll(Database.getVehicles());
-        mechanicComboBox.getItems().addAll(Database.getMechanics());
+        mechanicComboBox.getItems().addAll(bookingService.listAllMechanics());
         serviceItemComboBox.getItems().addAll(bookingService.listAllServiceItems());
-
-        vehicleComboBox.setConverter(new StringConverter<Vehicle>() {
-            @Override
-            public String toString(Vehicle v) {
-                return v == null ? "" : v.getRegistrationNumber() + " - " + v.getBrand() + " " + v.getModel();
-            }
-            @Override
-            public Vehicle fromString(String s) { return null; }
-        });
-
-        mechanicComboBox.setConverter(new StringConverter<Mechanic>() {
-            @Override
-            public String toString(Mechanic m) {
-                if (m == null) return "";
-                String status = lang.get(m.isAvailable() ? "mechanic.available" : "mechanic.unavailable");
-                return m.getName() + " (" + status + ")";
-            }
-            @Override
-            public Mechanic fromString(String s) { return null; }
-        });
-
-        serviceItemComboBox.setConverter(new StringConverter<ServiceItem>() {
-            @Override
-            public String toString(ServiceItem s) {
-                return s == null ? "" : s.getName() + " - " + lang.get("format.price", s.getPrice());
-            }
-            @Override
-            public ServiceItem fromString(String s) { return null; }
-        });
-
-        serviceItemComboBox.valueProperty().addListener((obs, oldVal, newVal) ->
-                estimatedTimeLabel.setText(newVal == null ? "" : lang.get("format.minutes", newVal.getEstimatedMinutes())));
 
         setContent();
     }
@@ -218,6 +186,40 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
               descriptionTextField.getStyleClass().removeAll("input-error");
           }
         });
+
+        vehicleComboBox.setConverter(new StringConverter<Vehicle>() {
+            @Override
+            public String toString(Vehicle v) {
+                return v == null ? "" : v.getRegistrationNumber() + " - " + v.getBrand() + " " + v.getModel();
+            }
+            @Override
+            public Vehicle fromString(String s) { return null; }
+        });
+
+        mechanicComboBox.setConverter(new StringConverter<Mechanic>() {
+            @Override
+            public String toString(Mechanic m) {
+                if (m == null) return "";
+                String status = lang.get(m.isAvailable() ? "mechanic.available" : "mechanic.unavailable");
+                return m.getName() + " (" + status + ")";
+            }
+            @Override
+            public Mechanic fromString(String s) { return null; }
+        });
+
+        serviceItemComboBox.setConverter(new StringConverter<ServiceItem>() {
+            @Override
+            public String toString(ServiceItem s) {
+                return s == null ? "" : s.getName() + " - " + lang.get("format.price", s.getPrice());
+            }
+            @Override
+            public ServiceItem fromString(String s) { return null; }
+        });
+
+        serviceItemComboBox.valueProperty().addListener((obs, oldVal, newVal) ->
+                estimatedTimeLabel.setText(newVal == null ? "" : lang.get("format.minutes", newVal.getEstimatedMinutes())));
+
+
     }
 
     public static class Result {
