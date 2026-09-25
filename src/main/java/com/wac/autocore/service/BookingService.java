@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -69,5 +70,6 @@ public class BookingService {
     public List<Mechanic> listAllMechanics() {
         return mechanicRepository.findAll();
     }
+
 
 }
