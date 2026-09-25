@@ -39,8 +39,6 @@ public class BookingView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private final GarageSystem garageSystem;
-
     private final BookingService bookingService;
 
     private final ObservableList<Booking> bookingObservableList;
@@ -51,8 +49,7 @@ public class BookingView extends VBox {
 
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
-    public BookingView(GarageSystem garageSystem, BookingService bookingService) {
-        this.garageSystem = garageSystem;
+    public BookingView(BookingService bookingService) {
         this.bookingService = bookingService;
         this.bookingObservableList = FXCollections.observableArrayList(bookingService.listAll());
 
@@ -168,16 +165,6 @@ public class BookingView extends VBox {
         }
 
         return lang.get("table.notFound");
-    }
-
-    private LocalTime fetchStartTime(int bookingId) {
-        Booking booking = bookingService.findById(bookingId);
-
-        if (booking != null) {
-            return booking.getStartTime();
-        }
-
-        return null;
     }
 
     private HBox createButtonBar() {
