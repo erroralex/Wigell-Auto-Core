@@ -44,6 +44,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     public CreateBookingDialog(BookingService bookingService) {
         this.bookingService = bookingService;
+
         this.bookingList = bookingService.listAll();
 
         errorLabel.getStyleClass().add("text-error");
@@ -57,7 +58,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         vehicleComboBox.getItems().addAll(Database.getVehicles());
         mechanicComboBox.getItems().addAll(Database.getMechanics());
-        serviceItemComboBox.getItems().addAll(Database.getServiceItems());
+        serviceItemComboBox.getItems().addAll(bookingService.listAllServiceItems());
 
         vehicleComboBox.setConverter(new StringConverter<Vehicle>() {
             @Override
