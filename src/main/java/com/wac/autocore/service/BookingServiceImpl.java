@@ -1,7 +1,9 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.repository.BookingRepository;
+import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -12,10 +14,11 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
+    private final ServiceItemRepository serviceItemRepository;
 
-
-    public BookingServiceImpl(BookingRepository bookingRepository) {
+    public BookingServiceImpl(BookingRepository bookingRepository, ServiceItemRepository serviceItemRepository) {
         this.bookingRepository = bookingRepository;
+        this.serviceItemRepository = serviceItemRepository;
     }
     @Override
     public List<Booking> listAll() {
@@ -42,5 +45,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public boolean isVehicleBooked(int vehicleId, LocalDate date) {
         return bookingRepository.existsByVehicleIdAndDate(vehicleId, date);
+    }
+
+    public List<ServiceItem> listAllServiceItems() {
+        return serviceItemRepository.findAll();
     }
 }

@@ -60,7 +60,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         vehicleComboBox.getItems().addAll(Database.getVehicles());
         mechanicComboBox.getItems().addAll(Database.getMechanics());
-        serviceItemComboBox.getItems().addAll(serviceItemService.listAll());
+        serviceItemComboBox.getItems().addAll();
 
         setContent();
     }
