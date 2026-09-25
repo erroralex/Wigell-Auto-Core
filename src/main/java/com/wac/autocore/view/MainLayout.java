@@ -1,11 +1,6 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.service.BookingService;
-import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.GarageSystem;
-import com.wac.autocore.service.InvoiceService;
-import com.wac.autocore.service.LanguageManager;
-import com.wac.autocore.service.PaymentService;
+import com.wac.autocore.service.*;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 
@@ -16,6 +11,7 @@ public class MainLayout extends BorderPane {
     private final PaymentService paymentService;
     private final BookingService bookingService;
     private final CustomerService customerService;
+    private final VehicleService vehicleService;
     private final SideNavigation sideNavigation;
     private NavigationItem currentItem;
 
@@ -23,12 +19,14 @@ public class MainLayout extends BorderPane {
                       InvoiceService invoiceService,
                       PaymentService paymentService,
                       BookingService bookingService,
-                      CustomerService customerService) {
+                      CustomerService customerService,
+                      VehicleService vehicleService) {
         this.garageSystem = garageSystem;
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.bookingService = bookingService;
         this.customerService = customerService;
+        this.vehicleService = vehicleService;
         this.getStyleClass().add("main-layout");
 
         LanguageManager.getInstance().localeProperty()
@@ -51,7 +49,7 @@ public class MainLayout extends BorderPane {
         switch (item) {
             case HOME:          return new HomeView();
             case CUSTOMERS:     return new CustomerView(customerService);
-            case VEHICLES:      return new VehicleView(garageSystem);
+            case VEHICLES:      return new VehicleView(customerService, vehicleService);
             case BOOKINGS:      return new BookingView(garageSystem, bookingService);
             case SERVICE_ITEMS: return new ServiceItemView(garageSystem);
             case MECHANICS:     return new MechanicView(garageSystem);

@@ -1,10 +1,10 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
@@ -27,7 +27,8 @@ public class CreateVehicleDialog {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private final GarageSystem garageSystem = new GarageSystem();
+    private final CustomerService customerService;
+    private final VehicleService vehicleService;
     private final Dialog<Boolean> dialog = new Dialog<>();
     private final TextField registrationNumberField = new TextField();
     private final TextField makeField = new TextField();
@@ -37,7 +38,9 @@ public class CreateVehicleDialog {
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
 
-    public CreateVehicleDialog() {
+    public CreateVehicleDialog(CustomerService customerService, VehicleService vehicleService) {
+        this.customerService = customerService;
+        this.vehicleService = vehicleService;
         dialog.setTitle(lang.get("vehicle.new"));
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
         dialog.getDialogPane().setContent(createContent());
@@ -66,7 +69,7 @@ public class CreateVehicleDialog {
     }
 
     private void configureCustomerComboBox() {
-        customerComboBox.getItems().setAll(Database.getCustomers());
+        customerComboBox.getItems().setAll(customerService.findAll());
         customerComboBox.setPromptText(lang.get("table.customer"));
         customerComboBox.setConverter(new StringConverter<Customer>() {
             @Override
@@ -144,13 +147,20 @@ public class CreateVehicleDialog {
             return false;
         }
 
-        Vehicle vehicle = garageSystem.createVehicle(
-                registrationNumber,
-                make,
-                model,
-                year,
-                selectedCustomer.getId()
-        );
+        Vehicle vehicle;
+        try {
+            vehicle = vehicleService.create(
+                    registrationNumber,
+                    make,
+                    model,
+                    year,
+                    selectedCustomer.getId()
+            );
+        } catch (IllegalArgumentException exception) {
+            markFieldError(registrationNumberField);
+            AlertHelper.showError(lang.get("error.vehicle"), lang.get("error.vehicleSave"));
+            return false;
+        }
 
         if (vehicle == null) {
             AlertHelper.showError(lang.get("error.vehicle"), lang.get("error.vehicleSave"));

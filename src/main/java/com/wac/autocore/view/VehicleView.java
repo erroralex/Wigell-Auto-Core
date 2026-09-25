@@ -1,10 +1,10 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.dialog.CreateVehicleDialog;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -32,10 +32,11 @@ import java.util.Map;
 public class VehicleView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
-    private final GarageSystem garageSystem;
+    private final CustomerService customerService;
+    private final VehicleService vehicleService;
 
     // Markörobjekt för "alla kunder". Namnet visas aldrig, texten kommer från converter nedan
-    private static final Customer ALL_CUSTOMERS = new Customer(0, "", "", "");
+    private static final Customer ALL_CUSTOMERS = new Customer("", "", "");
 
     private final TableView<Vehicle> vehicleTable = new TableView<>();
     private final ObservableList<Vehicle> masterData = FXCollections.observableArrayList();
@@ -44,8 +45,9 @@ public class VehicleView extends VBox {
     private final ComboBox<Customer> customerFilter = new ComboBox<>();
     private final Map<Integer, String> customerNamesById = new HashMap<>();
 
-    public VehicleView(GarageSystem garageSystem) {
-        this.garageSystem = garageSystem;
+    public VehicleView(CustomerService customerService, VehicleService vehicleService) {
+        this.customerService = customerService;
+        this.vehicleService = vehicleService;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));
@@ -65,21 +67,21 @@ public class VehicleView extends VBox {
 
     private void loadCustomers() {
         customerNamesById.clear();
-        customerFilterOptions.setAll(Database.getCustomers());
+        customerFilterOptions.setAll(customerService.findAll());
 
-        for (Customer customer : Database.getCustomers()) {
+        for (Customer customer : customerFilterOptions) {
             customerNamesById.put(customer.getId(), customer.getName());
         }
     }
 
     private void loadMasterData() {
-        masterData.setAll(Database.getVehicles());
+        masterData.setAll(vehicleService.findAll());
     }
 
     private void refreshData() {
         loadCustomers();
         customerFilterOptions.add(0, ALL_CUSTOMERS);
-        masterData.setAll(Database.getVehicles());
+        masterData.setAll(vehicleService.findAll());
         applyCustomerFilter(customerFilter.getValue());
     }
 
@@ -179,7 +181,7 @@ public class VehicleView extends VBox {
     }
 
     private void openCreateVehicleDialog() {
-        CreateVehicleDialog dialog = new CreateVehicleDialog();
+        CreateVehicleDialog dialog = new CreateVehicleDialog(customerService, vehicleService);
         if (dialog.showAndWait()) {
             refreshData();
         }
