@@ -8,11 +8,9 @@ import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.model.WorkOrder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDate;
 
 @Service
 @Transactional
@@ -90,19 +88,7 @@ public class GarageSystem {
         }
     }
 
-    public void showWorkOrders() {
-        System.out.println();
-        System.out.println("=== WORK ORDERS ===");
 
-        if (Database.getWorkOrders().isEmpty()) {
-            System.out.println("No work orders found.");
-            return;
-        }
-
-        for (WorkOrder workOrder : Database.getWorkOrders()) {
-            System.out.println(workOrder);
-        }
-    }
 
     public void showInvoices() {
         System.out.println();
@@ -203,200 +189,6 @@ public class GarageSystem {
 
         return booking;
     }*/
-
-    public WorkOrder createWorkOrder(int bookingId,
-                                     int mechanicId,
-                                     int... serviceItemIds) {
-
-        Booking booking = findBooking(bookingId);
-
-        if (booking == null) {
-            System.out.println("Booking with ID " + bookingId + " does not exist.");
-            return null;
-        }
-
-        Mechanic mechanic = findMechanic(mechanicId);
-
-        if (mechanic == null) {
-            System.out.println("Mechanic with ID " + mechanicId + " does not exist.");
-            return null;
-        }
-
-        if (!mechanic.isAvailable()) {
-            System.out.println("Mechanic " + mechanic.getName() + " is not available.");
-            return null;
-        }
-
-        for (int serviceItemId : serviceItemIds) {
-            if (findServiceItem(serviceItemId) == null) {
-                System.out.println(
-                        "Service item with ID " + serviceItemId + " does not exist."
-                );
-                return null;
-            }
-        }
-
-        int id = Database.getWorkOrders().size() + 1;
-
-        WorkOrder workOrder = new WorkOrder(
-                id,
-                bookingId,
-                mechanicId
-        );
-
-        for (int serviceItemId : serviceItemIds) {
-            workOrder.addServiceItem(serviceItemId);
-        }
-
-        Database.getWorkOrders().add(workOrder);
-
-        booking.setStatus("WORK_ORDER_CREATED");
-        mechanic.setAvailable(false);
-
-        System.out.println("Work order created successfully.");
-        System.out.println(workOrder);
-
-        return workOrder;
-    }
-
-    public void startWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findWorkOrder(workOrderId);
-
-        if (workOrder == null) {
-            System.out.println("Work order with ID " + workOrderId + " does not exist.");
-            return;
-        }
-
-        if (!workOrder.getStatus().equals("CREATED")) {
-            System.out.println("Work order cannot be started.");
-            return;
-        }
-
-        Mechanic mechanic = findMechanic(workOrder.getMechanicId());
-        Booking booking = findBooking(workOrder.getBookingId());
-
-        if (mechanic != null) {
-            mechanic.setAvailable(false);
-        }
-
-        if (booking != null) {
-            booking.setStatus("IN_PROGRESS");
-        }
-
-        workOrder.setStatus("IN_PROGRESS");
-
-        System.out.println("Work order " + workOrderId + " has been started.");
-    }
-
-    public void completeWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findWorkOrder(workOrderId);
-
-        if (workOrder == null) {
-            System.out.println("Work order with ID " + workOrderId + " does not exist.");
-            return;
-        }
-
-        if (!workOrder.getStatus().equals("IN_PROGRESS")) {
-            System.out.println("Only work orders in progress can be completed.");
-            return;
-        }
-
-        Mechanic mechanic = findMechanic(workOrder.getMechanicId());
-        Booking booking = findBooking(workOrder.getBookingId());
-
-        workOrder.setStatus("COMPLETED");
-
-        if (mechanic != null) {
-            mechanic.setAvailable(true);
-        }
-
-        if (booking != null) {
-            booking.setStatus("COMPLETED");
-        }
-
-        System.out.println("Work order " + workOrderId + " has been completed.");
-    }
-
-    public Invoice createInvoice(int workOrderId, String discountCode) {
-        WorkOrder workOrder = findWorkOrder(workOrderId);
-
-        if (workOrder == null) {
-            System.out.println("Work order with ID " + workOrderId + " does not exist.");
-            return null;
-        }
-
-        if (!workOrder.getStatus().equals("COMPLETED")) {
-            System.out.println("Invoice can only be created for a completed work order.");
-            return null;
-        }
-
-        double amount = 0.0;
-
-        for (Integer serviceItemId : workOrder.getServiceItemIds()) {
-            ServiceItem serviceItem = findServiceItem(serviceItemId);
-
-            if (serviceItem != null) {
-                amount += serviceItem.getPrice();
-            }
-        }
-
-        double discount = 0.0;
-
-        Booking booking = findBooking(workOrder.getBookingId());
-
-        if (booking != null) {
-            Vehicle vehicle = findVehicle(booking.getVehicleId());
-
-            if (vehicle != null) {
-                Customer customer = findCustomer(vehicle.getCustomerId());
-
-                if (customer != null && customer.isVip()) {
-                    discount += amount * 0.10;
-                    System.out.println("VIP discount applied: 10%");
-                }
-            }
-        }
-
-        if (discountCode != null && !discountCode.trim().isEmpty()) {
-
-            if (discountCode.equalsIgnoreCase("WELCOME10")) {
-                discount += amount * 0.10;
-                System.out.println("Discount code WELCOME10 applied.");
-
-            } else if (discountCode.equalsIgnoreCase("SERVICE200")) {
-                discount += 200.0;
-                System.out.println("Discount code SERVICE200 applied.");
-
-            } else {
-                System.out.println("Unknown discount code. No code discount applied.");
-            }
-        }
-
-        if (discount > amount) {
-            discount = amount;
-        }
-
-        int id = Database.getInvoices().size() + 1;
-
-        Invoice invoice = new Invoice(
-                id,
-                workOrderId,
-                LocalDate.now(),
-                amount
-        );
-
-        invoice.setDiscount(discount);
-
-        Database.getInvoices().add(invoice);
-
-        System.out.println("Invoice created successfully.");
-        System.out.println(invoice);
-
-        System.out.println("Sending invoice notification to customer...");
-        System.out.println("Notification sent.");
-
-        return invoice;
-    }
 
     public Payment processPayment(int invoiceId, String paymentType) {
         Invoice invoice = findInvoice(invoiceId);
@@ -504,16 +296,6 @@ public class GarageSystem {
         for (ServiceItem serviceItem : Database.getServiceItems()) {
             if (serviceItem.getId() == id) {
                 return serviceItem;
-            }
-        }
-
-        return null;
-    }
-
-    private WorkOrder findWorkOrder(int id) {
-        for (WorkOrder workOrder : Database.getWorkOrders()) {
-            if (workOrder.getId() == id) {
-                return workOrder;
             }
         }
 

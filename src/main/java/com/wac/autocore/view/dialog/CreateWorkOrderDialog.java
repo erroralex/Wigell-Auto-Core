@@ -1,6 +1,5 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
@@ -13,9 +12,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
+import java.util.List;
+
 /**
  * <b>CreateWorkOrderDialog</b>
- * <p>Ansvar: Dialog för att skapa en arbetsorder.</p>
+ * <p>Ansvar: Dialog för att skapa en arbetsorder. Får sina listor av vyn och känner inte till databasen.</p>
  */
 public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> {
 
@@ -26,12 +27,12 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
     private final ListView<ServiceItem> serviceItemList = new ListView<>();
     private final Label totalLabel = new Label();
 
-    private static final String BOOKING_STATUS_BOOKED = "BOOKED";
-
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
-    public CreateWorkOrderDialog() {
+    public CreateWorkOrderDialog(List<Booking> bookings,
+                                 List<Mechanic> mechanics,
+                                 List<ServiceItem> serviceItems) {
         setTitle(lang.get("workOrder.new"));
         setHeaderText(lang.get("workOrder.create"));
 
@@ -42,12 +43,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
 
         // -------------------------------------------------------------------------------------------------------------
 
-        for (Booking booking : Database.getBookings()) {
-            if (BOOKING_STATUS_BOOKED.equals(booking.getStatus())) {
-                bookingCombo.getItems().add(booking);
-            }
-        }
-
+        bookingCombo.getItems().addAll(bookings);
         bookingCombo.setConverter(new StringConverter<Booking>() {
 
             @Override
@@ -63,11 +59,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
 
         // -------------------------------------------------------------------------------------------------------------
 
-        for (Mechanic mechanic : Database.getMechanics()) {
-            if (mechanic.isAvailable()) {
-                mechanicCombo.getItems().add(mechanic);
-            }
-        }
+        mechanicCombo.getItems().addAll(mechanics);
         mechanicCombo.setConverter(new StringConverter<Mechanic>() {
 
             @Override
@@ -83,7 +75,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
 
         // -------------------------------------------------------------------------------------------------------------
 
-        serviceItemList.getItems().addAll(Database.getServiceItems());
+        serviceItemList.getItems().addAll(serviceItems);
         serviceItemList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         serviceItemList.setPrefHeight(160);
         serviceItemList.setCellFactory(list -> new ListCell<ServiceItem>() {
@@ -105,7 +97,14 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
                     updateTotal();
                     validate(saveButton);
                 });
-        bookingCombo.valueProperty().addListener((obs, oldV, newV) -> validate(saveButton));
+
+        // Förvalt: bokningens mekaniker, om den finns bland de tillgängliga
+        bookingCombo.valueProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) {
+                preselectMechanic(newV.getMechanicId());
+            }
+            validate(saveButton);
+        });
         mechanicCombo.valueProperty().addListener((obs, oldV, newV) -> validate(saveButton));
 
         // Sätter startvärdet (0) via samma nyckel som vid uppdatering
@@ -136,6 +135,15 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         });
     }
 
+    private void preselectMechanic(int mechanicId) {
+        for (Mechanic mechanic : mechanicCombo.getItems()) {
+            if (mechanic.getId() == mechanicId) {
+                mechanicCombo.setValue(mechanic);
+                return;
+            }
+        }
+    }
+
     private void updateTotal() {
         double total = serviceItemList.getSelectionModel()
                 .getSelectedItems()
@@ -151,8 +159,6 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
                 && !serviceItemList.getSelectionModel().getSelectedItems().isEmpty();
         saveButton.setDisable(!valid);
     }
-
-// -----------------------------------------------------------------------------------------------------------------
 
     public static class Result {
         private final int bookingId;

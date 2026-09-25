@@ -1,10 +1,8 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.data.Database;
-import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar;
@@ -23,10 +21,8 @@ import javafx.util.StringConverter;
 public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
-    private final InvoiceService invoiceService;
 
-    public CreateInvoiceDialog(InvoiceService invoiceService) {
-        this.invoiceService = invoiceService;
+    public CreateInvoiceDialog(WorkOrderService workOrderService) {
         this.setTitle(lang.get("invoice.new"));
         this.setHeaderText(lang.get("invoice.create"));
 
@@ -35,22 +31,7 @@ public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
         ComboBox<WorkOrder> workOrderSelection = new ComboBox<>();
         TextField discountCodeInput = new TextField();
 
-        for (WorkOrder workOrder : Database.getWorkOrders()) {
-
-            if (!"COMPLETED".equals(workOrder.getStatus()))
-                continue;
-
-            boolean alreadyInvoiced = false;
-
-            for (Invoice invoice : invoiceService.findAll()) {
-
-                if (invoice.getWorkOrderId() == workOrder.getId())
-                    alreadyInvoiced = true;
-            }
-
-            if (!alreadyInvoiced)
-                workOrderSelection.getItems().add(workOrder);
-        }
+        workOrderSelection.getItems().addAll(workOrderService.findCompletedNotInvoiced());
 
         workOrderSelection.setConverter(new StringConverter<WorkOrder>() {
             @Override

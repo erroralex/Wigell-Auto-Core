@@ -1,11 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
-import com.wac.autocore.service.BookingService;
-import com.wac.autocore.service.GarageSystem;
-import com.wac.autocore.service.InvoiceService;
-import com.wac.autocore.service.LanguageManager;
-import com.wac.autocore.service.PaymentService;
+import com.wac.autocore.service.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
@@ -53,12 +49,14 @@ public class AutoCoreApp extends Application {
             InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
             PaymentService paymentService = springContext.getBean(PaymentService.class);
             BookingService bookingService = springContext.getBean(BookingService.class);
+            WorkOrderService workOrderService = springContext.getBean(WorkOrderService.class);
 
             MainLayout layout = new MainLayout(
                     garageSystem,
                     invoiceService,
                     paymentService,
-                    bookingService
+                    bookingService,
+                    workOrderService
             );
 
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
