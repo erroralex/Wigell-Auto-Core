@@ -67,6 +67,6 @@ VALUES
 
 -- payment
 INSERT OR IGNORE INTO payment
-    (id, invoice_id, amount, payment_type, payment_date, successful)
+(id, invoice_id, amount, payment_type, payment_date, successful)
 VALUES
-    (1, 1, 4790.0, 'CARD', '2026-09-21T11:00:00', 1);
+    (1, 1, 4790.0, 'CARD', '2026-09-21 11:00', 1);
