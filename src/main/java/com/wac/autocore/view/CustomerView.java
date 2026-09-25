@@ -1,8 +1,7 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Customer;
-import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
 import javafx.beans.property.SimpleStringProperty;
@@ -32,10 +31,10 @@ public class CustomerView extends VBox {
     private final ObservableList<Customer> masterData = FXCollections.observableArrayList();
     private final FilteredList<Customer> filteredData = new FilteredList<>(masterData, customer -> true);
     private final TextField searchField = new TextField();
-    private final GarageSystem garageSystem;
+    private final CustomerService customerService;
 
-    public CustomerView(GarageSystem garageSystem) {
-        this.garageSystem = garageSystem;
+    public CustomerView(CustomerService customerService) {
+        this.customerService = customerService;
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));
@@ -53,11 +52,11 @@ public class CustomerView extends VBox {
     }
 
     private void loadMasterData() {
-        masterData.setAll(Database.getCustomers());
+        masterData.setAll(customerService.findAll());
     }
 
     private void refreshData() {
-        masterData.setAll(Database.getCustomers());
+        masterData.setAll(customerService.findAll());
         applyFilter(searchField.getText());
     }
 
@@ -123,7 +122,7 @@ public class CustomerView extends VBox {
     }
 
     private void openCreateCustomerDialog() {
-        CreateCustomerDialog dialog = new CreateCustomerDialog();
+        CreateCustomerDialog dialog = new CreateCustomerDialog(customerService);
         if (dialog.showAndWait()) {
             refreshData();
         }

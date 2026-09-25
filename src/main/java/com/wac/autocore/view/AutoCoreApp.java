@@ -49,6 +49,8 @@ public class AutoCoreApp extends Application {
             InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
             PaymentService paymentService = springContext.getBean(PaymentService.class);
             BookingService bookingService = springContext.getBean(BookingService.class);
+            CustomerService customerService = springContext.getBean(CustomerService.class);
+            VehicleService vehicleService = springContext.getBean(VehicleService.class);
             WorkOrderService workOrderService = springContext.getBean(WorkOrderService.class);
             ServiceItemService serviceItemService = springContext.getBean(ServiceItemService.class);
             MechanicService mechanicService = springContext.getBean(MechanicService.class);
@@ -58,6 +60,8 @@ public class AutoCoreApp extends Application {
                     invoiceService,
                     paymentService,
                     bookingService,
+                    customerService,
+                    vehicleService,
                     workOrderService,
                     serviceItemService,
                     mechanicService

@@ -10,6 +10,8 @@ public class MainLayout extends BorderPane {
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
     private final BookingService bookingService;
+    private final CustomerService customerService;
+    private final VehicleService vehicleService;
     private final WorkOrderService workOrderService;
     private final ServiceItemService serviceItemService;
     private final MechanicService mechanicService;
@@ -20,6 +22,8 @@ public class MainLayout extends BorderPane {
                       InvoiceService invoiceService,
                       PaymentService paymentService,
                       BookingService bookingService,
+                      CustomerService customerService,
+                      VehicleService vehicleService,
                       WorkOrderService workOrderService,
                       ServiceItemService serviceItemService,
                       MechanicService mechanicService) {
@@ -27,6 +31,8 @@ public class MainLayout extends BorderPane {
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.bookingService = bookingService;
+        this.customerService = customerService;
+        this.vehicleService = vehicleService;
         this.workOrderService = workOrderService;
         this.serviceItemService = serviceItemService;
         this.mechanicService = mechanicService;
@@ -51,8 +57,8 @@ public class MainLayout extends BorderPane {
     private Node createView(NavigationItem item) {
         switch (item) {
             case HOME:          return new HomeView();
-            case CUSTOMERS:     return new CustomerView(garageSystem);
-            case VEHICLES:      return new VehicleView(garageSystem);
+            case CUSTOMERS:     return new CustomerView(customerService);
+            case VEHICLES:      return new VehicleView(customerService, vehicleService);
             case BOOKINGS:      return new BookingView(bookingService);
             case SERVICE_ITEMS: return new ServiceItemView(serviceItemService);
             case MECHANICS:     return new MechanicView(mechanicService);
