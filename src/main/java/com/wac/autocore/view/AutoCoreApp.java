@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
 import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
@@ -53,12 +54,14 @@ public class AutoCoreApp extends Application {
             InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
             PaymentService paymentService = springContext.getBean(PaymentService.class);
             BookingService bookingService = springContext.getBean(BookingService.class);
+            CustomerService customerService = springContext.getBean(CustomerService.class);
 
             MainLayout layout = new MainLayout(
                     garageSystem,
                     invoiceService,
                     paymentService,
-                    bookingService
+                    bookingService,
+                    customerService
             );
 
             Scene scene = new Scene(layout, WIDTH, HEIGHT);

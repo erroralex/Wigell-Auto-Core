@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
@@ -14,17 +15,20 @@ public class MainLayout extends BorderPane {
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
     private final BookingService bookingService;
+    private final CustomerService customerService;
     private final SideNavigation sideNavigation;
     private NavigationItem currentItem;
 
     public MainLayout(GarageSystem garageSystem,
                       InvoiceService invoiceService,
                       PaymentService paymentService,
-                      BookingService bookingService) {
+                      BookingService bookingService,
+                      CustomerService customerService) {
         this.garageSystem = garageSystem;
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.bookingService = bookingService;
+        this.customerService = customerService;
         this.getStyleClass().add("main-layout");
 
         LanguageManager.getInstance().localeProperty()
@@ -46,7 +50,7 @@ public class MainLayout extends BorderPane {
     private Node createView(NavigationItem item) {
         switch (item) {
             case HOME:          return new HomeView();
-            case CUSTOMERS:     return new CustomerView(garageSystem);
+            case CUSTOMERS:     return new CustomerView(customerService);
             case VEHICLES:      return new VehicleView(garageSystem);
             case BOOKINGS:      return new BookingView(garageSystem, bookingService);
             case SERVICE_ITEMS: return new ServiceItemView(garageSystem);

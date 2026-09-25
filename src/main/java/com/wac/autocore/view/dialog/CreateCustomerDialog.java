@@ -1,7 +1,7 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Customer;
-import com.wac.autocore.service.GarageSystem;
+import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
@@ -26,7 +26,7 @@ public class CreateCustomerDialog {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private final GarageSystem garageSystem = new GarageSystem();
+    private final CustomerService customerService;
     private final Dialog<Boolean> dialog = new Dialog<>();
     private final TextField nameField = new TextField();
     private final TextField phoneField = new TextField();
@@ -35,7 +35,8 @@ public class CreateCustomerDialog {
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
 
-    public CreateCustomerDialog() {
+    public CreateCustomerDialog(CustomerService customerService) {
+        this.customerService = customerService;
         dialog.setTitle(lang.get("customer.new"));
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
         dialog.getDialogPane().setContent(createContent());
@@ -115,7 +116,7 @@ public class CreateCustomerDialog {
             return false;
         }
 
-        Customer customer = garageSystem.createCustomer(name, phone, email);
+        Customer customer = customerService.create(name, phone, email);
         if (customer == null) {
             AlertHelper.showError(lang.get("error.customer"), lang.get("error.customerSave"));
             return false;
@@ -123,6 +124,7 @@ public class CreateCustomerDialog {
 
         if (vipCheckBox.isSelected()) {
             customer.setVip(true);
+            customerService.update(customer);
         }
 
         return true;
