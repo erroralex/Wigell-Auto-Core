@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -25,16 +26,16 @@ import javafx.scene.layout.VBox;
 public class MechanicView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
-    private final GarageSystem garageSystem;
+    private final MechanicService mechanicService;
 
     private final ObservableList<Mechanic> mechanicObservableList;
     private final VBox contentColumn = new VBox(20);
     private final VBox tableContainer = new VBox();
     private MechanicBookingsView bookingsView;
 
-    public MechanicView(GarageSystem garageSystem) {
-        this.garageSystem = garageSystem;
-        this.mechanicObservableList = FXCollections.observableArrayList(Database.getMechanics());
+    public MechanicView(MechanicService mechanicService) {
+        this.mechanicService = mechanicService;
+        this.mechanicObservableList = FXCollections.observableArrayList(mechanicService.listAll());
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(10));
