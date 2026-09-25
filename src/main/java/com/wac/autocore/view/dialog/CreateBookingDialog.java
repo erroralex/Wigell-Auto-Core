@@ -13,6 +13,8 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -42,6 +44,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     public CreateBookingDialog(BookingService bookingService) {
         this.bookingService = bookingService;
+
         this.bookingList = bookingService.listAll();
 
         errorLabel.getStyleClass().add("text-error");
@@ -55,7 +58,39 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         vehicleComboBox.getItems().addAll(Database.getVehicles());
         mechanicComboBox.getItems().addAll(Database.getMechanics());
-        serviceItemComboBox.getItems().addAll(Database.getServiceItems());
+        serviceItemComboBox.getItems().addAll(bookingService.listAllServiceItems());
+
+        vehicleComboBox.setConverter(new StringConverter<Vehicle>() {
+            @Override
+            public String toString(Vehicle v) {
+                return v == null ? "" : v.getRegistrationNumber() + " - " + v.getBrand() + " " + v.getModel();
+            }
+            @Override
+            public Vehicle fromString(String s) { return null; }
+        });
+
+        mechanicComboBox.setConverter(new StringConverter<Mechanic>() {
+            @Override
+            public String toString(Mechanic m) {
+                if (m == null) return "";
+                String status = lang.get(m.isAvailable() ? "mechanic.available" : "mechanic.unavailable");
+                return m.getName() + " (" + status + ")";
+            }
+            @Override
+            public Mechanic fromString(String s) { return null; }
+        });
+
+        serviceItemComboBox.setConverter(new StringConverter<ServiceItem>() {
+            @Override
+            public String toString(ServiceItem s) {
+                return s == null ? "" : s.getName() + " - " + lang.get("format.price", s.getPrice());
+            }
+            @Override
+            public ServiceItem fromString(String s) { return null; }
+        });
+
+        serviceItemComboBox.valueProperty().addListener((obs, oldVal, newVal) ->
+                estimatedTimeLabel.setText(newVal == null ? "" : lang.get("format.minutes", newVal.getEstimatedMinutes())));
 
         setContent();
     }
@@ -68,9 +103,9 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("table.vehicle")), vehicleComboBox,
                 new Label(lang.get("table.date")), datePicker,
                 new Label(lang.get("table.desc")), descriptionTextField,
-                new Label("Mechanic"), mechanicComboBox,
-                new Label("Service"), serviceItemComboBox,
-                new Label("Estimated time: "), estimatedTimeLabel
+                new Label(lang.get("table.mechanic")), mechanicComboBox,
+                new Label(lang.get("table.serviceItem")), serviceItemComboBox,
+                new Label(lang.get("table.estimatedTime")), estimatedTimeLabel
         );
         getDialogPane().setContent(content);
 
@@ -118,13 +153,13 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             }
 
             if (mechanicComboBox.getValue() == null) {
-                errorLabel.setText("Select a mechanic.");
+                errorLabel.setText(lang.get("error.mechanicSelect"));
                 event.consume();
                 return;
             }
 
             if (serviceItemComboBox.getValue() == null) {
-                errorLabel.setText("Select a service.");
+                errorLabel.setText(lang.get("error.serviceSelect"));
                 event.consume();
                 return;
             }
@@ -228,6 +263,4 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         }
 
     }
-
-
 }

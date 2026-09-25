@@ -51,6 +51,9 @@ public class AutoCoreApp extends Application {
             BookingService bookingService = springContext.getBean(BookingService.class);
             CustomerService customerService = springContext.getBean(CustomerService.class);
             VehicleService vehicleService = springContext.getBean(VehicleService.class);
+            WorkOrderService workOrderService = springContext.getBean(WorkOrderService.class);
+            ServiceItemService serviceItemService = springContext.getBean(ServiceItemService.class);
+            MechanicService mechanicService = springContext.getBean(MechanicService.class);
 
             MainLayout layout = new MainLayout(
                     garageSystem,
@@ -58,7 +61,10 @@ public class AutoCoreApp extends Application {
                     paymentService,
                     bookingService,
                     customerService,
-                    vehicleService
+                    vehicleService,
+                    workOrderService,
+                    serviceItemService,
+                    mechanicService
             );
 
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
