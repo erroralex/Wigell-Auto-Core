@@ -125,20 +125,13 @@ public class WorkOrderView extends VBox {
         workOrderTable.setItems(masterData);
     }
 
+    // Mekaniker och tjänster ärvs från bokningen, så dialogen väljer bara bokning
     private void openCreateWorkOrderDialog() {
-        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
-                workOrderService.findBookableBookings(),
-                workOrderService.findAvailableMechanics(),
-                workOrderService.findAllServiceItems()
-        );
+        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(workOrderService.findBookableBookings());
 
-        dialog.showAndWait().ifPresent(result -> {
+        dialog.showAndWait().ifPresent(booking -> {
             try {
-                WorkOrder newWorkOrder = workOrderService.createWorkOrder(
-                        result.getBookingId(),
-                        result.getMechanicId(),
-                        result.getServiceItemIds()
-                );
+                WorkOrder newWorkOrder = workOrderService.createWorkOrder(booking.getId());
                 if (newWorkOrder != null) {
                     refreshData();
                     AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
