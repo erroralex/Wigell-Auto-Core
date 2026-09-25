@@ -1,72 +1,94 @@
+/* JavaFX-rot: gemensam typografi, färgpalett och fokusfärger för hela applikationen. */
 .root {
     -fx-font-family: "Segoe UI", "System";
-    -fx-background-color: #212121;
-    -fx-base: #212121;
-    -fx-control-inner-background: #2B2B2B;
-    -fx-accent: #4A90E2;
-    -fx-focus-color: #66A3FF;
-    -fx-faint-focus-color: rgba(102, 163, 255, 0.20);
-    -fx-text-fill: #F2F2F2;
+    -fx-background-color: #E2E0D8;
+    -fx-base: #E2E0D8;
+    -fx-control-inner-background: #EDEBE5;
+    -fx-accent: #55624F;
+    -fx-focus-color: #55624F;
+    -fx-faint-focus-color: rgba(85, 98, 79, 0.20);
+    -fx-text-fill: #2E332B;
 }
 
+/* Används av MainLayout som applikationens yttre BorderPane. */
 .main-layout {
-    -fx-background-color: #212121;
+    -fx-background-color: #E2E0D8;
 }
 
+/* Används av SideNavigation för menyn till vänster. */
 .side-navigation {
-    -fx-background-color: #2B2B2B;
-    -fx-padding: 20px;
-    -fx-spacing: 8px;
-    -fx-border-color: #3D3D3D;
+    -fx-background-color: #EDEBE5;
+    -fx-padding: 1.5em;
+    -fx-spacing: 0.6em;
+    -fx-border-color: #B9B6A5;
     -fx-border-width: 0 1px 0 0;
     -fx-pref-width: 17em;
 }
 
+/* Används av samtliga huvudvyer som gemensam innehållsyta. */
 .content-area {
-    -fx-background-color: #212121;
-    -fx-padding: 24px;
+    -fx-background-color: #E2E0D8;
+    -fx-padding: 1.85em;
 }
 
-.surface {
-    -fx-background-color: #2B2B2B;
-    -fx-background-radius: 8px;
-    -fx-border-color: #3D3D3D;
-    -fx-border-radius: 8px;
-}
+/*
+ * Oanvänd: .surface läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .surface {
+ *     -fx-background-color: #EDEBE5;
+ *     -fx-background-radius: 0.6em;
+ *     -fx-border-color: #B9B6A5;
+ *     -fx-border-radius: 0.6em;
+ * }
+ */
 
-.surface-elevated {
-    -fx-background-color: #333333;
-    -fx-background-radius: 8px;
-    -fx-border-color: #3D3D3D;
-    -fx-border-radius: 8px;
-}
+/*
+ * Oanvänd: .surface-elevated läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .surface-elevated {
+ *     -fx-background-color: #D8D5C9;
+ *     -fx-background-radius: 0.6em;
+ *     -fx-border-color: #B9B6A5;
+ *     -fx-border-radius: 0.6em;
+ * }
+ */
 
-.card {
-    -fx-background-color: #2B2B2B;
-    -fx-background-radius: 8px;
-    -fx-border-color: #3D3D3D;
-    -fx-border-radius: 8px;
-    -fx-padding: 20px;
-}
+/*
+ * Oanvänd: .card läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .card {
+ *     -fx-background-color: #EDEBE5;
+ *     -fx-background-radius: 0.6em;
+ *     -fx-border-color: #B9B6A5;
+ *     -fx-border-radius: 0.6em;
+ *     -fx-padding: 1.5em;
+ * }
+ */
 
+/*
+ * .nav-button används av SideNavigation, .btn av applikationens åtgärdsknappar
+ * och .button läggs automatiskt på alla JavaFX Button-kontroller.
+ */
 .nav-button,
 .btn,
 .button {
-    -fx-background-color: #333333;
-    -fx-text-fill: #F2F2F2;
-    -fx-background-radius: 6px;
-    -fx-border-color: #3D3D3D;
-    -fx-border-radius: 6px;
+    -fx-background-color: #D8D5C9;
+    -fx-text-fill: #2E332B;
+    -fx-background-radius: 0.45em;
+    -fx-border-color: #B9B6A5;
+    -fx-border-radius: 0.45em;
     -fx-padding: 0.6em 1.1em;
     -fx-font-weight: 600;
 }
 
+/* Hover för navigationsknappar, egna .btn-knappar och JavaFX Button. */
 .nav-button:hover,
 .btn:hover,
 .button:hover {
-    -fx-background-color: #3A3A3A;
+    -fx-background-color: #C7C3B2;
 }
 
+/* Fokusmarkering för knappar och JavaFX:s vanliga formulärkontroller. */
 .nav-button:focused,
 .btn:focused,
 .button:focused,
@@ -74,170 +96,275 @@
 .combo-box:focused,
 .date-picker:focused,
 .text-area:focused {
-    -fx-border-color: #66A3FF;
-    -fx-focus-color: #66A3FF;
+    -fx-border-color: #55624F;
+    -fx-focus-color: #55624F;
 }
 
+/* Aktiv navigationsknapp i SideNavigation och primärknappar i vyer och formulärdialoger. */
 .nav-button-active,
 .btn-primary {
-    -fx-background-color: #4A90E2;
-    -fx-border-color: #4A90E2;
+    -fx-background-color: #55624F;
+    -fx-border-color: #55624F;
     -fx-text-fill: #F2F2F2;
 }
 
+/* Hover för primärknappar och den aktiva navigationsknappen. */
 .btn-primary:hover,
 .nav-button-active:hover {
-    -fx-background-color: #66A3FF;
-    -fx-border-color: #66A3FF;
+    -fx-background-color: #7C8068;
+    -fx-border-color: #7C8068;
 }
 
+/* Används av avbryt/stäng-knappar i Kund-, Fordons- och Mekanikerbokningsvyerna. */
 .btn-secondary {
-    -fx-background-color: #2B2B2B;
-    -fx-border-color: #3D3D3D;
+    -fx-background-color: #EDEBE5;
+    -fx-border-color: #B9B6A5;
 }
 
-.btn-danger {
-    -fx-background-color: #E57373;
-    -fx-border-color: #E57373;
-    -fx-text-fill: #212121;
-}
+/*
+ * Oanvänd: .btn-danger läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .btn-danger {
+ *     -fx-background-color: #8A5A3D;
+ *     -fx-border-color: #8A5A3D;
+ *     -fx-text-fill: #F2F2F2;
+ * }
+ */
 
-.btn-ghost {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: #B5B5B5;
-}
+/*
+ * Oanvänd: .btn-ghost läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .btn-ghost {
+ *     -fx-background-color: transparent;
+ *     -fx-border-color: transparent;
+ *     -fx-text-fill: #5C6156;
+ * }
+ */
 
+/* JavaFX lägger automatiskt .label på alla Label-kontroller. */
 .label {
-    -fx-text-fill: #F2F2F2;
+    -fx-text-fill: #2E332B;
 }
 
-.text-muted,
-.helper-text,
+/* Används av BookingView för beskrivande sekundärtext. */
 .text-secondary {
-    -fx-text-fill: #B5B5B5;
+    -fx-text-fill: #5C6156;
 }
 
-.text-caption {
-    -fx-font-size: 12px;
-}
+/*
+ * Oanvända: .text-muted och .helper-text läggs inte till av någon Java-kod
+ * och är därför inaktiverade.
+ *
+ * .text-muted,
+ * .helper-text {
+ *     -fx-text-fill: #5C6156;
+ * }
+ */
 
+/*
+ * Oanvänd: .text-caption läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .text-caption {
+ *     -fx-font-size: 0.92em;
+ * }
+ */
+
+/* Används för rubriker i applikationens huvudvyer. */
 .text-title {
-    -fx-font-size: 32px;
+    -fx-font-size: 2.45em;
     -fx-font-weight: 700;
 }
 
+/* Används av CreateBookingDialog för röda valideringsmeddelanden. */
 .text-error {
     -fx-text-fill: #E57373;
+    -fx-font-weight: 700;
 }
 
+/* Används av HomeView och MechanicBookingsView för framträdande innehållstext. */
 .text-content {
-    -fx-font-size: 22px;
+    -fx-font-size: 1.7em;
     -fx-font-weight: 700;
 }
 
-.text-section {
-    -fx-font-size: 18px;
-    -fx-font-weight: 700;
-}
+/*
+ * Oanvänd: .text-section läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .text-section {
+ *     -fx-font-size: 1.4em;
+ *     -fx-font-weight: 700;
+ * }
+ */
 
+/*
+ * .input används av sökfält och formulärfält. Övriga selektorer läggs automatiskt
+ * på motsvarande JavaFX-kontroller.
+ */
 .input,
 .text-field,
 .text-area,
 .combo-box,
 .date-picker {
-    -fx-background-color: #2B2B2B;
-    -fx-text-fill: #F2F2F2;
-    -fx-prompt-text-fill: #7A7A7A;
-    -fx-border-color: #3D3D3D;
-    -fx-border-radius: 6px;
-    -fx-background-radius: 6px;
+    -fx-background-color: #EDEBE5;
+    -fx-text-fill: #2E332B;
+    -fx-prompt-text-fill: #8C8B7F;
+    -fx-border-color: #B9B6A5;
+    -fx-border-radius: 0.45em;
+    -fx-background-radius: 0.45em;
 }
 
-.input-error,
-.state-error {
+/* Används för ogiltiga fält i Boknings-, Kund- och Fordonsdialogerna. */
+.input-error {
     -fx-border-color: #E57373;
 }
 
-.state-success {
-    -fx-text-fill: #4CAF50;
-}
+/*
+ * Oanvänd: .state-error läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .state-error {
+ *     -fx-border-color: #E57373;
+ * }
+ */
 
-.state-warning {
-    -fx-text-fill: #F2C94C;
-}
+/*
+ * Oanvänd: .state-success läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .state-success {
+ *     -fx-text-fill: #4CAF50;
+ * }
+ */
 
-.state-info {
-    -fx-text-fill: #66A3FF;
-}
+/*
+ * Oanvänd: .state-warning läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .state-warning {
+ *     -fx-text-fill: #F2C94C;
+ * }
+ */
 
+/*
+ * Oanvänd: .state-info läggs inte till av någon Java-kod och är därför inaktiverad.
+ *
+ * .state-info {
+ *     -fx-text-fill: #55624F;
+ * }
+ */
+
+/* JavaFX lägger automatiskt .table-view på tabellerna i huvudvyerna. */
 .table-view {
-    -fx-background-color: #2B2B2B;
-    -fx-border-color: #3D3D3D;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
+    -fx-background-color: #EDEBE5;
+    -fx-border-color: #B9B6A5;
+    -fx-border-radius: 0.6em;
+    -fx-background-radius: 0.6em;
 }
 
+/* JavaFX:s bakgrund bakom tabellernas kolumnrubriker. */
 .table-view .column-header-background {
-    -fx-background-color: #333333;
+    -fx-background-color: #D8D5C9;
 }
 
+/* JavaFX:s enskilda kolumnrubriker och utfyllnad efter sista kolumnen. */
 .table-view .column-header,
 .table-view .filler {
-    -fx-background-color: #333333;
-    -fx-border-color: #3D3D3D;
+    -fx-background-color: #D8D5C9;
+    -fx-border-color: #B9B6A5;
 }
 
+/* JavaFX:s tabellrader i samtliga TableView-kontroller. */
 .table-view .table-row-cell {
-    -fx-background-color: #2B2B2B;
+    -fx-background-color: #EDEBE5;
+    -fx-text-background-color: #2E332B;
+}
+
+/* Hover för JavaFX:s tabellrader med innehåll; tomma utfyllnadsrader påverkas inte. */
+.table-view .table-row-cell:filled:hover {
+    -fx-background-color: #7C8068;
     -fx-text-background-color: #F2F2F2;
 }
 
-.table-view .table-row-cell:hover {
-    -fx-background-color: #333333;
+/* Markerad rad med innehåll i JavaFX:s tabeller. */
+.table-view .table-row-cell:filled:selected {
+    -fx-background-color: #55624F;
+    -fx-text-background-color: #F2F2F2;
 }
 
-.table-view .table-row-cell:selected {
-    -fx-background-color: #4A90E2;
+/* Markerad rad använder hover-färgen under muspekaren, som den aktiva navigationsknappen. */
+.table-view .table-row-cell:filled:selected:hover {
+    -fx-background-color: #7C8068;
+    -fx-text-background-color: #F2F2F2;
 }
 
+/* JavaFX lägger automatiskt .dialog-pane på alla formulärdialoger och Alerts. */
 .dialog-pane {
-    -fx-background-color: #333333;
+    -fx-background-color: #D8D5C9;
 }
 
+/* Formulärinnehåll i dialogerna för Bokning, Kund, Fordon, Faktura, Betalning och Arbetsorder. */
+.dialog-pane > VBox.content,
+.dialog-pane > GridPane.content {
+    -fx-padding: 1.23em;
+}
+
+/* JavaFX:s rubrikpanel i dialoger som har en header. */
 .dialog-pane .header-panel {
-    -fx-background-color: #333333;
+    -fx-background-color: #D8D5C9;
 }
 
+/* JavaFX:s vanliga innehållstext i dialoger och Alerts. */
 .dialog-pane .content.label {
-    -fx-text-fill: #F2F2F2;
+    -fx-text-fill: #2E332B;
 }
 
+/* Innehåll och rubrik i JavaFX Alerts av typen ERROR. */
+.alert.error.dialog-pane .content.label,
+.alert.error.dialog-pane .header-panel .label {
+    -fx-font-weight: 700;
+}
+
+/* JavaFX lägger automatiskt .alert på informations-, fel- och bekräftelsedialoger. */
 .alert {
-    -fx-background-color: #333333;
+    -fx-background-color: #D8D5C9;
 }
 
+/* JavaFX lägger automatiskt .list-view på listan över serviceposter i Arbetsorderdialogen. */
 .list-view {
-    -fx-background-color: #2B2B2B;
-    -fx-border-color: #3D3D3D;
-    -fx-border-radius: 6px;
-    -fx-background-radius: 6px;
+    -fx-background-color: #EDEBE5;
+    -fx-border-color: #B9B6A5;
+    -fx-border-radius: 0.45em;
+    -fx-background-radius: 0.45em;
 }
 
+/* JavaFX:s celler i ListView-kontroller. */
 .list-cell {
-    -fx-background-color: #2B2B2B;
-    -fx-text-fill: #F2F2F2;
+    -fx-background-color: #EDEBE5;
+    -fx-text-fill: #2E332B;
 }
 
+/* Hover för celler med innehåll i JavaFX ListView. */
 .list-cell:filled:hover {
-    -fx-background-color: #333333;
+    -fx-background-color: #D8D5C9;
 }
 
+/* Markerad cell med innehåll i JavaFX ListView. */
 .list-cell:filled:selected {
-    -fx-background-color: #4A90E2;
+    -fx-background-color: #55624F;
     -fx-text-fill: #F2F2F2;
 }
 
+/* Fokusram för JavaFX ListView. */
 .list-view:focused {
-    -fx-border-color: #66A3FF;
+    -fx-border-color: #55624F;
+}
+
+/* Används av HomeView för skuggan bakom logotypen. */
+.home-logo {
+    -fx-effect: dropshadow(
+            gaussian,
+            rgba(0, 0, 0, 0.45),
+            18,
+            0.25,
+            0,
+            8
+    );
+
 }

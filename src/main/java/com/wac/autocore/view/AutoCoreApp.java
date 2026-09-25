@@ -1,9 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
-import com.wac.autocore.service.BookingService;
-import com.wac.autocore.service.GarageSystem;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
@@ -32,10 +30,6 @@ public class AutoCoreApp extends Application {
 
     private ConfigurableApplicationContext springContext;
 
-    /*
-     * Körs på JavaFX-launcher-tråden innan start(). Startar Spring här så att databasen
-     * och tjänsterna är klara innan fönstret byggs.
-     */
     @Override
     public void init() {
         Thread.currentThread().setContextClassLoader(AutoCoreApp.class.getClassLoader());
@@ -52,9 +46,18 @@ public class AutoCoreApp extends Application {
             AutoCoreApp.primaryStage = primaryStage;
 
             GarageSystem garageSystem = springContext.getBean(GarageSystem.class);
+            InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
+            PaymentService paymentService = springContext.getBean(PaymentService.class);
             BookingService bookingService = springContext.getBean(BookingService.class);
+            WorkOrderService workOrderService = springContext.getBean(WorkOrderService.class);
 
-            MainLayout layout = new MainLayout(garageSystem, bookingService);
+            MainLayout layout = new MainLayout(
+                    garageSystem,
+                    invoiceService,
+                    paymentService,
+                    bookingService,
+                    workOrderService
+            );
 
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
             scene.setFill(javafx.scene.paint.Color.web("#212121"));
