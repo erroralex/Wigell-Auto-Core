@@ -6,6 +6,7 @@ import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -37,6 +38,7 @@ public class BookingView extends VBox {
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final BookingService bookingService;
+    private final ServiceItemService serviceItemService;
 
     private final ObservableList<Booking> bookingObservableList;
 
@@ -46,8 +48,9 @@ public class BookingView extends VBox {
 
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
-    public BookingView(BookingService bookingService) {
+    public BookingView(BookingService bookingService, ServiceItemService serviceItemService) {
         this.bookingService = bookingService;
+        this.serviceItemService = serviceItemService;
         this.bookingObservableList = FXCollections.observableArrayList(bookingService.listAll());
 
         vehicleMap = Database.getVehicles()
@@ -177,7 +180,7 @@ public class BookingView extends VBox {
     }
 
     private void openCreateBookingDialog() {
-        CreateBookingDialog dialog = new CreateBookingDialog(bookingService);
+        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, serviceItemService);
 
         dialog.showAndWait().ifPresent(result -> {
             Booking newBooking = bookingService.create(

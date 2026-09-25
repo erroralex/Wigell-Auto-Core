@@ -7,6 +7,7 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
@@ -27,6 +28,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final BookingService bookingService;
+    private final ServiceItemService serviceItemService;
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
@@ -40,8 +42,11 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
-    public CreateBookingDialog(BookingService bookingService) {
+    public CreateBookingDialog(BookingService bookingService,
+                               ServiceItemService serviceItemService) {
         this.bookingService = bookingService;
+        this.serviceItemService = serviceItemService;
+
         this.bookingList = bookingService.listAll();
 
         errorLabel.getStyleClass().add("text-error");
@@ -55,7 +60,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         vehicleComboBox.getItems().addAll(Database.getVehicles());
         mechanicComboBox.getItems().addAll(Database.getMechanics());
-        serviceItemComboBox.getItems().addAll(Database.getServiceItems());
+        serviceItemComboBox.getItems().addAll(serviceItemService.listAll());
 
         setContent();
     }
