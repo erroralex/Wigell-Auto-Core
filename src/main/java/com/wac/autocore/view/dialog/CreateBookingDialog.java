@@ -5,6 +5,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
@@ -13,6 +14,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 
@@ -24,6 +26,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
+    private final BookingService bookingService;
+
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
     private final TextField descriptionTextField = new TextField();
@@ -31,12 +35,14 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ComboBox<ServiceItem> serviceItemComboBox = new ComboBox<>();
     private final Label errorLabel = new Label();
     private final Label estimatedTimeLabel = new Label();
-    private final List<Booking> bookingList = Database.getBookings();
+    private final List<Booking> bookingList;
 
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
-    public CreateBookingDialog() {
+    public CreateBookingDialog(BookingService bookingService) {
+        this.bookingService = bookingService;
+        this.bookingList = bookingService.listAll();
 
         errorLabel.getStyleClass().add("text-error");
 
@@ -52,15 +58,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         serviceItemComboBox.getItems().addAll(Database.getServiceItems());
 
         setContent();
-    }
-
-    private boolean isVehicleBooked(int vehicleId, LocalDate date) {
-        for (Booking booking : bookingList) {
-            if (booking.getVehicleId() == vehicleId && booking.getDate().equals(date)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void setContent() {
@@ -120,23 +117,48 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 return;
             }
 
+            if (mechanicComboBox.getValue() == null) {
+                errorLabel.setText("Select a mechanic.");
+                event.consume();
+                return;
+            }
+
+            if (serviceItemComboBox.getValue() == null) {
+                errorLabel.setText("Select a service.");
+                event.consume();
+                return;
+            }
+
 
             LocalDate date = datePicker.getValue();
             int vehicleId = vehicleComboBox.getValue().getId();
 
-            if (isVehicleBooked(vehicleId, date)) {
-                    AlertHelper.showError(lang.get("error.booking"),
-                            lang.get("error.vehicleBooked", vehicleComboBox.getValue().getRegistrationNumber()));
-                    event.consume();
+            if (bookingService.isVehicleBooked(vehicleId, date)) {
+                AlertHelper.showError(
+                        lang.get("error.booking"),
+                        lang.get("error.vehicleBooked",
+                                vehicleComboBox.getValue().getRegistrationNumber())
+                );
+                event.consume();
             }
         });
 
         setResultConverter(buttonType -> {
             if (buttonType == saveButtonType) {
+
+                LocalTime startTime = LocalTime.now();
+                LocalTime endTime = startTime.plusMinutes(
+                        serviceItemComboBox.getValue().getEstimatedMinutes()
+                );
+
                 return new Result(
                         vehicleComboBox.getValue().getId(),
+                        mechanicComboBox.getValue().getId(),
                         datePicker.getValue(),
+                        startTime,
+                        endTime,
                         descriptionTextField.getText()
+
                 );
             }
             return null;
@@ -167,11 +189,17 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         private final int vehicleId;
         private final LocalDate date;
         private final String description;
+        private final int mechanicId;
+        private final LocalTime startTime;
+        private final LocalTime endTime;
 
-        public Result(int vehicleId, LocalDate date, String description) {
+        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description) {
 
             this.vehicleId = vehicleId;
+            this.mechanicId = mechanicId;
             this.date = date;
+            this.startTime = startTime;
+            this.endTime = endTime;
             this.description = description;
         }
 
@@ -179,13 +207,26 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             return vehicleId;
         }
 
+        public int getMechanicId() {
+            return mechanicId;
+        }
+
         public LocalDate getDate() {
             return date;
+        }
+
+        public LocalTime getStartTime() {
+            return startTime;
+        }
+
+        public LocalTime getEndTime() {
+            return endTime;
         }
 
         public String getDescription() {
             return description;
         }
+
     }
 
 

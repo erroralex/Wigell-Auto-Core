@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
@@ -22,8 +23,10 @@ import javafx.util.StringConverter;
 public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
+    private final InvoiceService invoiceService;
 
-    public CreateInvoiceDialog() {
+    public CreateInvoiceDialog(InvoiceService invoiceService) {
+        this.invoiceService = invoiceService;
         this.setTitle(lang.get("invoice.new"));
         this.setHeaderText(lang.get("invoice.create"));
 
@@ -39,7 +42,7 @@ public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
 
             boolean alreadyInvoiced = false;
 
-            for (Invoice invoice : Database.getInvoices()) {
+            for (Invoice invoice : invoiceService.findAll()) {
 
                 if (invoice.getWorkOrderId() == workOrder.getId())
                     alreadyInvoiced = true;
