@@ -8,7 +8,6 @@ import com.wac.autocore.service.LanguageManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -64,6 +63,7 @@ public class MechanicBookingsView extends VBox {
     private void renderTable() {
         bookingTableView.setEditable(false);
         bookingTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        bookingTableView.setPlaceholder(new Label(lang.get("table.empty")));
         VBox.setVgrow(bookingTableView, Priority.ALWAYS);
 
         TableColumn<Booking, String> dateColumn = new TableColumn<>(lang.get("table.date"));
