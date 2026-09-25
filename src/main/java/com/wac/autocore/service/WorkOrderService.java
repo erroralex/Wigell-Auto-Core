@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -94,40 +95,33 @@ public class WorkOrderService {
         return serviceItemRepository.findAll();
     }
 
-    // Skapar en arbetsorder för en bokning. mechanicId 0 = använd bokningens mekaniker.
-    public WorkOrder createWorkOrder(int bookingId, int mechanicId, int... serviceItemIds) {
+    // Skapar en arbetsorder för en bokning. Mekaniker och tjänster ärvs från bokningen.
+    public WorkOrder createWorkOrder(int bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-
-        if (booking == null) {
+        if (booking == null
+                || !BOOKING_STATUS_BOOKED.equals(booking.getStatus())
+                || workOrderRepository.existsByBookingId(bookingId)) {
             return null;
         }
 
-        int resolvedMechanicId = mechanicId > 0 ? mechanicId : booking.getMechanicId();
-        Mechanic mechanic = mechanicRepository.findById(resolvedMechanicId).orElse(null);
-        if (mechanic == null || !mechanic.isAvailable()) {
+        // Mekanikern reserverades redan när bokningen skapades
+        if (!mechanicRepository.existsById(booking.getMechanicId())) {
             return null;
         }
 
-        if (serviceItemIds == null || serviceItemIds.length == 0) {
+        // Lazy @ManyToMany
+        Set<ServiceItem> serviceItems = booking.getServiceItems();
+        if (serviceItems == null || serviceItems.isEmpty()) {
             return null;
         }
 
-        for (int serviceItemId : serviceItemIds) {
-            if (!serviceItemRepository.existsById(serviceItemId)) {
-                return null;
-            }
-        }
-
-        WorkOrder workOrder = new WorkOrder(bookingId, resolvedMechanicId);
-        for (int serviceItemId : serviceItemIds) {
-            workOrder.addServiceItem(serviceItemId);
+        WorkOrder workOrder = new WorkOrder(bookingId, booking.getMechanicId());
+        for (ServiceItem item : serviceItems) {
+            workOrder.addServiceItem(item.getId());
         }
 
         booking.setStatus("WORK_ORDER_CREATED");
-        mechanic.setAvailable(false);
-
         bookingRepository.save(booking);
-        mechanicRepository.save(mechanic);
         return workOrderRepository.save(workOrder);
     }
 

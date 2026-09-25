@@ -113,6 +113,14 @@ public class Booking {
         this.description = description;
     }
 
+    public Set<ServiceItem> getServiceItems() {
+        return serviceItems;
+    }
+
+    public void setServiceItems(Set<ServiceItem> serviceItems) {
+        this.serviceItems = serviceItems;
+    }
+
     public String getStatus() {
         return status;
     }
