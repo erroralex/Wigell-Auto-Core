@@ -1,9 +1,9 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.data.Database;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.ServiceItemService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -24,13 +24,14 @@ import java.text.NumberFormat;
 public class ServiceItemView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
-    private final GarageSystem garageSystem;
+    //private final GarageSystem garageSystem;
+    private final ServiceItemService serviceItemService;
 
     private final ObservableList<ServiceItem> serviceItemList;
 
-    public ServiceItemView(GarageSystem garageSystem) {
-        this.garageSystem = garageSystem;
-        this.serviceItemList = FXCollections.observableArrayList(Database.getServiceItems());
+    public ServiceItemView(ServiceItemService serviceItemService) {
+        this.serviceItemService = serviceItemService;
+        this.serviceItemList = FXCollections.observableArrayList(serviceItemService.listAll());
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setPadding(new Insets(20));
