@@ -96,12 +96,9 @@ public class WorkOrderService {
 
     // Skapar en arbetsorder för en bokning. mechanicId 0 = använd bokningens mekaniker.
     public WorkOrder createWorkOrder(int bookingId, int mechanicId, int... serviceItemIds) {
-        Booking booking = bookingRepository.findById(bookingId);
-        if (booking == null) {
-            return null;
-        }
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
 
-        if (workOrderRepository.existsByBookingId(bookingId)) {
+        if (booking == null) {
             return null;
         }
 
@@ -143,11 +140,10 @@ public class WorkOrderService {
 
         workOrder.setStatus(STATUS_IN_PROGRESS);
 
-        Booking booking = bookingRepository.findById(workOrder.getBookingId());
-        if (booking != null) {
+        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
             booking.setStatus(STATUS_IN_PROGRESS);
             bookingRepository.save(booking);
-        }
+        });
 
         workOrderRepository.save(workOrder);
         return true;
@@ -167,11 +163,10 @@ public class WorkOrderService {
             mechanicRepository.save(mechanic);
         });
 
-        Booking booking = bookingRepository.findById(workOrder.getBookingId());
-        if (booking != null) {
+        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
             booking.setStatus(STATUS_COMPLETED);
             bookingRepository.save(booking);
-        }
+        });
 
         workOrderRepository.save(workOrder);
         return true;

@@ -53,7 +53,7 @@ public class BookingView extends VBox {
         vehicleMap = Database.getVehicles()
                 .stream()
                 .collect(Collectors.toMap(Vehicle::getId, vehicle -> vehicle));
-        mechanicMap = Database.getMechanics()
+        mechanicMap = bookingService.listAllMechanics()
                 .stream()
                 .collect(Collectors.toMap(Mechanic::getId, mechanic -> mechanic));
 
