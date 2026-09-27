@@ -1,7 +1,6 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import javafx.beans.property.SimpleObjectProperty;

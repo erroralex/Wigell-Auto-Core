@@ -45,7 +45,6 @@ public class AutoCoreApp extends Application {
         try {
             AutoCoreApp.primaryStage = primaryStage;
 
-            GarageSystem garageSystem = springContext.getBean(GarageSystem.class);
             InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
             PaymentService paymentService = springContext.getBean(PaymentService.class);
             BookingService bookingService = springContext.getBean(BookingService.class);
@@ -56,7 +55,6 @@ public class AutoCoreApp extends Application {
             MechanicService mechanicService = springContext.getBean(MechanicService.class);
 
             MainLayout layout = new MainLayout(
-                    garageSystem,
                     invoiceService,
                     paymentService,
                     bookingService,

@@ -34,10 +34,10 @@ public class MechanicService {
         return mechanicRepository.findById(id);
     }
 
-    public boolean isAvailable(int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        return bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date).stream()
-                .noneMatch(b -> b.getStartTime().isBefore(endTime) && b.getEndTime().isAfter(startTime));
-    }
+//    public boolean isAvailable(int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+//        return bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date).stream()
+//                .noneMatch(b -> b.getStartTime().isBefore(endTime) && b.getEndTime().isAfter(startTime));
+//    }
 
     public boolean isBusyNow(int mechanicId) {
         LocalDate today = LocalDate.now();

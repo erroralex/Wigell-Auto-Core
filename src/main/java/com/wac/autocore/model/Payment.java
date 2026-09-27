@@ -19,15 +19,6 @@ public class Payment {
 
     protected Payment() {}
 
-    public Payment(int id, int invoiceId, double amount, String paymentType) {
-        this.id = id;
-        this.invoiceId = invoiceId;
-        this.amount = amount;
-        this.paymentType = paymentType;
-        this.paymentDate = LocalDateTime.now();
-        this.successful = false;
-    }
-
     public Payment(int invoiceId, double amount, String paymentType) {
         this.invoiceId = invoiceId;
         this.amount = amount;
