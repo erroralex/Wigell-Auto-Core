@@ -4,6 +4,7 @@ import com.wac.autocore.data.Database;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
@@ -26,7 +27,9 @@ import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -188,7 +191,8 @@ public class BookingView extends VBox {
                         result.getDate(),
                         result.getStartTime(),
                         result.getEndTime(),
-                        result.getDescription()
+                        result.getDescription(),
+                        result.getServiceItemId()
                 );
 
                 if (newBooking != null) {

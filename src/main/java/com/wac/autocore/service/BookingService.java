@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class BookingService {
@@ -45,7 +47,10 @@ public class BookingService {
     }
 
 
-    public Booking create(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description) {
+    public Booking create(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description, int serviceItemId) {
+
+        ServiceItem serviceItem = findServiceItemById(serviceItemId)
+                .orElseThrow(() -> new RuntimeException("Service item not found: " + serviceItemId));
 
         List<Booking> mechanicBookingsSameDay = bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
 
@@ -64,6 +69,9 @@ public class BookingService {
         Booking booking = new Booking(
                 vehicleId, mechanicId, date, startTime, endTime, description);
 
+        Set<ServiceItem> serviceItems = new HashSet<>();
+        serviceItems.add(serviceItem);
+        booking.setServiceItems(serviceItems);
 
         Booking savedBooking = bookingRepository.save(booking);
 
@@ -71,6 +79,7 @@ public class BookingService {
             mechanic.setAvailable(false);
             mechanicRepository.save(mechanic);
         });
+
 
         return savedBooking;
     }
@@ -82,6 +91,10 @@ public class BookingService {
 
     public List<ServiceItem> listAllServiceItems() {
         return serviceItemRepository.findAll();
+    }
+
+    public Optional<ServiceItem> findServiceItemById(int id) {
+        return serviceItemRepository.findById(id);
     }
 
     public List<Mechanic> listAllMechanics() {
