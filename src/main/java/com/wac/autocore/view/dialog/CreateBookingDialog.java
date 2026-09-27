@@ -186,7 +186,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                         datePicker.getValue(),
                         startTime,
                         endTime,
-                        descriptionTextField.getText()
+                        descriptionTextField.getText(),
+                        serviceItemComboBox.getValue().getId()
                 );
             }
             return null;
@@ -269,8 +270,9 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         private final int mechanicId;
         private final LocalTime startTime;
         private final LocalTime endTime;
+        private final int serviceItemId;
 
-        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description) {
+        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description, int serviceItemId) {
 
             this.vehicleId = vehicleId;
             this.mechanicId = mechanicId;
@@ -278,6 +280,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             this.startTime = startTime;
             this.endTime = endTime;
             this.description = description;
+            this.serviceItemId = serviceItemId;
         }
 
         public int getVehicleId() {
@@ -302,6 +305,10 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         public String getDescription() {
             return description;
+        }
+
+        public int getServiceItemId() {
+            return serviceItemId;
         }
 
     }
