@@ -1,5 +1,6 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
@@ -45,8 +46,24 @@ public class BookingService {
 
 
     public Booking create(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description) {
+
+        List<Booking> mechanicBookingsSameDay = bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
+
+        boolean overlaps = mechanicBookingsSameDay.stream()
+                .anyMatch(b -> b.getStartTime().isBefore(endTime) && b.getEndTime().isAfter(startTime));
+
+        if (overlaps) {
+            String mechanicName = mechanicRepository.findById(mechanicId)
+                    .map(Mechanic::getName)
+                    .orElse("Unknown");
+            throw new MechanicDoubleBookingException(
+                    mechanicName, date, startTime, endTime
+            );
+        }
+
         Booking booking = new Booking(
                 vehicleId, mechanicId, date, startTime, endTime, description);
+
 
         Booking savedBooking = bookingRepository.save(booking);
 

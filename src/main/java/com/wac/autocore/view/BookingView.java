@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.data.Database;
+import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
@@ -180,21 +181,28 @@ public class BookingView extends VBox {
         CreateBookingDialog dialog = new CreateBookingDialog(bookingService);
 
         dialog.showAndWait().ifPresent(result -> {
-            Booking newBooking = bookingService.create(
-                    result.getVehicleId(),
-                    result.getMechanicId(),
-                    result.getDate(),
-                    result.getStartTime(),
-                    result.getEndTime(),
-                    result.getDescription()
-            );
+            try {
+                Booking newBooking = bookingService.create(
+                        result.getVehicleId(),
+                        result.getMechanicId(),
+                        result.getDate(),
+                        result.getStartTime(),
+                        result.getEndTime(),
+                        result.getDescription()
+                );
 
-            if (newBooking != null) {
-                bookingObservableList.setAll(bookingService.listAll());
+                if (newBooking != null) {
+                    bookingObservableList.setAll(bookingService.listAll());
 
-                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
-            } else {
-                AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));
+                    AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
+                } else {
+                    AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));
+                }
+            } catch (MechanicDoubleBookingException e) {
+                AlertHelper.showError(
+                        lang.get("error.booking"),
+                        lang.get("error.mechanicBusy")
+                );
             }
         });
     }
