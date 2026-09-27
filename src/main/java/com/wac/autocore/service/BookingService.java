@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
-public class BookingService {
+public class  BookingService {
 
     private final BookingRepository bookingRepository;
     private final ServiceItemRepository serviceItemRepository;
@@ -100,6 +100,4 @@ public class BookingService {
     public List<Vehicle> listAllVehicles() {
         return vehicleRepo.findAll();
     }
-
-
 }
