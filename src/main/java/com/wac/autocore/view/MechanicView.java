@@ -125,7 +125,7 @@ public class MechanicView extends VBox {
 
     private void showBookingsFor(Mechanic mechanic) {
         if (bookingsView == null) {
-            bookingsView = new MechanicBookingsView(mechanic, () -> {
+            bookingsView = new MechanicBookingsView(mechanic, mechanicService, () -> {
                 contentColumn.getChildren().remove(bookingsView);
                 bookingsView = null;
             });

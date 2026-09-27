@@ -1,10 +1,11 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.data.Database;
+
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,13 +21,16 @@ import javafx.scene.layout.VBox;
 
 public class MechanicBookingsView extends VBox {
 
+    private final MechanicService mechanicService;
     private final ObservableList<Booking> bookingObservableList = FXCollections.observableArrayList();
     private final TableView<Booking> bookingTableView = new TableView<>();
     private final Label nameLabel = new Label();
     private Label titleLabel;
     private static final LanguageManager lang =  LanguageManager.getInstance();
 
-    public MechanicBookingsView(Mechanic mechanic, Runnable onClose) {
+    public MechanicBookingsView(Mechanic mechanic, MechanicService mechanicService, Runnable onClose) {
+        this.mechanicService = mechanicService;
+
         this.getStyleClass().add("content-area");
         this.setSpacing(20);
         this.setAlignment(Pos.TOP_LEFT);
@@ -57,7 +61,7 @@ public class MechanicBookingsView extends VBox {
 
     public void setMechanic(Mechanic mechanic) {
         nameLabel.setText(mechanic.getName());
-        bookingObservableList.setAll(Database.getBookingsForMechanic(mechanic.getId()));
+        bookingObservableList.setAll(mechanicService.listBookingsByMechanicId(mechanic.getId()));
     }
 
     private void renderTable() {
@@ -72,7 +76,7 @@ public class MechanicBookingsView extends VBox {
 
         TableColumn<Booking, String> vehicleColumn = new TableColumn<>(lang.get("table.vehicle"));
         vehicleColumn.setCellValueFactory(cellData -> {
-            Vehicle v = Database.getVehicleById(cellData.getValue().getVehicleId());
+            Vehicle v = mechanicService.getVehicleById(cellData.getValue().getVehicleId()).orElse(null);
             String label = (v != null) ? v.getBrand() + " " + v.getModel() : lang.get("table.unknown");
             return new SimpleStringProperty(label);
         });
