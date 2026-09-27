@@ -16,12 +16,6 @@ public class Mechanic {
 
     protected Mechanic() {}
 
-    @Deprecated // Tillfällig tills dess att repositories ersätter Database
-    public Mechanic(int id, String name, String phone, String specialization) {
-        this(name, phone, specialization);
-        this.id = id;
-    }
-
     public Mechanic(String name, String phone, String specialization) {
         this.name = name;
         this.phone = phone;

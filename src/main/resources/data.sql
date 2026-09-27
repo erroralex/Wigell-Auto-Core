@@ -11,9 +11,9 @@ INSERT OR IGNORE INTO customer (id, name, phone, email, vip) VALUES
 
 -- mechanic
 INSERT OR IGNORE INTO mechanic (id, name, phone, specialization) VALUES
-    (1, 'Johan Karlsson', '070-5551111', 'General service', 1),
-    (2, 'Sara Nilsson', '070-5552222', 'Brakes', 1),
-    (3, 'Mikael Berg', '070-5553333', 'Diagnostics', 1);
+    (1, 'Johan Karlsson', '070-5551111', 'General service'),
+    (2, 'Sara Nilsson', '070-5552222', 'Brakes'),
+    (3, 'Mikael Berg', '070-5553333', 'Diagnostics');
 
 -- service_item
 INSERT OR IGNORE INTO service_item (id, name, description, price, estimated_minutes) VALUES

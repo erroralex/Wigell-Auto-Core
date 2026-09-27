@@ -1,7 +1,6 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import javafx.beans.property.SimpleObjectProperty;
@@ -24,7 +23,6 @@ import java.text.NumberFormat;
 public class ServiceItemView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
-    //private final GarageSystem garageSystem;
     private final ServiceItemService serviceItemService;
 
     private final ObservableList<ServiceItem> serviceItemList;

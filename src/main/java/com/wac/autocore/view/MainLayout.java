@@ -6,7 +6,6 @@ import javafx.scene.layout.BorderPane;
 
 public class MainLayout extends BorderPane {
 
-    private final GarageSystem garageSystem;
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
     private final BookingService bookingService;
@@ -18,8 +17,7 @@ public class MainLayout extends BorderPane {
     private final SideNavigation sideNavigation;
     private NavigationItem currentItem;
 
-    public MainLayout(GarageSystem garageSystem,
-                      InvoiceService invoiceService,
+    public MainLayout(InvoiceService invoiceService,
                       PaymentService paymentService,
                       BookingService bookingService,
                       CustomerService customerService,
@@ -27,7 +25,6 @@ public class MainLayout extends BorderPane {
                       WorkOrderService workOrderService,
                       ServiceItemService serviceItemService,
                       MechanicService mechanicService) {
-        this.garageSystem = garageSystem;
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.bookingService = bookingService;

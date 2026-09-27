@@ -1,8 +1,6 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.data.Database;
 import com.wac.autocore.model.Invoice;
-import com.wac.autocore.service.GarageSystem;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.WorkOrderService;
