@@ -207,6 +207,11 @@ public class BookingView extends VBox {
                         lang.get("error.booking"),
                         lang.get("error.mechanicBusy")
                 );
+            } catch (RuntimeException e) {
+                AlertHelper.showError(
+                        lang.get("error.booking"),
+                        lang.get("error.serviceNotFound")
+                );
             }
         });
     }
