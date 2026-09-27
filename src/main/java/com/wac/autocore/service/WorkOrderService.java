@@ -84,13 +84,6 @@ public class WorkOrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<Mechanic> findAvailableMechanics() {
-        return mechanicRepository.findAll().stream()
-                .filter(Mechanic::isAvailable)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
     public List<ServiceItem> findAllServiceItems() {
         return serviceItemRepository.findAll();
     }
@@ -151,11 +144,6 @@ public class WorkOrderService {
         }
 
         workOrder.setStatus(STATUS_COMPLETED);
-
-        mechanicRepository.findById(workOrder.getMechanicId()).ifPresent(mechanic -> {
-            mechanic.setAvailable(true);
-            mechanicRepository.save(mechanic);
-        });
 
         bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
             booking.setStatus(STATUS_COMPLETED);

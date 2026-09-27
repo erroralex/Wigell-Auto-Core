@@ -245,9 +245,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         mechanicComboBox.setConverter(new StringConverter<Mechanic>() {
             @Override
             public String toString(Mechanic m) {
-                if (m == null) return "";
-                String status = lang.get(m.isAvailable() ? "mechanic.available" : "mechanic.unavailable");
-                return m.getName() + " (" + status + ")";
+                return m == null ? "" : m.getName();
             }
             @Override
             public Mechanic fromString(String s) { return null; }
