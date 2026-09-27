@@ -105,11 +105,13 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             if (descriptionTextField.getText().isEmpty()
                     && vehicleComboBox.getValue() == null
                     && datePicker.getValue() == null
+                    && startTimeComboBox.getValue() == null
                     && mechanicComboBox.getValue() == null
                     && serviceItemComboBox.getValue() == null) {
                 errorLabel.setText(lang.get("error.fields"));
                 vehicleComboBox.getStyleClass().add("input-error");
                 datePicker.getStyleClass().add("input-error");
+                startTimeComboBox.getStyleClass().add("input-error");
                 descriptionTextField.getStyleClass().add("input-error");
                 mechanicComboBox.getStyleClass().add("input-error");
                 serviceItemComboBox.getStyleClass().add("input-error");
@@ -131,7 +133,13 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 return;
             }
 
-            
+            if (startTimeComboBox.getValue() == null) {
+                errorLabel.setText(lang.get("error.startTimeSelect"));
+                startTimeComboBox.getStyleClass().add("input-error");
+                event.consume();
+                return;
+            }
+
             if (descriptionTextField.getText().isEmpty()) {
                 errorLabel.setText(lang.get("error.desc"));
                 descriptionTextField.getStyleClass().add("input-error");
@@ -167,7 +175,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         setResultConverter(buttonType -> {
             if (buttonType == saveButtonType) {
 
-                LocalTime startTime = LocalTime.now();
+                LocalTime startTime = startTimeComboBox.getValue();
                 LocalTime endTime = startTime.plusMinutes(
                         serviceItemComboBox.getValue().getEstimatedMinutes()
                 );
@@ -195,6 +203,12 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         datePicker.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 datePicker.getStyleClass().removeAll("input-error");
+            }
+        });
+
+        startTimeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                startTimeComboBox.getStyleClass().removeAll("input-error");
             }
         });
 
