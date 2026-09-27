@@ -57,7 +57,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
-        vehicleComboBox.getItems().addAll(Database.getVehicles());
+        vehicleComboBox.getItems().addAll(bookingService.listAllVehicles());
         mechanicComboBox.getItems().addAll(bookingService.listAllMechanics());
         serviceItemComboBox.getItems().addAll(bookingService.listAllServiceItems());
         populateStartTimes();
