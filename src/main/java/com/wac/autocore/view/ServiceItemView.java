@@ -23,7 +23,6 @@ import java.text.NumberFormat;
 public class ServiceItemView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
-    //private final GarageSystem garageSystem;
     private final ServiceItemService serviceItemService;
 
     private final ObservableList<ServiceItem> serviceItemList;
