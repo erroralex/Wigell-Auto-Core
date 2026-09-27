@@ -10,7 +10,7 @@ INSERT OR IGNORE INTO customer (id, name, phone, email, vip) VALUES
     (3, 'Maria Svensson', '070-3333333', 'maria.svensson@email.se', 0);
 
 -- mechanic
-INSERT OR IGNORE INTO mechanic (id, name, phone, specialization, available) VALUES
+INSERT OR IGNORE INTO mechanic (id, name, phone, specialization) VALUES
     (1, 'Johan Karlsson', '070-5551111', 'General service', 1),
     (2, 'Sara Nilsson', '070-5552222', 'Brakes', 1),
     (3, 'Mikael Berg', '070-5553333', 'Diagnostics', 1);
