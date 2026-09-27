@@ -8,6 +8,7 @@ import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
+import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,13 +24,16 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ServiceItemRepository serviceItemRepository;
     private final MechanicRepository mechanicRepository;
+    private final VehicleRepo vehicleRepo;
 
     public BookingService(BookingRepository bookingRepository,
                           ServiceItemRepository serviceItemRepository,
-                          MechanicRepository mechanicRepository) {
+                          MechanicRepository mechanicRepository,
+                          VehicleRepo vehicleRepo) {
         this.bookingRepository = bookingRepository;
         this.serviceItemRepository = serviceItemRepository;
         this.mechanicRepository = mechanicRepository;
+        this.vehicleRepo = vehicleRepo;
     }
 
     public List<Booking> listAll() {
@@ -99,6 +103,10 @@ public class BookingService {
 
     public List<Mechanic> listAllMechanics() {
         return mechanicRepository.findAll();
+    }
+
+    public List<Vehicle> listAllVehicles() {
+        return vehicleRepo.findAll();
     }
 
 

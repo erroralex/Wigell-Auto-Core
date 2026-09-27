@@ -1,10 +1,9 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.data.Database;
+
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
@@ -54,7 +53,7 @@ public class BookingView extends VBox {
         this.bookingService = bookingService;
         this.bookingObservableList = FXCollections.observableArrayList(bookingService.listAll());
 
-        vehicleMap = Database.getVehicles()
+        vehicleMap = bookingService.listAllVehicles()
                 .stream()
                 .collect(Collectors.toMap(Vehicle::getId, vehicle -> vehicle));
         mechanicMap = bookingService.listAllMechanics()
@@ -102,7 +101,7 @@ public class BookingView extends VBox {
         TableColumn<Booking, LocalDate> dateColumn =        new TableColumn<>(lang.get("table.date"));
         TableColumn<Booking, String> descriptionColumn =    new TableColumn<>(lang.get("table.desc"));
         TableColumn<Booking, String> statusColumn =         new TableColumn<>(lang.get("table.status"));
-        TableColumn<Booking, String> mechanicColumn =       new TableColumn<>(lang.get("table.mechanic"));   //TODO: CHANGE TO BOOKING ONCE DATABASE IS READY
+        TableColumn<Booking, String> mechanicColumn =       new TableColumn<>(lang.get("table.mechanic"));
         TableColumn<Booking, LocalTime> startTimeColumn =   new TableColumn<>(lang.get("table.startTime"));
         TableColumn<Booking, LocalTime> endTimeColumn =     new TableColumn<>(lang.get("table.endTime"));
 
