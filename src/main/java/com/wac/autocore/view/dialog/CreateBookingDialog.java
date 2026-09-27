@@ -32,6 +32,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
+    private final ComboBox<LocalTime> startTimeComboBox = new ComboBox<>();
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
     private final ComboBox<ServiceItem> serviceItemComboBox = new ComboBox<>();
@@ -59,8 +60,19 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         vehicleComboBox.getItems().addAll(Database.getVehicles());
         mechanicComboBox.getItems().addAll(bookingService.listAllMechanics());
         serviceItemComboBox.getItems().addAll(bookingService.listAllServiceItems());
+        populateStartTimes();
 
         setContent();
+    }
+
+    private void populateStartTimes() {
+        LocalTime time = LocalTime.of(8, 0);
+        LocalTime closing = LocalTime.of(17, 0);
+
+        while (!time.isAfter(closing)) {
+            startTimeComboBox.getItems().add(time);
+            time = time.plusMinutes(30);
+        }
     }
 
     private void setContent() {
@@ -70,6 +82,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 errorLabel,
                 new Label(lang.get("table.vehicle")), vehicleComboBox,
                 new Label(lang.get("table.date")), datePicker,
+                new Label(lang.get("table.startTime")), startTimeComboBox,
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
                 new Label(lang.get("table.serviceItem")), serviceItemComboBox,
@@ -92,11 +105,13 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             if (descriptionTextField.getText().isEmpty()
                     && vehicleComboBox.getValue() == null
                     && datePicker.getValue() == null
+                    && startTimeComboBox.getValue() == null
                     && mechanicComboBox.getValue() == null
                     && serviceItemComboBox.getValue() == null) {
                 errorLabel.setText(lang.get("error.fields"));
                 vehicleComboBox.getStyleClass().add("input-error");
                 datePicker.getStyleClass().add("input-error");
+                startTimeComboBox.getStyleClass().add("input-error");
                 descriptionTextField.getStyleClass().add("input-error");
                 mechanicComboBox.getStyleClass().add("input-error");
                 serviceItemComboBox.getStyleClass().add("input-error");
@@ -114,6 +129,13 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             if (datePicker.getValue() == null) {
                 errorLabel.setText(lang.get("error.dateSelect"));
                 datePicker.getStyleClass().add("input-error");
+                event.consume();
+                return;
+            }
+
+            if (startTimeComboBox.getValue() == null) {
+                errorLabel.setText(lang.get("error.startTimeSelect"));
+                startTimeComboBox.getStyleClass().add("input-error");
                 event.consume();
                 return;
             }
@@ -153,7 +175,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         setResultConverter(buttonType -> {
             if (buttonType == saveButtonType) {
 
-                LocalTime startTime = LocalTime.now();
+                LocalTime startTime = startTimeComboBox.getValue();
                 LocalTime endTime = startTime.plusMinutes(
                         serviceItemComboBox.getValue().getEstimatedMinutes()
                 );
@@ -181,6 +203,12 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         datePicker.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 datePicker.getStyleClass().removeAll("input-error");
+            }
+        });
+
+        startTimeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                startTimeComboBox.getStyleClass().removeAll("input-error");
             }
         });
 
