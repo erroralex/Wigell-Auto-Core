@@ -13,7 +13,6 @@ public class Mechanic {
     private String name;
     private String phone;
     private String specialization;
-    private boolean available = true;
 
     protected Mechanic() {}
 
@@ -57,19 +56,10 @@ public class Mechanic {
         this.specialization = specialization;
     }
 
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
     @Override
     public String toString() {
         return id + " - " + name +
                 " | Phone: " + phone +
-                " | Specialization: " + specialization +
-                " | Available: " + (available ? "Yes" : "No");
+                " | Specialization: " + specialization;
     }
 }

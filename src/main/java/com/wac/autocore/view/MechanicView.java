@@ -93,10 +93,8 @@ public class MechanicView extends VBox {
         );
 
         availabilityColumn.setCellValueFactory(cellData -> {
-            if (cellData.getValue().isAvailable()) {
-                return new SimpleStringProperty(lang.get("mechanic.available"));
-            }
-            return new SimpleStringProperty(lang.get("mechanic.unavailable"));
+            boolean busy = mechanicService.isBusyNow(cellData.getValue().getId());
+            return new SimpleStringProperty(lang.get(busy ? "mechanic.unavailable" : "mechanic.available"));
         });
 
         idColumn.setCellValueFactory(cellData ->

@@ -77,15 +77,7 @@ public class BookingService {
         serviceItems.add(serviceItem);
         booking.setServiceItems(serviceItems);
 
-        Booking savedBooking = bookingRepository.save(booking);
-
-        mechanicRepository.findById(mechanicId).ifPresent(mechanic -> {
-            mechanic.setAvailable(false);
-            mechanicRepository.save(mechanic);
-        });
-
-
-        return savedBooking;
+        return bookingRepository.save(booking);
     }
 
 

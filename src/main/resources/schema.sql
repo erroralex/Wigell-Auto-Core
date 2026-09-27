@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS mechanic (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     name            TEXT NOT NULL,
     phone           TEXT NOT NULL,
-    specialization  TEXT NOT NULL,
-    available       INTEGER NOT NULL DEFAULT 1 -- boolean: 0 = false, 1 = true
+    specialization  TEXT NOT NULL
 );
 
 -- service_item:
