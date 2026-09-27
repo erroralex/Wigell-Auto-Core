@@ -32,6 +32,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
+    private final ComboBox<LocalTime> startTimeComboBox = new ComboBox<>();
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
     private final ComboBox<ServiceItem> serviceItemComboBox = new ComboBox<>();
@@ -59,8 +60,19 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         vehicleComboBox.getItems().addAll(Database.getVehicles());
         mechanicComboBox.getItems().addAll(bookingService.listAllMechanics());
         serviceItemComboBox.getItems().addAll(bookingService.listAllServiceItems());
+        populateStartTimes();
 
         setContent();
+    }
+
+    private void populateStartTimes() {
+        LocalTime time = LocalTime.of(8, 0);
+        LocalTime closing = LocalTime.of(17, 0);
+
+        while (!time.isAfter(closing)) {
+            startTimeComboBox.getItems().add(time);
+            time = time.plusMinutes(30);
+        }
     }
 
     private void setContent() {
@@ -70,6 +82,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 errorLabel,
                 new Label(lang.get("table.vehicle")), vehicleComboBox,
                 new Label(lang.get("table.date")), datePicker,
+                new Label(lang.get("table.startTime")), startTimeComboBox,
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
                 new Label(lang.get("table.serviceItem")), serviceItemComboBox,
@@ -118,6 +131,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 return;
             }
 
+            
             if (descriptionTextField.getText().isEmpty()) {
                 errorLabel.setText(lang.get("error.desc"));
                 descriptionTextField.getStyleClass().add("input-error");
