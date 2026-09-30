@@ -34,8 +34,8 @@ src/main/
 │           ├── AlertHelper.java        # Gemensam fel-/bekräftelsedialog
 │           └── DialogUtil.java
 └── resources/
-    ├── application.properties          # Spring: SQLite, Hibernate-dialekt, schema.sql vid start
-    ├── schema.sql                      # Tabellerna
+    ├── application.properties          # Spring: SQLite, Hibernate-dialekt, V1__initial_schema.sql vid start
+    ├── V1__initial_schema.sql                      # Tabellerna
     ├── i18n/messages*.properties       # Texter på svenska och engelska
     └── com/wac/autocore/view/          # style.css och bilder
 ```

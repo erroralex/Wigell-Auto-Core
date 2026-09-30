@@ -1,5 +1,4 @@
--- data.sql: grunddata för mekaniker och tjänster.
--- Körs av Spring vid varje start, efter schema.sql (spring.sql.init.mode=always).
+-- V2__seed_data.sql: grunddata för mekaniker och tjänster.
 -- INSERT OR IGNORE hoppar över rader vars id redan finns, så befintlig data skrivs aldrig över.
 -- Samma id:n som i Database.java, eftersom CreateBookingDialog fortfarande väljer mekaniker därifrån.
 
