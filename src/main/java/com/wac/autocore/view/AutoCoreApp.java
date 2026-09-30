@@ -2,6 +2,8 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
 import com.wac.autocore.service.*;
+import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.GlobalExceptionHandler;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
@@ -42,6 +44,7 @@ public class AutoCoreApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        GlobalExceptionHandler.install();
         try {
             AutoCoreApp.primaryStage = primaryStage;
 
@@ -92,7 +95,7 @@ public class AutoCoreApp extends Application {
             primaryStage.show();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorFacade.handle(e);
         }
     }
 
