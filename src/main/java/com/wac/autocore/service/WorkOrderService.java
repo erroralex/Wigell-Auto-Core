@@ -1,9 +1,6 @@
 package com.wac.autocore.service;
 
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -102,15 +99,30 @@ public class WorkOrderService {
             return null;
         }
 
-        // Lazy @ManyToMany
-        Set<ServiceItem> serviceItems = booking.getServiceItems();
-        if (serviceItems == null || serviceItems.isEmpty()) {
+//        // Lazy @ManyToMany
+//        Set<ServiceItem> serviceItems = booking.getServiceItems();
+//        if (serviceItems == null || serviceItems.isEmpty()) {
+//            return null;
+//        }
+//
+//        WorkOrder workOrder = new WorkOrder(bookingId, booking.getMechanicId());
+//        for (ServiceItem item : serviceItems) {
+//            workOrder.addServiceItem(item.getId());
+//        }
+//
+//        booking.setStatus("WORK_ORDER_CREATED");
+//        bookingRepository.save(booking);
+//        return workOrderRepository.save(workOrder);
+//    }
+
+        List<BookingServiceItem> items = booking.getItems();
+        if (items == null || items.isEmpty()) {
             return null;
         }
 
         WorkOrder workOrder = new WorkOrder(bookingId, booking.getMechanicId());
-        for (ServiceItem item : serviceItems) {
-            workOrder.addServiceItem(item.getId());
+        for (BookingServiceItem item : items) {
+            workOrder.addServiceItem(item.getServiceItemId());
         }
 
         booking.setStatus("WORK_ORDER_CREATED");
