@@ -16,6 +16,7 @@ import javafx.util.StringConverter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -179,6 +180,9 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                         serviceItemComboBox.getValue().getEstimatedMinutes()
                 );
 
+                List<Integer> serviceItemIds = new ArrayList<>();
+                serviceItemIds.add(serviceItemComboBox.getValue().getId());
+
                 return new Result(
                         vehicleComboBox.getValue().getId(),
                         mechanicComboBox.getValue().getId(),
@@ -186,7 +190,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                         startTime,
                         endTime,
                         descriptionTextField.getText(),
-                        serviceItemComboBox.getValue().getId()
+                        serviceItemIds
                 );
             }
             return null;
@@ -267,9 +271,9 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         private final int mechanicId;
         private final LocalTime startTime;
         private final LocalTime endTime;
-        private final int serviceItemId;
+        private final List<Integer> serviceItemIds;
 
-        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description, int serviceItemId) {
+        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description, List<Integer> serviceItemIds) {
 
             this.vehicleId = vehicleId;
             this.mechanicId = mechanicId;
@@ -277,7 +281,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             this.startTime = startTime;
             this.endTime = endTime;
             this.description = description;
-            this.serviceItemId = serviceItemId;
+            this.serviceItemIds = serviceItemIds;
         }
 
         public int getVehicleId() {
@@ -304,8 +308,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             return description;
         }
 
-        public int getServiceItemId() {
-            return serviceItemId;
+        public List<Integer> getServiceItemIds() {
+            return serviceItemIds;
         }
 
     }

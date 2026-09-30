@@ -183,28 +183,13 @@ public class BookingView extends VBox {
 
         dialog.showAndWait().ifPresent(result -> {
             try {
-//                Booking newBooking = bookingService.create(
-//                        result.getVehicleId(),
-//                        result.getMechanicId(),
-//                        result.getDate(),
-//                        result.getStartTime(),
-//                        result.getEndTime(),
-//                        result.getDescription(),
-//                        result.getServiceItemId()
-//                );
-
-
-                List<Integer> serviceItemsIds = new ArrayList<>();
-
-                serviceItemsIds.add(result.getServiceItemId());
-
                 Booking newBooking = bookingService.create(
                     result.getVehicleId(),
                     result.getMechanicId(),
                     result.getDate(),
                     result.getStartTime(),
                     result.getDescription(),
-                    serviceItemsIds
+                    result.getServiceItemIds()
                 );
 
                 if (newBooking != null) {
