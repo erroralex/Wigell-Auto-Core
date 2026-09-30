@@ -85,7 +85,7 @@ public class WorkOrderService {
         return serviceItemRepository.findAll();
     }
 
-    // Skapar en arbetsorder för en bokning. Mekaniker och tjänster ärvs från bokningen.
+    // Skapar en arbetsorder för en bokning. Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
     public WorkOrder createWorkOrder(int bookingId) {
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
         if (booking == null
@@ -99,15 +99,7 @@ public class WorkOrderService {
             return null;
         }
 
-        List<BookingServiceItem> items = booking.getItems();
-        if (items == null || items.isEmpty()) {
-            return null;
-        }
-
-        WorkOrder workOrder = new WorkOrder(bookingId, booking.getMechanicId());
-        for (BookingServiceItem item : items) {
-            workOrder.addServiceItem(item.getServiceItemId());
-        }
+        WorkOrder workOrder = WorkOrder.createFrom(booking);
 
         booking.setStatus("WORK_ORDER_CREATED");
         bookingRepository.save(booking);

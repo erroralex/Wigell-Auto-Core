@@ -34,13 +34,7 @@ public class InvoiceService {
 
         WorkOrder workOrder = this.workOrderService.findById(workOrderId);
 
-        Map<Integer, ServiceItem> itemsById = this.serviceItemService.listAll().stream()
-                .collect(Collectors.toMap(ServiceItem::getId, Function.identity()));
-
-        double amount = 0;
-
-        for (Integer serviceItemId : workOrder.getServiceItemIds())
-            amount += itemsById.get(serviceItemId).getPrice();
+        double amount = workOrder.getTotalPrice();
 
         double discount = 0;
 

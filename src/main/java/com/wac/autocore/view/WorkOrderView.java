@@ -110,7 +110,7 @@ public class WorkOrderView extends VBox {
 
         TableColumn<WorkOrder, String> itemCountCol = new TableColumn<>(lang.get("table.itemCount"));
         itemCountCol.setCellValueFactory(c ->
-                new SimpleStringProperty(String.valueOf(c.getValue().getServiceItemIds().size()))
+                new SimpleStringProperty(String.valueOf(c.getValue().getItems().size()))
         );
 
         // Statusen sparas som CREATED/IN_PROGRESS/COMPLETED, bara visningen översätts
