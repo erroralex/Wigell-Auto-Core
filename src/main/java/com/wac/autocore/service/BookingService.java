@@ -1,6 +1,8 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
@@ -10,17 +12,16 @@ import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class  BookingService {
+public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ServiceItemRepository serviceItemRepository;
@@ -51,19 +52,19 @@ public class  BookingService {
         return bookingRepository.findByMechanicId(mechanicId);
     }
 
-
+    @Transactional
     public Booking create(int vehicleId, int mechanicId, LocalDate date,
                           LocalTime startTime, String description,
                           List<Integer> serviceItemIds) {
 
         if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            throw new IllegalArgumentException("At least one service item is required");
+            throw new ValidationException("error.serviceSelect");
         }
 
         List<ServiceItem> serviceItems = serviceItemIds.stream()
                 .distinct()
                 .map(id -> findServiceItemById(id)
-                        .orElseThrow(() -> new RuntimeException("Service item not found: " + id)))
+                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
                 .collect(Collectors.toList());
 
         int totalDuration = serviceItems.stream()
@@ -96,6 +97,10 @@ public class  BookingService {
         return bookingRepository.save(booking);
     }
 
+    /**
+     * Ansvar: Äldre variant med en tjänst, används av nuvarande CreateBookingDialog.
+     * {@code endTime} ignoreras, eftersom sluttiden räknas ut från tjänstens tid.
+     */
     @Deprecated
     public Booking create(int vehicleId, int mechanicId, LocalDate date,
                           LocalTime startTime, LocalTime endTime,

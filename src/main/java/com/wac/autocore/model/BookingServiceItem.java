@@ -1,8 +1,17 @@
 package com.wac.autocore.model;
 
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.exception.ValidationException;
+
 import javax.persistence.*;
 
+/**
+ * <b>BookingServiceItem</b>
+ * <p>Ansvar: En tjänsterad på en bokning. Namn, pris och tidsåtgång kopieras från
+ * {@link ServiceItem} när raden skapas och ändras aldrig efter det, så att en senare
+ * ändring i tjänstekatalogen inte påverkar det som avtalades vid bokningen.</p>
+ * <p>Skapas via {@link #snapshotOf(ServiceItem)} och kopplas till bokningen av
+ * {@link Booking#addServiceItem(ServiceItem)}.</p>
+ */
 @Entity
 @Table(name = "booking_service_item", uniqueConstraints = {
         @UniqueConstraint(
@@ -12,8 +21,6 @@ import javax.persistence.*;
 })
 
 public class BookingServiceItem {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,7 +56,7 @@ public class BookingServiceItem {
 
     public static BookingServiceItem snapshotOf(ServiceItem serviceItem) {
         if (serviceItem == null) {
-            throw new IllegalArgumentException(lang.get("error.serviceSelect"));
+            throw new ValidationException("error.serviceSelect");
         }
 
         return new BookingServiceItem(
