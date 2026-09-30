@@ -4,6 +4,7 @@ package com.wac.autocore.view;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
@@ -26,9 +27,7 @@ import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -184,14 +183,28 @@ public class BookingView extends VBox {
 
         dialog.showAndWait().ifPresent(result -> {
             try {
+//                Booking newBooking = bookingService.create(
+//                        result.getVehicleId(),
+//                        result.getMechanicId(),
+//                        result.getDate(),
+//                        result.getStartTime(),
+//                        result.getEndTime(),
+//                        result.getDescription(),
+//                        result.getServiceItemId()
+//                );
+
+
+                List<Integer> serviceItemsIds = new ArrayList<>();
+
+                serviceItemsIds.add(result.getServiceItemId());
+
                 Booking newBooking = bookingService.create(
-                        result.getVehicleId(),
-                        result.getMechanicId(),
-                        result.getDate(),
-                        result.getStartTime(),
-                        result.getEndTime(),
-                        result.getDescription(),
-                        result.getServiceItemId()
+                    result.getVehicleId(),
+                    result.getMechanicId(),
+                    result.getDate(),
+                    result.getStartTime(),
+                    result.getDescription(),
+                    serviceItemsIds
                 );
 
                 if (newBooking != null) {
