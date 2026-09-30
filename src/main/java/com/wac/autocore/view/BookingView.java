@@ -214,6 +214,4 @@ public class BookingView extends VBox {
             }
         });
     }
-
-
 }

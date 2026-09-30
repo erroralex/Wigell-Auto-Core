@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * <b>LocalTimeConverter</b>
- * <p>Ansvar: LocalTime som TEXT med korrekt format matchande schema.sql.</p>
+ * <p>Ansvar: LocalTime som TEXT med korrekt format matchande V1__initial_schema.sql.</p>
  */
 @Converter(autoApply = true)
 public class LocalTimeConverter implements AttributeConverter<LocalTime, String> {
