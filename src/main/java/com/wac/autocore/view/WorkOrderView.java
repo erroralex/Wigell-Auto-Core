@@ -7,6 +7,7 @@ import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,7 +35,6 @@ public class WorkOrderView extends VBox {
     private final TableView<WorkOrder> workOrderTable = new TableView<>();
     private final ObservableList<WorkOrder> masterData = FXCollections.observableArrayList();
 
-    // Uppslag för bokning och mekaniker, laddas om tillsammans med tabellen
     private final Map<Integer, Booking> bookingsById = new HashMap<>();
     private final Map<Integer, Mechanic> mechanicsById = new HashMap<>();
 
@@ -131,15 +131,11 @@ public class WorkOrderView extends VBox {
 
         dialog.showAndWait().ifPresent(booking -> {
             try {
-                WorkOrder newWorkOrder = workOrderService.createWorkOrder(booking.getId());
-                if (newWorkOrder != null) {
-                    refreshData();
-                    AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
-                } else {
-                    AlertHelper.showError(lang.get("error.workOrder"), lang.get("error.workOrderCreate"));
-                }
-            } catch (Exception e) {
-                AlertHelper.showException(lang.get("error.unexpected"), lang.get("error.workOrderUnexpected"), e);
+                workOrderService.createWorkOrder(booking.getId());
+                refreshData();
+                AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
             }
         });
     }

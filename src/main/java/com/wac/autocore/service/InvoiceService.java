@@ -1,30 +1,39 @@
 package com.wac.autocore.service;
 
-import com.wac.autocore.model.*;
+import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.Customer;
+import com.wac.autocore.model.Invoice;
+import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.repository.InvoiceRepo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
+/**
+ * <b>InvoiceService</b>
+ * <p>Ansvar: Skapar och hämtar fakturor. Beloppet räknas från arbetsorderns avtalade priser,
+ * som frystes vid bokningen, och aldrig från tjänstekatalogens nuvarande priser.</p>
+ */
 @Service
 public class InvoiceService {
 
     private final InvoiceRepo invoiceRepo;
     private final WorkOrderService workOrderService;
-    private final ServiceItemService serviceItemService;
     private final BookingService bookingService;
     private final VehicleService vehicleService;
     private final CustomerService customerService;
 
-    public InvoiceService(InvoiceRepo invoiceRepo, WorkOrderService workOrderService, ServiceItemService serviceItemService, BookingService bookingService, VehicleService vehicleService, CustomerService customerService) {
+    public InvoiceService(InvoiceRepo invoiceRepo,
+                          WorkOrderService workOrderService,
+                          BookingService bookingService,
+                          VehicleService vehicleService,
+                          CustomerService customerService) {
         this.invoiceRepo = invoiceRepo;
         this.workOrderService = workOrderService;
-        this.serviceItemService = serviceItemService;
         this.bookingService = bookingService;
         this.vehicleService = vehicleService;
         this.customerService = customerService;
@@ -32,15 +41,22 @@ public class InvoiceService {
 
     public Invoice create(int workOrderId, String discountCode) {
 
-        WorkOrder workOrder = this.workOrderService.findById(workOrderId);
+        WorkOrder workOrder = workOrderService.findById(workOrderId);
+        if (workOrder == null) {
+            throw new EntityNotFoundException("WorkOrder", workOrderId);
+        }
 
+        // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
         double amount = workOrder.getTotalPrice();
 
-        double discount = 0;
+        Booking booking = bookingService.findById(workOrder.getBookingId())
+                .orElseThrow(() -> new EntityNotFoundException("Booking", workOrder.getBookingId()));
+        Vehicle vehicle = vehicleService.findById(booking.getVehicleId())
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle", booking.getVehicleId()));
+        Customer customer = customerService.findById(vehicle.getCustomerId())
+                .orElseThrow(() -> new EntityNotFoundException("Customer", vehicle.getCustomerId()));
 
-        Booking booking = this.bookingService.findById(workOrder.getBookingId()).orElse(null);
-        Vehicle vehicle = this.vehicleService.findById(booking.getVehicleId()).orElse(null);
-        Customer customer = this.customerService.findById(vehicle.getCustomerId()).orElse(null);
+        double discount = 0;
 
         if (customer.isVip())
             discount += amount * 0.10;
