@@ -5,7 +5,7 @@ package com.wac.autocore.exception;
  * <p>Ansvar: Kastas när indata bryter mot en affärsregel. Rubriken är alltid
  * {@code error.validation}; meddelandet väljs med en befintlig språknyckel.</p>
  * <pre>{@code
- * throw new ValidationException("error.requiredField", lang.get("table.registration"));
+ * throw new ValidationException("error.requiredField", lang.get("table.regNumber"));
  * }</pre>
  */
 public class ValidationException extends DomainException {
