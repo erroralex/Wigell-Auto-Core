@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class  BookingService {
@@ -51,15 +52,31 @@ public class  BookingService {
     }
 
 
-    public Booking create(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description, int serviceItemId) {
+    public Booking create(int vehicleId, int mechanicId, LocalDate date,
+                          LocalTime startTime, String description,
+                          List<Integer> serviceItemIds) {
 
-        ServiceItem serviceItem = findServiceItemById(serviceItemId)
-                .orElseThrow(() -> new RuntimeException("Service item not found: " + serviceItemId));
+        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+            throw new IllegalArgumentException("At least one service item is required");
+        }
 
-        List<Booking> mechanicBookingsSameDay = bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
+        List<ServiceItem> serviceItems = serviceItemIds.stream()
+                .distinct()
+                .map(id -> findServiceItemById(id)
+                        .orElseThrow(() -> new RuntimeException("Service item not found: " + id)))
+                .collect(Collectors.toList());
+
+        int totalDuration = serviceItems.stream()
+                .mapToInt(ServiceItem::getEstimatedMinutes)
+                .sum();
+        LocalTime endTime = startTime.plusMinutes(totalDuration);
+
+        List<Booking> mechanicBookingsSameDay =
+                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
 
         boolean overlaps = mechanicBookingsSameDay.stream()
-                .anyMatch(b -> b.getStartTime().isBefore(endTime) && b.getEndTime().isAfter(startTime));
+                .anyMatch(b -> b.getStartTime().isBefore(endTime)
+                        && b.getEndTime().isAfter(startTime));
 
         if (overlaps) {
             String mechanicName = mechanicRepository.findById(mechanicId)
@@ -71,13 +88,20 @@ public class  BookingService {
         }
 
         Booking booking = new Booking(
-                vehicleId, mechanicId, date, startTime, endTime, description);
+                vehicleId, mechanicId, date, startTime, endTime, description
+        );
 
-        Set<ServiceItem> serviceItems = new HashSet<>();
-        serviceItems.add(serviceItem);
-        booking.setServiceItems(serviceItems);
+        serviceItems.forEach(booking::addServiceItem);
 
         return bookingRepository.save(booking);
+    }
+
+    @Deprecated
+    public Booking create(int vehicleId, int mechanicId, LocalDate date,
+                          LocalTime startTime, LocalTime endTime,
+                          String description, int serviceItemId) {
+        return create(vehicleId, mechanicId, date, startTime, description,
+                java.util.Collections.singletonList(serviceItemId));
     }
 
 
