@@ -1,6 +1,6 @@
 package com.wac.autocore.model;
 
-import org.hibernate.annotations.Table;
+
 
 import javax.persistence.*;
 
