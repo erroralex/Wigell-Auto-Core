@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,5 +20,15 @@ public class ServiceItemService {
         return serviceItemRepo.findAll();
     }
 
+    @Transactional
+    public ServiceItem updatePrice(int id, double newPrice) {
+        if (newPrice <= 0) {
+            throw new IllegalArgumentException("error.serviceItem.invalidPrice");
+        }
+        ServiceItem item = serviceItemRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("error.serviceItem.notFound"));
+        item.setPrice(newPrice);
+        return serviceItemRepo.save(item);
+    }
 
 }

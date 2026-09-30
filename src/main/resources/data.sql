@@ -44,6 +44,15 @@ INSERT OR IGNORE INTO booking_service_item (booking_id, service_item_id) VALUES
     (2, 3),
     (3, 3);
 
+INSERT OR IGNORE INTO booking_service_item
+(booking_id, service_item_id, price)
+VALUES
+    (1, 1, 1295.0),
+    (1, 4, 3495.0),
+    (2, 2, 2495.0),
+    (2, 3, 995.0),
+    (3, 3, 995.0);
+
 -- work_order
 INSERT OR IGNORE INTO work_order (id, booking_id, mechanic_id, status) VALUES
     (1, 1, 1, 'COMPLETED'),
@@ -58,6 +67,15 @@ INSERT OR IGNORE INTO work_order_service_item (work_order_id, service_item_id) V
     (2, 3),
     (3, 3);
 
+INSERT OR IGNORE INTO work_order_service_item
+(work_order_id, service_item_id, price)
+VALUES
+    (1, 1, 1295.0),
+    (1, 4, 3495.0),
+    (2, 2, 2495.0),
+    (2, 3, 995.0),
+    (3, 3, 995.0);
+
 -- invoice
 INSERT OR IGNORE INTO invoice
     (id, work_order_id, invoice_date, amount, discount, total_amount, paid)
@@ -70,3 +88,4 @@ INSERT OR IGNORE INTO payment
 (id, invoice_id, amount, payment_type, payment_date, successful)
 VALUES
     (1, 1, 4790.0, 'CARD', '2026-09-21 11:00', 1);
+
