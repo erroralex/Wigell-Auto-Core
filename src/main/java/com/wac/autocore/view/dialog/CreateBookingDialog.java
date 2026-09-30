@@ -10,6 +10,7 @@ import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -35,7 +37,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ComboBox<LocalTime> startTimeComboBox = new ComboBox<>();
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
-    private final ComboBox<ServiceItem> serviceItemComboBox = new ComboBox<>();
+    private final VBox serviceItemsBox = new VBox(8);
     private final Label errorLabel = new Label();
     private final Label estimatedTimeLabel = new Label();
     private final List<Booking> bookingList;
@@ -59,8 +61,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         vehicleComboBox.getItems().addAll(bookingService.listAllVehicles());
         mechanicComboBox.getItems().addAll(bookingService.listAllMechanics());
-        serviceItemComboBox.getItems().addAll(bookingService.listAllServiceItems());
         populateStartTimes();
+        populateServiceItems();
 
         setContent();
     }
@@ -75,6 +77,51 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         }
     }
 
+    private void populateServiceItems() {
+        serviceItemsBox.setPadding(new Insets(8));
+        serviceItemsBox.getStyleClass().add("service-items-box");
+
+        for (ServiceItem serviceItem : bookingService.listAllServiceItems()) {
+            CheckBox checkBox = new CheckBox(
+                    serviceItem.getName() + " – " + serviceItem.getPrice() + " kr (" +
+                            serviceItem.getEstimatedMinutes() + " min)"
+            );
+            checkBox.setUserData(serviceItem);
+            checkBox.selectedProperty().addListener((obs, was, is) -> updateTotals());
+            serviceItemsBox.getChildren().add(checkBox);
+        }
+    }
+
+    private List<ServiceItem> getSelectedItems() {
+        List<ServiceItem> selectedItems = new ArrayList<>();
+
+        for (Node node : serviceItemsBox.getChildren()) {
+            if (node instanceof CheckBox) {
+                CheckBox checkBox = (CheckBox) node;
+                if (checkBox.isSelected()) {
+                    selectedItems.add((ServiceItem) checkBox.getUserData());
+                }
+            }
+        }
+
+        return selectedItems;
+    }
+
+    private void updateTotals() {
+        List<ServiceItem> selectedItems = getSelectedItems();
+
+        if (selectedItems.isEmpty()) {
+            estimatedTimeLabel.setText("");
+            return;
+        }
+
+        int totalMinutes = selectedItems.stream()
+                .mapToInt(ServiceItem::getEstimatedMinutes)
+                .sum();
+
+        estimatedTimeLabel.setText(lang.get("format.minutes", totalMinutes));
+    }
+
     private void setContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
@@ -85,7 +132,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("table.startTime")), startTimeComboBox,
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
-                new Label(lang.get("table.serviceItem")), serviceItemComboBox,
+                new Label(lang.get("table.serviceItem")), serviceItemsBox,
                 new Label(lang.get("table.estimatedTime")), estimatedTimeLabel
         );
         getDialogPane().setContent(content);
@@ -107,14 +154,14 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                     && datePicker.getValue() == null
                     && startTimeComboBox.getValue() == null
                     && mechanicComboBox.getValue() == null
-                    && serviceItemComboBox.getValue() == null) {
+                    && getSelectedItems().isEmpty()) {
                 errorLabel.setText(lang.get("error.fields"));
                 vehicleComboBox.getStyleClass().add("input-error");
                 datePicker.getStyleClass().add("input-error");
                 startTimeComboBox.getStyleClass().add("input-error");
                 descriptionTextField.getStyleClass().add("input-error");
                 mechanicComboBox.getStyleClass().add("input-error");
-                serviceItemComboBox.getStyleClass().add("input-error");
+                serviceItemsBox.getStyleClass().add("input-error");
                 event.consume();
                 return;
             }
@@ -153,7 +200,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 return;
             }
 
-            if (serviceItemComboBox.getValue() == null) {
+            if (getSelectedItems().isEmpty()) {
                 errorLabel.setText(lang.get("error.serviceSelect"));
                 event.consume();
                 return;
@@ -176,19 +223,16 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             if (buttonType == saveButtonType) {
 
                 LocalTime startTime = startTimeComboBox.getValue();
-                LocalTime endTime = startTime.plusMinutes(
-                        serviceItemComboBox.getValue().getEstimatedMinutes()
-                );
 
-                List<Integer> serviceItemIds = new ArrayList<>();
-                serviceItemIds.add(serviceItemComboBox.getValue().getId());
+                List<Integer> serviceItemIds = getSelectedItems().stream()
+                        .map(ServiceItem::getId)
+                        .collect(Collectors.toList());
 
                 return new Result(
                         vehicleComboBox.getValue().getId(),
                         mechanicComboBox.getValue().getId(),
                         datePicker.getValue(),
                         startTime,
-                        endTime,
                         descriptionTextField.getText(),
                         serviceItemIds
                 );
@@ -217,20 +261,15 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         });
 
         descriptionTextField.textProperty().addListener((obs, oldVal, newVal) -> {
-          if (newVal != null) {
-              descriptionTextField.getStyleClass().removeAll("input-error");
-          }
+            if (newVal != null) {
+                descriptionTextField.getStyleClass().removeAll("input-error");
+            }
         });
 
         mechanicComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 mechanicComboBox.getStyleClass().removeAll("input-error");
             }
-        });
-
-        serviceItemComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            serviceItemComboBox.getStyleClass().removeAll("input-error");
-            estimatedTimeLabel.setText(newVal == null ? "" : lang.get("format.minutes", newVal.getEstimatedMinutes()));
         });
     }
 
@@ -253,15 +292,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             @Override
             public Mechanic fromString(String s) { return null; }
         });
-
-        serviceItemComboBox.setConverter(new StringConverter<ServiceItem>() {
-            @Override
-            public String toString(ServiceItem s) {
-                return s == null ? "" : s.getName() + " - " + lang.get("format.price", s.getPrice());
-            }
-            @Override
-            public ServiceItem fromString(String s) { return null; }
-        });
     }
 
     public static class Result {
@@ -270,16 +300,14 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         private final String description;
         private final int mechanicId;
         private final LocalTime startTime;
-        private final LocalTime endTime;
         private final List<Integer> serviceItemIds;
 
-        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description, List<Integer> serviceItemIds) {
+        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, String description, List<Integer> serviceItemIds) {
 
             this.vehicleId = vehicleId;
             this.mechanicId = mechanicId;
             this.date = date;
             this.startTime = startTime;
-            this.endTime = endTime;
             this.description = description;
             this.serviceItemIds = serviceItemIds;
         }
@@ -298,10 +326,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         public LocalTime getStartTime() {
             return startTime;
-        }
-
-        public LocalTime getEndTime() {
-            return endTime;
         }
 
         public String getDescription() {
