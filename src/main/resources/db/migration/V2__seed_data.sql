@@ -36,12 +36,14 @@ VALUES
     (3, 3, 3, '2026-09-28', '09:00', '10:00', 'Warning light diagnostics', 'WORK_ORDER_CREATED');
 
 -- booking_service_item
-INSERT OR IGNORE INTO booking_service_item (booking_id, service_item_id) VALUES
-    (1, 1),
-    (1, 4),
-    (2, 2),
-    (2, 3),
-    (3, 3);
+INSERT OR IGNORE INTO booking_service_item
+(booking_id, service_item_id, price)
+VALUES
+    (1, 1, 1295.0),
+    (1, 4, 3495.0),
+    (2, 2, 2495.0),
+    (2, 3, 995.0),
+    (3, 3, 995.0);
 
 INSERT OR IGNORE INTO booking_service_item
 (booking_id, service_item_id, price)
@@ -59,12 +61,14 @@ INSERT OR IGNORE INTO work_order (id, booking_id, mechanic_id, status) VALUES
     (3, 3, 3, 'CREATED');
 
 -- work_order_service_item
-INSERT OR IGNORE INTO work_order_service_item (work_order_id, service_item_id) VALUES
-    (1, 1),
-    (1, 4),
-    (2, 2),
-    (2, 3),
-    (3, 3);
+INSERT OR IGNORE INTO work_order_service_item
+(work_order_id, service_item_id, price)
+VALUES
+    (1, 1, 1295.0),
+    (1, 4, 3495.0),
+    (2, 2, 2495.0),
+    (2, 3, 995.0),
+    (3, 3, 995.0);
 
 INSERT OR IGNORE INTO work_order_service_item
 (work_order_id, service_item_id, price)
