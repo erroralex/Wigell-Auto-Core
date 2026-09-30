@@ -3,6 +3,7 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.view.dialog.AdminServiceItemDialog;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -10,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -24,6 +26,8 @@ public class ServiceItemView extends VBox {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
     private final ServiceItemService serviceItemService;
+
+    private final Button btnEditPrice = new Button(lang.get("serviceItem.editPrice"));
 
     private final ObservableList<ServiceItem> serviceItemList;
 
@@ -48,6 +52,7 @@ public class ServiceItemView extends VBox {
         title.setId("h1");
         getChildren().add(title);
         title.getStyleClass().add("text-title");
+
     }
 
     private void renderTable() {
@@ -83,7 +88,44 @@ public class ServiceItemView extends VBox {
 
         itemTableView.setItems(serviceItemList);
 
-        getChildren().add(itemTableView);
+        getChildren().addAll(createButtonBar(itemTableView), itemTableView);
+
+        /*Button editPriceButton =
+                new Button(lang.get("serviceItem.editPrice"));
+
+        editPriceButton.setOnAction(event -> {
+            ServiceItem selected =
+                    itemTableView.getSelectionModel().getSelectedItem();
+
+            if (selected == null) {
+                return;
+            }
+
+            AdminServiceItemDialog dialog =
+                    new AdminServiceItemDialog(serviceItemService,
+                            selected);
+
+            dialog.showAndWait();
+
+            itemTableView.refresh();
+        });
+
+        getChildren().add(editPriceButton);*/
+    }
+
+    private HBox createButtonBar(TableView<ServiceItem> itemTableView) {
+        String btnPrimary = "btn-primary";
+
+        btnEditPrice.getStyleClass().addAll("btn", btnPrimary);
+
+        btnEditPrice.setOnAction(event ->
+                openAdminServiceItemDialog(itemTableView));
+
+        HBox hBox = new HBox(15, btnEditPrice);
+        hBox.setPadding(new Insets(15, 0, 0, 0));
+        hBox.setAlignment(Pos.CENTER_LEFT);
+
+        return hBox;
     }
 
     private void setPriceColumn(TableColumn<ServiceItem, Double> priceColumn) {
@@ -108,4 +150,23 @@ public class ServiceItemView extends VBox {
             }
         });
     }
+
+    private void openAdminServiceItemDialog(TableView<ServiceItem> itemTableView) {
+
+        ServiceItem selected = itemTableView.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        AdminServiceItemDialog dialog =
+                new AdminServiceItemDialog(serviceItemService, selected);
+
+        dialog.showAndWait();
+
+        serviceItemList.setAll(serviceItemService.listAll());
+
+    }
+
+
 }
