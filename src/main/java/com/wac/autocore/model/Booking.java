@@ -3,7 +3,9 @@ package com.wac.autocore.model;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,13 +37,14 @@ public class Booking {
     @Column(nullable = false)
     private String status = "BOOKED";
 
-    @ManyToMany
-    @JoinTable(
-            name = "booking_service_item",
-            joinColumns = @JoinColumn(name = "booking_id"),
-            inverseJoinColumns = @JoinColumn(name = "service_item_id")
+    @OneToMany(
+            mappedBy = "booking",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
     )
-    private Set<ServiceItem> serviceItems = new HashSet<>();
+    @OrderBy("id ASC")
+    private List<BookingServiceItem> items = new ArrayList<>();
 
     protected Booking() {}
 
@@ -107,12 +110,26 @@ public class Booking {
         this.description = description;
     }
 
-    public Set<ServiceItem> getServiceItems() {
-        return serviceItems;
+    public void addServiceItem(ServiceItem serviceItem) {
+        BookingServiceItem item = BookingServiceItem.snapshotOf(serviceItem);
+        item.setBooking(this);
+        items.add(item);
     }
 
-    public void setServiceItems(Set<ServiceItem> serviceItems) {
-        this.serviceItems = serviceItems;
+    public List<BookingServiceItem> getItems() {
+        return items;
+    }
+
+    public double getTotalEstimatedPrice() {
+        return items.stream()
+                .mapToDouble(BookingServiceItem::getPriceAtBooking)
+                .sum();
+    }
+
+    public int getTotalDurationMinutes() {
+        return items.stream()
+                .mapToInt(BookingServiceItem::getDurationMinutes)
+                .sum();
     }
 
     public String getStatus() {
