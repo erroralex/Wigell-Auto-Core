@@ -1,14 +1,26 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.exception.BookingLockedException;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+/**
+ * <b>Booking</b>
+ * <p>Ansvar: En bokning av ett fordon hos en mekaniker. Bokningen äger sina tjänsterader
+ * ({@link BookingServiceItem}) där namn, pris och tid frystes när tjänsten lades till.</p>
+ * <p>Rader läggs bara till via {@link #addServiceItem(ServiceItem)}, som kontrollerar att
+ * bokningen fortfarande går att ändra.</p>
+ */
 @Entity
 @Table(name = "booking")
 public class Booking {
+
+    public static final String STATUS_BOOKED = "BOOKED";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +45,7 @@ public class Booking {
     private String description;
 
     @Column(nullable = false)
-    private String status = "BOOKED";
+    private String status = STATUS_BOOKED;
 
     @OneToMany(
             mappedBy = "booking",
@@ -44,7 +56,8 @@ public class Booking {
     @OrderBy("id ASC")
     private List<BookingServiceItem> items = new ArrayList<>();
 
-    protected Booking() {}
+    protected Booking() {
+    }
 
     public Booking(int vehicleId, int mechanicId, LocalDate date,
                    LocalTime startTime, LocalTime endTime, String description) {
@@ -108,17 +121,39 @@ public class Booking {
         this.description = description;
     }
 
+    /* Lägger till en tjänst som en frusen snapshot-rad.
+     * Samma tjänst läggs inte till två gånger. Kastar BookingLockedException
+     * om arbetet redan har påbörjats. */
     public void addServiceItem(ServiceItem serviceItem) {
+        if (!STATUS_BOOKED.equals(status)) {
+            throw new BookingLockedException(id, status);
+        }
+
         BookingServiceItem item = BookingServiceItem.snapshotOf(serviceItem);
+        if (containsService(item.getServiceItemId())) {
+            return;
+        }
+
         item.setBooking(this);
         items.add(item);
     }
 
+    /* Skrivskyddad vy av raderna. Ändringar går via addServiceItem(ServiceItem) */
     public List<BookingServiceItem> getItems() {
-        return items;
+        return Collections.unmodifiableList(items);
     }
 
-    public double getTotalEstimatedPrice() {
+    private boolean containsService(int serviceItemId) {
+        for (BookingServiceItem item : items) {
+            if (item.getServiceItemId() == serviceItemId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /* Ansvar: Summan av de priser som frystes vid bokningen. */
+    public double getTotalAgreedPrice() {
         return items.stream()
                 .mapToDouble(BookingServiceItem::getPriceAtBooking)
                 .sum();
