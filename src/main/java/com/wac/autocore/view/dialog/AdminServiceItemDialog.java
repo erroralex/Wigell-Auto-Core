@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.IllformedLocaleException;
 
-public class AdminServiceItemDialog extends Dialog<Boolean> {
+public class AdminServiceItemDialog extends Dialog<Double> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -81,20 +81,11 @@ public class AdminServiceItemDialog extends Dialog<Boolean> {
 
         setResultConverter(buttonType -> {
             if (buttonType == saveButtonType) {
-                double newPrice = Double.parseDouble(
+                return Double.parseDouble(
                         priceTextField.getText().replace(',', '.')
                 );
-
-                serviceItemService.updatePrice(
-                        serviceItem.getId(),
-                        newPrice
-                );
-
-                serviceItem.setPrice(newPrice);
-
-                return true;
             }
-            return false;
+            return null;
         });
     }
 }

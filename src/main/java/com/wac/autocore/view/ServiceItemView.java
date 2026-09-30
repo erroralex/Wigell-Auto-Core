@@ -162,10 +162,14 @@ public class ServiceItemView extends VBox {
         AdminServiceItemDialog dialog =
                 new AdminServiceItemDialog(serviceItemService, selected);
 
-        dialog.showAndWait();
+        dialog.showAndWait().ifPresent(newPrice -> {
 
-        serviceItemList.setAll(serviceItemService.listAll());
-
+            serviceItemService.updatePrice(
+                    selected.getId(),
+                    newPrice
+            );
+            serviceItemList.setAll(serviceItemService.listAll());
+        });
     }
 
 
