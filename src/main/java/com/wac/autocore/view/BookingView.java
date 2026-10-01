@@ -4,10 +4,12 @@ package com.wac.autocore.view;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
+import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -26,9 +28,7 @@ import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -43,11 +43,14 @@ public class BookingView extends VBox {
 
     private final ObservableList<Booking> bookingObservableList;
 
+    private TableView<Booking> bookingTableView;
+
     private final Map<Integer, Vehicle> vehicleMap;
 
     private final Map<Integer, Mechanic> mechanicMap;
 
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
+    private final Button btnEditServices = new Button(lang.get("btn.edit"));
 
     public BookingView(BookingService bookingService) {
         this.bookingService = bookingService;
@@ -88,7 +91,7 @@ public class BookingView extends VBox {
     }
 
     private void renderTable() {
-        TableView<Booking> bookingTableView = new TableView<>();
+        bookingTableView = new TableView<>();
         HBox buttonBar = createButtonBar();
 
         bookingTableView.setEditable(false);
@@ -143,6 +146,10 @@ public class BookingView extends VBox {
         bookingTableView.setItems(bookingObservableList);
         bookingTableView.getSortOrder().add(dateColumn);
 
+        bookingTableView.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> btnEditServices.setDisable(newValue == null)
+        );
+
         getChildren().addAll(buttonBar, bookingTableView);
     }
 
@@ -173,7 +180,11 @@ public class BookingView extends VBox {
         btnCreate.getStyleClass().addAll("btn", btnPrimary);
         btnCreate.setOnAction(event -> openCreateBookingDialog());
 
-        HBox hBox = new HBox(15, btnCreate);
+        btnEditServices.getStyleClass().addAll("btn", btnPrimary);
+        btnEditServices.setOnAction(event -> openEditServicesDialog());
+        btnEditServices.setDisable(true);
+
+        HBox hBox = new HBox(15, btnCreate, btnEditServices);
         hBox.setPadding(new Insets(15, 0, 0, 0));
         hBox.setAlignment(Pos.CENTER_LEFT);
         return hBox;
@@ -185,13 +196,12 @@ public class BookingView extends VBox {
         dialog.showAndWait().ifPresent(result -> {
             try {
                 Booking newBooking = bookingService.create(
-                        result.getVehicleId(),
-                        result.getMechanicId(),
-                        result.getDate(),
-                        result.getStartTime(),
-                        result.getEndTime(),
-                        result.getDescription(),
-                        result.getServiceItemId()
+                    result.getVehicleId(),
+                    result.getMechanicId(),
+                    result.getDate(),
+                    result.getStartTime(),
+                    result.getDescription(),
+                    result.getServiceItemIds()
                 );
 
                 if (newBooking != null) {
@@ -207,9 +217,64 @@ public class BookingView extends VBox {
                         lang.get("error.mechanicBusy")
                 );
             } catch (RuntimeException e) {
+
                 AlertHelper.showError(
                         lang.get("error.booking"),
                         lang.get("error.serviceNotFound")
+                );
+            }
+        });
+    }
+
+    private void openEditServicesDialog() {
+        Booking selected = bookingTableView.getSelectionModel().getSelectedItem();
+
+        if (selected == null)
+            return;
+
+        if (!Booking.STATUS_BOOKED.equals(selected.getStatus())) {
+            AlertHelper.showError(
+                    "Kan inte redigera",
+                    "Arbetet har redan påbörjats – bokningen kan inte ändras."
+            );
+            return;
+        }
+
+        EditBookingServicesDialog dialog = new EditBookingServicesDialog(selected, bookingService);
+
+        dialog.showAndWait().ifPresent(result -> {
+
+            try {
+
+                Booking newBooking = bookingService.update(
+                        selected.getId(),
+                        selected.getVehicleId(),
+                        selected.getMechanicId(),
+                        selected.getDate(),
+                        selected.getStartTime(),
+                        selected.getDescription(),
+                        result.getServiceItemIds()
+                );
+
+                if (newBooking != null) {
+                    bookingObservableList.setAll(bookingService.listAll());
+
+                    AlertHelper.showInfo("bokning uppdaterad","bokning uppdaterad"); // TODO lang
+                } else {
+                    AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));
+                }
+            }
+
+            catch (MechanicDoubleBookingException e) {
+            AlertHelper.showError(
+                    lang.get("error.booking"),
+                    lang.get("error.mechanicBusy")
+            );
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                AlertHelper.showError(
+                    lang.get("error.booking"),
+                    lang.get("error.serviceNotFound")
                 );
             }
         });

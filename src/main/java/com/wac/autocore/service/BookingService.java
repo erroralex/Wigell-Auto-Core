@@ -97,18 +97,58 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    /**
-     * Ansvar: Äldre variant med en tjänst, används av nuvarande CreateBookingDialog.
-     * {@code endTime} ignoreras, eftersom sluttiden räknas ut från tjänstens tid.
-     */
-    @Deprecated
-    public Booking create(int vehicleId, int mechanicId, LocalDate date,
-                          LocalTime startTime, LocalTime endTime,
-                          String description, int serviceItemId) {
-        return create(vehicleId, mechanicId, date, startTime, description,
-                java.util.Collections.singletonList(serviceItemId));
-    }
+    @Transactional
+    public Booking update(int bookingId, int vehicleId, int mechanicId, LocalDate date,
+                          LocalTime startTime, String description,
+                          List<Integer> serviceItemIds) {
 
+        Booking booking = findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
+
+        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+            throw new ValidationException("error.serviceSelect");
+        }
+
+        List<ServiceItem> serviceItems = serviceItemIds.stream()
+                .distinct()
+                .map(id -> findServiceItemById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
+                .collect(Collectors.toList());
+
+        int totalDuration = serviceItems.stream()
+                .mapToInt(ServiceItem::getEstimatedMinutes)
+                .sum();
+        LocalTime endTime = startTime.plusMinutes(totalDuration);
+
+        List<Booking> mechanicBookingsSameDay =
+                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
+
+        boolean overlaps = mechanicBookingsSameDay.stream()
+                .filter(b -> b.getId() != bookingId)
+                .anyMatch(b -> b.getStartTime().isBefore(endTime)
+                        && b.getEndTime().isAfter(startTime));
+
+        if (overlaps) {
+            String mechanicName = mechanicRepository.findById(mechanicId)
+                    .map(Mechanic::getName)
+                    .orElse("Unknown");
+            throw new MechanicDoubleBookingException(
+                    mechanicName, date, startTime, endTime
+            );
+        }
+
+        booking.setVehicleId(vehicleId);
+        booking.setMechanicId(mechanicId);
+        booking.setDate(date);
+        booking.setStartTime(startTime);
+        booking.setEndTime(endTime);
+        booking.setDescription(description);
+        booking.getItems().clear();
+        bookingRepository.saveAndFlush(booking);
+        serviceItems.forEach(booking::addServiceItem);
+
+        return bookingRepository.save(booking);
+    }
 
     public boolean isVehicleBooked(int vehicleId, LocalDate date) {
         return bookingRepository.existsByVehicleIdAndDate(vehicleId, date);
