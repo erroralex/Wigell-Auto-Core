@@ -77,7 +77,7 @@ public class Booking {
         return vehicleId;
     }
 
-    protected void setVehicleId(int vehicleId) {
+    public void setVehicleId(int vehicleId) {
         this.vehicleId = vehicleId;
     }
 
@@ -139,7 +139,7 @@ public class Booking {
     }
 
     public List<BookingServiceItem> getItems() {
-        return Collections.unmodifiableList(items);
+        return items;
     }
 
     private boolean containsService(int serviceItemId) {

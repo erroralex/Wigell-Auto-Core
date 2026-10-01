@@ -217,6 +217,7 @@ public class BookingView extends VBox {
                         lang.get("error.mechanicBusy")
                 );
             } catch (RuntimeException e) {
+
                 AlertHelper.showError(
                         lang.get("error.booking"),
                         lang.get("error.serviceNotFound")
@@ -239,13 +240,43 @@ public class BookingView extends VBox {
             return;
         }
 
-
         EditBookingServicesDialog dialog = new EditBookingServicesDialog(selected, bookingService);
 
         dialog.showAndWait().ifPresent(result -> {
-            // TODO: bookingService.update(selected) med nya service items
-            // just nu – bara för att se dialogen
-            System.out.println("Selected service items: " + result.getServiceItemIds());
+
+            try {
+
+                Booking newBooking = bookingService.update(
+                        selected.getId(),
+                        selected.getVehicleId(),
+                        selected.getMechanicId(),
+                        selected.getDate(),
+                        selected.getStartTime(),
+                        selected.getDescription(),
+                        result.getServiceItemIds()
+                );
+
+                if (newBooking != null) {
+                    bookingObservableList.setAll(bookingService.listAll());
+
+                    AlertHelper.showInfo("bokning uppdaterad","bokning uppdaterad"); // TODO lang
+                } else {
+                    AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));
+                }
+            }
+
+            catch (MechanicDoubleBookingException e) {
+            AlertHelper.showError(
+                    lang.get("error.booking"),
+                    lang.get("error.mechanicBusy")
+            );
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                AlertHelper.showError(
+                    lang.get("error.booking"),
+                    lang.get("error.serviceNotFound")
+                );
+            }
         });
     }
 }
