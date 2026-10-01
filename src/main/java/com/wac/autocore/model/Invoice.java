@@ -1,5 +1,7 @@
 package com.wac.autocore.model;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 
@@ -16,6 +18,8 @@ public class Invoice {
     private double amount;
     private double discount = 0.0;
     private double totalAmount;
+
+    @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean paid = false;
 
     protected Invoice() {}
