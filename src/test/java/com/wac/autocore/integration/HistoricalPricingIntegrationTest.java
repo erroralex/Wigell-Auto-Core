@@ -187,8 +187,7 @@ public class HistoricalPricingIntegrationTest {
     private static ConfigurableApplicationContext startApplication(String url) {
         return new SpringApplicationBuilder(AutoCoreConfig.class)
                 .profiles("test")
-                .properties("spring.datasource.url=" + url)
-                .run();
+                .run("--spring.datasource.url=" + url);
     }
 
     private static String jdbcUrl(Path dbFile) {
