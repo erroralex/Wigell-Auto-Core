@@ -77,7 +77,7 @@ public class Booking {
         return vehicleId;
     }
 
-    protected void setVehicleId(int vehicleId) {
+    public void setVehicleId(int vehicleId) {
         this.vehicleId = vehicleId;
     }
 
@@ -138,9 +138,8 @@ public class Booking {
         items.add(item);
     }
 
-    /* Skrivskyddad vy av raderna. Ändringar går via addServiceItem(ServiceItem) */
     public List<BookingServiceItem> getItems() {
-        return Collections.unmodifiableList(items);
+        return items;
     }
 
     private boolean containsService(int serviceItemId) {
@@ -152,7 +151,6 @@ public class Booking {
         return false;
     }
 
-    /* Ansvar: Summan av de priser som frystes vid bokningen. */
     public double getTotalAgreedPrice() {
         return items.stream()
                 .mapToDouble(BookingServiceItem::getPriceAtBooking)
