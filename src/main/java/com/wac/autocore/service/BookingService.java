@@ -137,7 +137,6 @@ public class BookingService {
             );
         }
 
-
         booking.setVehicleId(vehicleId);
         booking.setMechanicId(mechanicId);
         booking.setDate(date);
