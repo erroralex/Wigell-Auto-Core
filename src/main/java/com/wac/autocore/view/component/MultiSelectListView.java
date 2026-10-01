@@ -45,6 +45,12 @@ public class MultiSelectListView<T> extends ListView<T> {
 
         public RemovableCell() {
             label.getStyleClass().add("multi-select-cell");
+            row.getStyleClass().add("multi-select-row");
+
+            removeButton.getStyleClass().add("multi-select-remove");
+            removeButton.setTooltip(removeTooltip);
+            removeButton.setOnAction(event -> removeThisRow());
+
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             // Cellen följer listans bredd, så att ingen horisontell scrollbar uppstår vid zoom
             setPrefWidth(0);
