@@ -39,7 +39,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
     private final VBox serviceItemsBox = new VBox(8);
     private final Label errorLabel = new Label();
-    private final Label estimatedTimeLabel = new Label();
+    private final Label estimatedTimeLabel = new Label("Upskattad Tid: ");
+    private final Label basePriceLabel = new Label("Pris: ");
     private final List<Booking> bookingList;
 
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
@@ -110,8 +111,10 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private void updateTotals() {
         List<ServiceItem> selectedItems = getSelectedItems();
 
+        // TODO använd lang
         if (selectedItems.isEmpty()) {
-            estimatedTimeLabel.setText("");
+            estimatedTimeLabel.setText("Uppskattad Tid: ");
+            basePriceLabel.setText("Pris: ");
             return;
         }
 
@@ -119,7 +122,10 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 .mapToInt(ServiceItem::getEstimatedMinutes)
                 .sum();
 
-        estimatedTimeLabel.setText(lang.get("format.minutes", totalMinutes));
+        estimatedTimeLabel.setText("Uppskattad Tid: " +  lang.get("format.minutes", totalMinutes)); // TODO använd lang
+
+        double totalBasePrice = selectedItems.stream().mapToDouble(ServiceItem::getPrice).sum();
+        basePriceLabel.setText("Pris: " +  totalBasePrice + " kr"); // TODO använd lang
     }
 
     private void setContent() {
@@ -133,7 +139,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
                 new Label(lang.get("table.serviceItem")), serviceItemsBox,
-                new Label(lang.get("table.estimatedTime")), estimatedTimeLabel
+                estimatedTimeLabel,
+                basePriceLabel
         );
         getDialogPane().setContent(content);
 
