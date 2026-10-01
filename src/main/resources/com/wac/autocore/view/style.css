@@ -356,6 +356,50 @@
     -fx-border-color: #55624F;
 }
 
+/* ServiceSelector: rad med ComboBox och Lägg till-knapp i Arbetsorderdialogen. */
+.service-selector {
+    -fx-spacing: 0.6em;
+}
+
+/* Raden med ComboBox och Lägg till-knapp. */
+.service-selector-picker {
+    -fx-spacing: 0.6em;
+    -fx-alignment: center-left;
+}
+
+/* MultiSelectListView: storlek i em istället för ListView:s fasta standardhöjd. */
+.multi-select-list {
+    -fx-pref-width: 28em;
+    -fx-pref-height: 12em;
+    -fx-min-height: 6em;
+}
+
+/* MultiSelectListView: celler med text och Ta bort-knapp i Arbetsorderdialogen. */
+.multi-select-cell {
+    -fx-padding: 0.3em 0.5em;
+}
+
+/* MultiSelectListView: en rad med text till vänster, Ta bort-knapp till höger i Arbetsorderdialogen. */
+.multi-select-row {
+    -fx-spacing: 0.6em;
+    -fx-alignment: center-left;
+}
+
+/* Kompaktare Ta bort-knapp så att raden inte blir för hög. */
+.multi-select-remove {
+    -fx-padding: 0.25em 0.7em;
+}
+
+/* .label sätter mörk text explicit; ljus text krävs på den gröna markerade raden. */
+.multi-select-list .list-cell:filled:selected .label {
+    -fx-text-fill: #F2F2F2;
+}
+
+/* .list-view står efter .input-error och skulle annars skriva över felramen. */
+.multi-select-list.input-error {
+    -fx-border-color: #E57373;
+}
+
 /* Används av HomeView för skuggan bakom logotypen. */
 .home-logo {
     -fx-effect: dropshadow(
