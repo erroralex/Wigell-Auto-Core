@@ -9,6 +9,7 @@ import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
+import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -42,11 +43,14 @@ public class BookingView extends VBox {
 
     private final ObservableList<Booking> bookingObservableList;
 
+    private TableView<Booking> bookingTableView;
+
     private final Map<Integer, Vehicle> vehicleMap;
 
     private final Map<Integer, Mechanic> mechanicMap;
 
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
+    private final Button btnEditServices = new Button(lang.get("btn.edit"));
 
     public BookingView(BookingService bookingService) {
         this.bookingService = bookingService;
@@ -87,7 +91,7 @@ public class BookingView extends VBox {
     }
 
     private void renderTable() {
-        TableView<Booking> bookingTableView = new TableView<>();
+        bookingTableView = new TableView<>();
         HBox buttonBar = createButtonBar();
 
         bookingTableView.setEditable(false);
@@ -142,6 +146,10 @@ public class BookingView extends VBox {
         bookingTableView.setItems(bookingObservableList);
         bookingTableView.getSortOrder().add(dateColumn);
 
+        bookingTableView.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> btnEditServices.setDisable(newValue == null)
+        );
+
         getChildren().addAll(buttonBar, bookingTableView);
     }
 
@@ -172,7 +180,11 @@ public class BookingView extends VBox {
         btnCreate.getStyleClass().addAll("btn", btnPrimary);
         btnCreate.setOnAction(event -> openCreateBookingDialog());
 
-        HBox hBox = new HBox(15, btnCreate);
+        btnEditServices.getStyleClass().addAll("btn", btnPrimary);
+        btnEditServices.setOnAction(event -> openEditServicesDialog());
+        btnEditServices.setDisable(true);
+
+        HBox hBox = new HBox(15, btnCreate, btnEditServices);
         hBox.setPadding(new Insets(15, 0, 0, 0));
         hBox.setAlignment(Pos.CENTER_LEFT);
         return hBox;
@@ -210,6 +222,21 @@ public class BookingView extends VBox {
                         lang.get("error.serviceNotFound")
                 );
             }
+        });
+    }
+
+    private void openEditServicesDialog() {
+        Booking selected = bookingTableView.getSelectionModel().getSelectedItem();
+
+        if (selected == null)
+            return;
+
+        EditBookingServicesDialog dialog = new EditBookingServicesDialog(selected, bookingService);
+
+        dialog.showAndWait().ifPresent(result -> {
+            // TODO: bookingService.update(selected) med nya service items
+            // just nu – bara för att se dialogen
+            System.out.println("Selected service items: " + result.getServiceItemIds());
         });
     }
 }
