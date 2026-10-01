@@ -231,6 +231,15 @@ public class BookingView extends VBox {
         if (selected == null)
             return;
 
+        if (!Booking.STATUS_BOOKED.equals(selected.getStatus())) {
+            AlertHelper.showError(
+                    "Kan inte redigera",
+                    "Arbetet har redan påbörjats – bokningen kan inte ändras."
+            );
+            return;
+        }
+
+
         EditBookingServicesDialog dialog = new EditBookingServicesDialog(selected, bookingService);
 
         dialog.showAndWait().ifPresent(result -> {
