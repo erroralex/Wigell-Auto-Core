@@ -19,7 +19,6 @@ public class InvoiceLine {
     private double discount;
     private double total;
 
-
     protected InvoiceLine() {}
 
     public InvoiceLine(Invoice invoice, String serviceItemName, double amount, double discount, double total) {
@@ -28,7 +27,6 @@ public class InvoiceLine {
         this.amount = amount;
         this.discount = discount;
         this.total = total;
-
     }
 
     public Long getId() {

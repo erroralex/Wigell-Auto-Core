@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.InvoiceRepo;
+import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -55,24 +56,17 @@ public class InvoiceService {
 
         Invoice invoice = new Invoice(workOrderId, LocalDate.now());
 
+        DiscountStrategy strategy = selectStrategy(discountCode);
+
         for (WorkOrderItem workOrderItem : workOrder.getItems()) {
             double amount = workOrderItem.getAgreedPrice();
-            double discount = 0;
 
-            // VIP
+            double discount = strategy.calculateDiscount(amount);
+
             if (customer.isVip())
-                discount += amount * 0.10;
-
-            // WELCOME10
-            if ("WELCOME10".equals(discountCode))
-                discount += amount * 0.10;
-
-            // SERVICE200
-            if ("SERVICE200".equals(discountCode))
-                discount += 200;
+                discount += new VipDiscount().calculateDiscount(amount);
 
             discount = Math.min(discount, amount);
-
             double total = amount - discount;
 
             invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount, total));
@@ -105,5 +99,16 @@ public class InvoiceService {
 
     public Invoice update(Invoice invoice) {
         return invoiceRepo.save(invoice);
+    }
+
+    private DiscountStrategy selectStrategy(String discountCode) {
+
+        if ("WELCOME10".equals(discountCode))
+            return new Welcome10Discount();
+
+        if ("SERVICE200".equals(discountCode))
+            return new Service200Discount();
+
+        return new NoDiscount();
     }
 }
