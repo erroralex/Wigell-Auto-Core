@@ -23,7 +23,7 @@ import javafx.scene.layout.VBox;
  * <b>CustomerView</b>
  * <p>Ansvar: Visar och hanterar kundinformation i användargränssnittet.</p>
  */
-public class CustomerView extends VBox {
+public class CustomerView extends BaseView {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -35,20 +35,22 @@ public class CustomerView extends VBox {
 
     public CustomerView(CustomerService customerService) {
         this.customerService = customerService;
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-        VBox.setVgrow(customerTable, Priority.ALWAYS);
-
-        Label title = new Label(lang.get("customer.title"));
-        title.getStyleClass().add("text-title");
 
         loadMasterData();
         initializeTable();
         configureSearch();
 
-        this.getChildren().addAll(title, createToolbar(), customerTable);
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "customer.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        getChildren().addAll(createToolbar(), customerTable);
     }
 
     private void loadMasterData() {
@@ -127,5 +129,4 @@ public class CustomerView extends VBox {
             refreshData();
         }
     }
-
 }
