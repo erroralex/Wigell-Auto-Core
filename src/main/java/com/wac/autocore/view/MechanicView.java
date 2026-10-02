@@ -23,7 +23,6 @@ import javafx.scene.layout.VBox;
  */
 public class MechanicView extends BaseView {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
     private final MechanicService mechanicService;
 
     private final ObservableList<Mechanic> mechanicObservableList;

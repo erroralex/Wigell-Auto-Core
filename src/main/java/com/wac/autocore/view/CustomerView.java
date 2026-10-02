@@ -24,9 +24,7 @@ import javafx.scene.layout.VBox;
  * <p>Ansvar: Visar och hanterar kundinformation i användargränssnittet.</p>
  */
 public class CustomerView extends BaseView {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
-
+    
     private final TableView<Customer> customerTable = new TableView<>();
     private final ObservableList<Customer> masterData = FXCollections.observableArrayList();
     private final FilteredList<Customer> filteredData = new FilteredList<>(masterData, customer -> true);
