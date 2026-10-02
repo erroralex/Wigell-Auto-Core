@@ -14,24 +14,21 @@ import java.net.URL;
  * <b>HomeView</b>
  * <p>Ansvar: Startvy som visar logotyp och välkomsttext.</p>
  */
-public class HomeView extends VBox {
+public class HomeView extends BaseView {
 
     private static final String LOGO_PATH = "assets/wigell-auto-logo.png";
     private final LanguageManager lang = LanguageManager.getInstance();
 
-    public HomeView() {
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
+    Label welcomeLabel = new Label();
 
-        Label welcomeLabel = new Label();
-        welcomeLabel.textProperty().bind(lang.bind("home.welcome"));
+    public HomeView() {
+        //welcomeLabel.textProperty().bind(lang.bind("home.welcome"));
         welcomeLabel.getStyleClass().add("text-content");
         welcomeLabel.setWrapText(true);
         welcomeLabel.setMaxWidth(900);
 
-        this.getChildren().addAll(createLogo(), welcomeLabel);
+        initView();
+        //this.getChildren().addAll(createLogo(), welcomeLabel);
     }
 
     // Visar logotypen, eller appens namn som text om bilden inte kan laddas
@@ -51,5 +48,15 @@ public class HomeView extends VBox {
             logo.textProperty().bind(lang.bind("app.title"));
         }
         return logo;
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "home.welcome";
+    }
+
+    @Override
+    protected void buildContent() {
+        getChildren().addAll(createLogo(), welcomeLabel);
     }
 }
