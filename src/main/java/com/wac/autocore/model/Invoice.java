@@ -28,7 +28,6 @@ public class Invoice {
     public Invoice(int workOrderId, LocalDate invoiceDate) {
         this.workOrderId = workOrderId;
         this.invoiceDate = invoiceDate;
-        this.lines = lines;
     }
 
     public int getId() {
@@ -57,7 +56,6 @@ public class Invoice {
 
     public void setAmount(double amount) {
         this.amount = amount;
-        calculateTotalAmount();
     }
 
     public double getDiscount() {
@@ -66,7 +64,6 @@ public class Invoice {
 
     public void setDiscount(double discount) {
         this.discount = discount;
-        calculateTotalAmount();
     }
 
     public void setTotalAmount(double totalAmount) {
@@ -95,10 +92,6 @@ public class Invoice {
 
     public void addLine(InvoiceLine line) {
         this.lines.add(line);
-    }
-
-    private void calculateTotalAmount() {
-        this.totalAmount = amount - discount;
     }
 
     @Override

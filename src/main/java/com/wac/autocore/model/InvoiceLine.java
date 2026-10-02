@@ -31,10 +31,6 @@ public class InvoiceLine {
 
     }
 
-    public double getTotalAmount() {
-        return Math.max(amount - discount, 0);
-    }
-
     public Long getId() {
         return id;
     }
