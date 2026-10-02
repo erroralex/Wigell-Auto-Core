@@ -29,9 +29,8 @@ import java.util.Map;
  * <b>VehicleView</b>
  * <p>Ansvar: Visar och hanterar fordon i användargränssnittet.</p>
  */
-public class VehicleView extends VBox {
+public class VehicleView extends BaseView {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
     private final CustomerService customerService;
     private final VehicleService vehicleService;
 
@@ -48,21 +47,24 @@ public class VehicleView extends VBox {
     public VehicleView(CustomerService customerService, VehicleService vehicleService) {
         this.customerService = customerService;
         this.vehicleService = vehicleService;
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-        VBox.setVgrow(vehicleTable, Priority.ALWAYS);
-
-        Label title = new Label(lang.get("vehicle.title"));
-        title.getStyleClass().add("text-title");
 
         loadCustomers();
         loadMasterData();
         initializeTable();
         configureCustomerFilter();
 
-        this.getChildren().addAll(title, createToolbar(), vehicleTable);
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "vehicle.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(vehicleTable, Priority.ALWAYS);
+        getChildren().addAll(createToolbar(), vehicleTable);
     }
 
     private void loadCustomers() {
