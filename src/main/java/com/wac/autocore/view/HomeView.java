@@ -17,18 +17,16 @@ import java.net.URL;
 public class HomeView extends BaseView {
 
     private static final String LOGO_PATH = "assets/wigell-auto-logo.png";
-    private final LanguageManager lang = LanguageManager.getInstance();
 
     Label welcomeLabel = new Label();
 
     public HomeView() {
-        //welcomeLabel.textProperty().bind(lang.bind("home.welcome"));
+        welcomeLabel.textProperty().bind(lang.bind("home.welcome"));
         welcomeLabel.getStyleClass().add("text-content");
         welcomeLabel.setWrapText(true);
         welcomeLabel.setMaxWidth(900);
 
         initView();
-        //this.getChildren().addAll(createLogo(), welcomeLabel);
     }
 
     // Visar logotypen, eller appens namn som text om bilden inte kan laddas
@@ -52,11 +50,15 @@ public class HomeView extends BaseView {
 
     @Override
     protected String getTitleKey() {
-        return "home.welcome";
+        return null; // Not needed here, title is added in the constructor for the view. See above.
     }
 
     @Override
     protected void buildContent() {
         getChildren().addAll(createLogo(), welcomeLabel);
+    }
+
+    @Override
+    protected void buildHeader() { // Overrides the functionality built into BaseView to instead do it through constructor of HomeView.
     }
 }
