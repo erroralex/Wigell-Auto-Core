@@ -17,15 +17,18 @@ public class InvoiceLine {
     private String serviceItemName;
     private double amount;
     private double discount;
+    private double total;
 
 
     protected InvoiceLine() {}
 
-    public InvoiceLine(Invoice invoice, String serviceItemName, double amount, double discount) {
+    public InvoiceLine(Invoice invoice, String serviceItemName, double amount, double discount, double total) {
         this.invoice = invoice;
         this.serviceItemName = serviceItemName;
         this.amount = amount;
         this.discount = discount;
+        this.total = total;
+
     }
 
     public double getTotalAmount() {
@@ -70,5 +73,13 @@ public class InvoiceLine {
 
     public void setDiscount(double discount) {
         this.discount = discount;
+    }
+
+    public double getTotal() {
+        return this.total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
     }
 }

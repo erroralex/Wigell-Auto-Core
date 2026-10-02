@@ -4,5 +4,6 @@ CREATE TABLE invoice_line (
       service_item_name TEXT,
       amount REAL,
       discount REAL,
+      total REAL,
       FOREIGN KEY (invoice_id) REFERENCES invoice(id)
 );

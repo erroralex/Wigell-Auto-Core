@@ -73,7 +73,9 @@ public class InvoiceService {
 
             discount = Math.min(discount, amount);
 
-            invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount));
+            double total = amount - discount;
+
+            invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount, total));
         }
 
         double amountSum = 0;
@@ -83,7 +85,7 @@ public class InvoiceService {
         for (InvoiceLine invoiceLine : invoice.getLines()) {
             amountSum += invoiceLine.getAmount();
             discountSum += invoiceLine.getDiscount();
-            totalSum += invoiceLine.getTotalAmount();
+            totalSum += invoiceLine.getTotal();
         }
 
         invoice.setAmount(amountSum);
