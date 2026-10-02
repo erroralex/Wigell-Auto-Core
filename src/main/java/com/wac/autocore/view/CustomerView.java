@@ -24,7 +24,7 @@ import javafx.scene.layout.VBox;
  * <p>Ansvar: Visar och hanterar kundinformation i användargränssnittet.</p>
  */
 public class CustomerView extends BaseView {
-    
+
     private final TableView<Customer> customerTable = new TableView<>();
     private final ObservableList<Customer> masterData = FXCollections.observableArrayList();
     private final FilteredList<Customer> filteredData = new FilteredList<>(masterData, customer -> true);
@@ -48,6 +48,7 @@ public class CustomerView extends BaseView {
 
     @Override
     protected void buildContent() {
+        VBox.setVgrow(customerTable, Priority.ALWAYS);
         getChildren().addAll(createToolbar(), customerTable);
     }
 
