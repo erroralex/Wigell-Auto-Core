@@ -32,7 +32,7 @@ public abstract class BaseView extends VBox {
 
     }
 
-    protected void applyStyling() {
+    private void applyStyling() {
         getStyleClass().add("content-area");
         setSpacing(20);
         setPadding(new Insets(20));
