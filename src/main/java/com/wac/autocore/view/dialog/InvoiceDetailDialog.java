@@ -6,6 +6,7 @@ import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -46,9 +47,15 @@ public class InvoiceDetailDialog extends Dialog<Void> {
         TableView<InvoiceLine> table = createTable();
         VBox.setVgrow(table, Priority.ALWAYS);
 
-        Label amountLabel = new Label(lang.get("table.amount") + ": " + invoice.getAmount() + " kr");
-        Label discountLabel = new Label(lang.get("table.discount") + ": " + invoice.getDiscount() + " kr");
-        Label totalLabel = new Label(lang.get("table.total") + ": " + invoice.getTotalAmount() + " kr");
+        Label amountLabel = createSummaryLabel(
+                "invoice.subtotal", invoice.getAmount()
+        );
+        Label discountLabel = createSummaryLabel(
+                "invoice.totalDiscount", invoice.getDiscount()
+        );
+        Label totalLabel = createSummaryLabel(
+                "invoice.grandTotal", invoice.getTotalAmount()
+        );
 
         totalLabel.getStyleClass().add("text-title");
 
@@ -127,5 +134,13 @@ public class InvoiceDetailDialog extends Dialog<Void> {
             }
         });
     }
-
+    // Skapar en label som visar en summering (t.ex. totalbelopp) med språkstöd
+    private Label createSummaryLabel(String key, double amount) {
+        Label label = new Label();
+        label.textProperty().bind(Bindings.createStringBinding(
+                () -> lang.get(key, lang.get("format.price", amount)),
+                lang.localeProperty()
+        ));
+        return label;
+    }
 }
