@@ -27,12 +27,20 @@ public class InvoiceDetailDialog extends Dialog<Void> {
     public InvoiceDetailDialog(Invoice invoice) {
         this.invoice = invoice;
 
-        setTitle("Invoice details: " + " #" + invoice.getId()); // TODO lang
-        setHeaderText("invoice details");   // TODO lang
+        // Binder titeln och headern till språknycklar med faktura-id
+        titleProperty().bind(lang.bind("invoice.detailsTitle", invoice.getId()));
+        headerTextProperty().bind(lang.bind("invoice.detailsHeader"));
 
         DialogUtil.applyTheme(this);
 
-        getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        // Lägger till en stäng-knapp som stänger dialogen
+        ButtonType closeButtonType = new ButtonType(
+                lang.get("btn.close"), ButtonBar.ButtonData.CANCEL_CLOSE
+        );
+        getDialogPane().getButtonTypes().add(closeButtonType);
+
+        Button closeButton = (Button) getDialogPane().lookupButton(closeButtonType);
+        closeButton.textProperty().bind(lang.bind("btn.close"));
 
         setContent();
     }
