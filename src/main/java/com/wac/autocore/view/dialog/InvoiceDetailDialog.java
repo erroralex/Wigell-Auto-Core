@@ -33,7 +33,7 @@ public class InvoiceDetailDialog extends Dialog<Void> {
 
         DialogUtil.applyTheme(this);
 
-        // Lägger till en stäng-knapp som stänger dialogen
+        // Lägger till en stäng-knapp som stänger dialogen med språknyckel
         ButtonType closeButtonType = new ButtonType(
                 lang.get("btn.close"), ButtonBar.ButtonData.CANCEL_CLOSE
         );
@@ -49,8 +49,20 @@ public class InvoiceDetailDialog extends Dialog<Void> {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
 
-        Label dateLabel = new Label(lang.get("table.invoiceDate") + ": " + invoice.getInvoiceDate());
-        Label workOrderLabel = new Label(lang.get("table.workOrderId") + ": #" + invoice.getWorkOrderId());
+        // Skapar label för fakturadatum och work order-id med språkstöd
+        Label dateLabel = new Label();
+        dateLabel.textProperty().bind(
+                lang.bind("table.invoiceDate")
+                        .concat(": ")
+                        .concat(invoice.getInvoiceDate().toString())
+        );
+
+        Label workOrderLabel = new Label();
+        workOrderLabel.textProperty().bind(
+                lang.bind("table.workOrderId")
+                        .concat(": #")
+                        .concat(Integer.toString(invoice.getWorkOrderId()))
+        );
 
         TableView<InvoiceLine> table = createTable();
         VBox.setVgrow(table, Priority.ALWAYS);
@@ -114,7 +126,10 @@ public class InvoiceDetailDialog extends Dialog<Void> {
         table.getColumns().addAll(serviceCol, amountCol, discountCol, totalCol);
 
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        table.setPlaceholder(new Label(lang.get("table.empty")));
+        // Sätter en placeholder med språkstöd när tabellen är tom
+        Label placeholder = new Label();
+        placeholder.textProperty().bind(lang.bind("table.empty"));
+        table.setPlaceholder(placeholder);
         table.setItems(FXCollections.observableArrayList(invoice.getLines()));
 
         return table;
