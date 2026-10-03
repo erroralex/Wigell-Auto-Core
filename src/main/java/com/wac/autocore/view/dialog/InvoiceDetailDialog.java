@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -90,6 +91,11 @@ public class InvoiceDetailDialog extends Dialog<Void> {
                 new SimpleDoubleProperty(c.getValue().getTotal()).asObject()
         );
 
+        // Konfigurera kolumnerna som visar pengar
+        configureMoneyColumn(amountCol);
+        configureMoneyColumn(discountCol);
+        configureMoneyColumn(totalCol);
+
         table.getColumns().addAll(serviceCol, amountCol, discountCol, totalCol);
 
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -98,4 +104,28 @@ public class InvoiceDetailDialog extends Dialog<Void> {
 
         return table;
     }
+
+    // Kolumn som visar pengar, med högerjustering och formatering
+    private void configureMoneyColumn(TableColumn<InvoiceLine, Double> column) {
+        column.setCellFactory(col -> new TableCell<InvoiceLine, Double>() {
+            {
+                setAlignment(Pos.CENTER_RIGHT);
+            }
+
+            @Override
+            protected void updateItem(Double amount, boolean empty) {
+                super.updateItem(amount, empty);
+
+                textProperty().unbind();
+                setGraphic(null);
+
+                if (empty || amount == null) {
+                    setText(null);
+                } else {
+                    textProperty().bind(lang.bind("format.price", amount));
+                }
+            }
+        });
+    }
+
 }
