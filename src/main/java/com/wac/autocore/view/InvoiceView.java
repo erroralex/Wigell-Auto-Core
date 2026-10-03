@@ -20,6 +20,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseButton;
 
 import java.time.LocalDate;
 
@@ -39,7 +40,7 @@ public class InvoiceView extends VBox {
     private final TableView<Invoice> invoiceTable = new TableView<>();
 
     private final Button btnCreateInvoice = new Button(lang.get("btn.create"));
-    private final Button btnViewDetails = new Button("detaljer"); // TODO lang
+    private final Button btnViewDetails = new Button();
 
     public InvoiceView(InvoiceService invoiceService, WorkOrderService workOrderService) {
         this.invoiceService = invoiceService;
@@ -135,6 +136,21 @@ public class InvoiceView extends VBox {
 
         this.sortedData.comparatorProperty().bind(this.invoiceTable.comparatorProperty());
         this.invoiceTable.setItems(this.sortedData);
+        invoiceTable.setRowFactory(table -> {
+            TableRow<Invoice> row = new TableRow<>();
+
+            row.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.PRIMARY
+                        && event.getClickCount() == 2
+                        && !row.isEmpty()) {
+                    invoiceTable.getSelectionModel().select(row.getItem());
+                    openDetailDialog();
+                }
+            });
+
+            return row;
+        });
+
     }
 
     private HBox createButtonBar() {
@@ -142,7 +158,7 @@ public class InvoiceView extends VBox {
 
         btnCreateInvoice.getStyleClass().addAll("btn", btnPrimary);
         btnCreateInvoice.setOnAction(event -> this.openCreateInvoiceDialog());
-
+        btnViewDetails.textProperty().bind(lang.bind("invoice.viewDetails"));
         btnViewDetails.getStyleClass().addAll("btn", btnPrimary);
         btnViewDetails.setOnAction(event -> this.openDetailDialog());
 
