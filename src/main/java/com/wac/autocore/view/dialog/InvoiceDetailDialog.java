@@ -73,7 +73,7 @@ public class InvoiceDetailDialog extends Dialog<Void> {
         );
 
         TableColumn<InvoiceLine, Double> amountCol = new TableColumn<>();
-        amountCol.textProperty().bind(lang.bind("table.amount"));
+        amountCol.textProperty().bind(lang.bind("invoice.originalPrice"));
         amountCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getAmount()).asObject()
         );
@@ -85,7 +85,7 @@ public class InvoiceDetailDialog extends Dialog<Void> {
         );
 
         TableColumn<InvoiceLine, Double> totalCol = new TableColumn<>();
-        totalCol.textProperty().bind(lang.bind("table.total"));
+        totalCol.textProperty().bind(lang.bind("invoice.netPrice"));
         totalCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getTotal()).asObject()
         );
