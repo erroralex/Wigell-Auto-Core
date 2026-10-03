@@ -43,8 +43,8 @@ public class CreateVehicleDialog {
         this.vehicleService = vehicleService;
         dialog.setTitle(lang.get("vehicle.new"));
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
-        dialog.getDialogPane().setContent(createContent());
         DialogUtil.applyTheme(dialog);
+        dialog.getDialogPane().setContent(createContent());
         configureFields();
         configureCustomerComboBox();
         configureButtons();

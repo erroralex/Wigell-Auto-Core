@@ -35,17 +35,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
     private final Label errorLabel = new Label();
-    private final List<Booking> bookingList;
-
-    /*
-     * Legacy checkbox implementation retained for reference during migration.
-     * Do not restore alongside ServiceSelectorBox: it would create a second,
-     * independent source of selected services.
-     *
-    private final VBox serviceItemsBox = new VBox(8);
-    private final Label estimatedTimeLabel = new Label("Upskattad Tid: ");
-    private final Label basePriceLabel = new Label("Pris: ");
-    */
 
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -54,7 +43,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     public CreateBookingDialog(BookingService bookingService) {
         this.bookingService = bookingService;
         this.serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
-        this.bookingList = bookingService.listAll();
 
         errorLabel.getStyleClass().add("text-error");
 
@@ -68,8 +56,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         vehicleComboBox.getItems().addAll(bookingService.listAllVehicles());
         mechanicComboBox.getItems().addAll(bookingService.listAllMechanics());
         populateStartTimes();
-        // Legacy checkbox setup, replaced by ServiceSelectorBox:
-        // populateServiceItems();
 
         setContent();
     }
@@ -84,60 +70,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         }
     }
 
-    /*
-    * Tidigare implementation med checkboxar, ersatt av ServiceSelectorBox som hanterar val av tjänster, uppskattad tid och pris.
-    * sparar inte längre valda tjänster i en separat lista, utan ServiceSelectorBox hanterar det internt.
-    * kommenterad kod är kvar för referens under migrationen.
-
-    private void populateServiceItems() {
-        serviceItemsBox.setPadding(new Insets(8));
-        serviceItemsBox.getStyleClass().add("service-items-box");
-
-        for (ServiceItem serviceItem : bookingService.listAllServiceItems()) {
-            CheckBox checkBox = new CheckBox(
-                    serviceItem.getName() + " – " + serviceItem.getPrice() + " kr (" +
-                            serviceItem.getEstimatedMinutes() + " min)"
-            );
-            checkBox.setUserData(serviceItem);
-            checkBox.selectedProperty().addListener((obs, was, is) -> updateTotals());
-            serviceItemsBox.getChildren().add(checkBox);
-        }
-    }
-
-    private List<ServiceItem> getSelectedItems() {
-        List<ServiceItem> selectedItems = new ArrayList<>();
-
-        for (Node node : serviceItemsBox.getChildren()) {
-            if (node instanceof CheckBox) {
-                CheckBox checkBox = (CheckBox) node;
-                if (checkBox.isSelected()) {
-                    selectedItems.add((ServiceItem) checkBox.getUserData());
-                }
-            }
-        }
-
-        return selectedItems;
-    }
-
-    private void updateTotals() {
-        List<ServiceItem> selectedItems = getSelectedItems();
-
-        if (selectedItems.isEmpty()) {
-            estimatedTimeLabel.setText("Uppskattad Tid: ");
-            basePriceLabel.setText("Pris: ");
-            return;
-        }
-
-        int totalMinutes = selectedItems.stream()
-                .mapToInt(ServiceItem::getEstimatedMinutes)
-                .sum();
-
-        estimatedTimeLabel.setText("Uppskattad Tid: " + lang.get("format.minutes", totalMinutes));
-
-        double totalBasePrice = selectedItems.stream().mapToDouble(ServiceItem::getPrice).sum();
-        basePriceLabel.setText("Pris: " + totalBasePrice + " kr");
-    }
-    */
     private void setContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
@@ -149,10 +81,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
                 new Label(lang.get("table.serviceItem")), serviceSelector
-                // Bytt ut tidigare labels och checkboxar mot ServiceSelectorBox som hanterar val av tjänster, uppskattad tid och pris.
-                // new Label(lang.get("table.serviceItem")), serviceItemsBox,
-                // estimatedTimeLabel,
-                // basePriceLabel
         );
         getDialogPane().setContent(content);
 
@@ -165,6 +93,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         inputEventListeners();
 
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
+        saveButton.getStyleClass().addAll("btn", "btn-primary");
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
 
@@ -247,10 +176,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 LocalTime startTime = startTimeComboBox.getValue();
 
                 List<Integer> serviceItemIds = serviceSelector.getSelectedServiceIds();
-                // Tidigare implementation med checkboxar, ersatt av ServiceSelectorBox som hanterar val av tjänster:
-                // List<Integer> serviceItemIds = getSelectedItems().stream()
-                //         .map(ServiceItem::getId)
-                //         .collect(Collectors.toList());
 
                 return new Result(
                         vehicleComboBox.getValue().getId(),
