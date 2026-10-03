@@ -62,25 +62,30 @@ public class InvoiceDetailDialog extends Dialog<Void> {
         getDialogPane().setContent(content);
     }
 
+    // Skapar tabellen som visar fakturaraderna, ändrat så att den använder språknyckeln för kolumnnamnen
     private TableView<InvoiceLine> createTable() {
         TableView<InvoiceLine> table = new TableView<>();
 
-        TableColumn<InvoiceLine, String> serviceCol = new TableColumn<>(lang.get("table.serviceItem"));
+        TableColumn<InvoiceLine, String> serviceCol = new TableColumn<>();
+        serviceCol.textProperty().bind(lang.bind("table.serviceItem"));
         serviceCol.setCellValueFactory(c ->
                 new SimpleStringProperty(c.getValue().getServiceItemName())
         );
 
-        TableColumn<InvoiceLine, Double> amountCol = new TableColumn<>(lang.get("table.amount"));
+        TableColumn<InvoiceLine, Double> amountCol = new TableColumn<>();
+        amountCol.textProperty().bind(lang.bind("table.amount"));
         amountCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getAmount()).asObject()
         );
 
-        TableColumn<InvoiceLine, Double> discountCol = new TableColumn<>(lang.get("table.discount"));
+        TableColumn<InvoiceLine, Double> discountCol = new TableColumn<>();
+        discountCol.textProperty().bind(lang.bind("table.discount"));
         discountCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getDiscount()).asObject()
         );
 
-        TableColumn<InvoiceLine, Double> totalCol = new TableColumn<>(lang.get("table.total"));
+        TableColumn<InvoiceLine, Double> totalCol = new TableColumn<>();
+        totalCol.textProperty().bind(lang.bind("table.total"));
         totalCol.setCellValueFactory(c ->
                 new SimpleDoubleProperty(c.getValue().getTotal()).asObject()
         );
