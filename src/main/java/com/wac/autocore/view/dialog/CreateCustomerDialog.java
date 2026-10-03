@@ -39,8 +39,8 @@ public class CreateCustomerDialog {
         this.customerService = customerService;
         dialog.setTitle(lang.get("customer.new"));
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
-        dialog.getDialogPane().setContent(createContent());
         DialogUtil.applyTheme(dialog);
+        dialog.getDialogPane().setContent(createContent());
         configureFields();
         configureButtons();
         dialog.setResultConverter(buttonType -> buttonType == saveButtonType);
