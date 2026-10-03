@@ -8,7 +8,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
@@ -46,8 +45,8 @@ public class InvoiceDetailDialog extends Dialog<Void> {
     }
 
     private void setContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
+        VBox content = new VBox();
+        content.getStyleClass().add("invoice-detail-content");
 
         // Skapar label för fakturadatum och work order-id med språkstöd
         Label dateLabel = new Label();
@@ -77,14 +76,22 @@ public class InvoiceDetailDialog extends Dialog<Void> {
                 "invoice.grandTotal", invoice.getTotalAmount()
         );
 
-        totalLabel.getStyleClass().add("text-title");
+        // Lägger till CSS-klasser för summeringsetiketterna
+        totalLabel.getStyleClass().add("invoice-grand-total");
+
+        VBox summary = new VBox(amountLabel, discountLabel, totalLabel);
+        summary.getStyleClass().add("invoice-summary");
+
+        amountLabel.setWrapText(true);
+        discountLabel.setWrapText(true);
+        totalLabel.setWrapText(true);
 
         content.getChildren().addAll(
                 dateLabel, workOrderLabel,
                 new Separator(),
                 table,
                 new Separator(),
-                amountLabel, discountLabel, totalLabel
+                summary
         );
 
         getDialogPane().setContent(content);
@@ -93,6 +100,7 @@ public class InvoiceDetailDialog extends Dialog<Void> {
     // Skapar tabellen som visar fakturaraderna, ändrat så att den använder språknyckeln för kolumnnamnen
     private TableView<InvoiceLine> createTable() {
         TableView<InvoiceLine> table = new TableView<>();
+        table.getStyleClass().add("invoice-lines-table"); // CSS-klass för tabellen
 
         TableColumn<InvoiceLine, String> serviceCol = new TableColumn<>();
         serviceCol.textProperty().bind(lang.bind("table.serviceItem"));
