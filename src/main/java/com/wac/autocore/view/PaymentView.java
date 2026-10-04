@@ -31,8 +31,6 @@ import java.time.format.DateTimeFormatter;
  */
 public class PaymentView extends BaseView {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
-
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
 

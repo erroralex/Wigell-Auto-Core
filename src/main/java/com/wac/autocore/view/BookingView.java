@@ -37,8 +37,6 @@ import java.util.stream.Collectors;
  */
 public class BookingView extends BaseView {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
-
     private final BookingService bookingService;
 
     private final ObservableList<Booking> bookingObservableList;

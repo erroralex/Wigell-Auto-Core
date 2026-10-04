@@ -32,8 +32,6 @@ import java.util.Map;
  */
 public class WorkOrderView extends BaseView {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
-
     private final TableView<WorkOrder> workOrderTable = new TableView<>();
     private final ObservableList<WorkOrder> masterData = FXCollections.observableArrayList();
 

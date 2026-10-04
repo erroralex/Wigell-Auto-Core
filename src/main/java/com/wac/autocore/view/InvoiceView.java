@@ -32,7 +32,6 @@ public class InvoiceView extends BaseView {
 
     private final InvoiceService invoiceService;
     private final WorkOrderService workOrderService;
-    private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
     private final SortedList<Invoice> sortedData = new SortedList<>(invoiceMasterData);

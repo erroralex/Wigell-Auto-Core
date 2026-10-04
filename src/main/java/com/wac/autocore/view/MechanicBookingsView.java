@@ -26,7 +26,6 @@ public class MechanicBookingsView extends BaseView {
     private final TableView<Booking> bookingTableView = new TableView<>();
     private final Label nameLabel = new Label();
     private final Runnable onClose;
-    private static final LanguageManager lang =  LanguageManager.getInstance();
 
     public MechanicBookingsView(Mechanic mechanic, MechanicService mechanicService, Runnable onClose) {
         this.mechanicService = mechanicService;
