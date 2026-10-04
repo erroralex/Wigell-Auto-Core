@@ -4,6 +4,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import javafx.geometry.Insets;
@@ -26,8 +27,10 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
     private final Label infoLabel = new Label();
     private final ServiceSelectorBox serviceSelector;
 
-    private final ButtonType saveButtonType = new ButtonType("Spara", ButtonBar.ButtonData.OK_DONE);
-    private final ButtonType cancelButtonType = new ButtonType("Avbryt", ButtonBar.ButtonData.CANCEL_CLOSE);
+    private static final LanguageManager lang =  LanguageManager.getInstance();
+
+    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
+    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
     public EditBookingServicesDialog(Booking booking, BookingService bookingService) {
         this.booking = booking;
@@ -42,8 +45,8 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
                         .collect(Collectors.toList())
         );
 
-        setTitle("Redigera bokning");
-        setHeaderText("Redigera tjänster");
+        setTitle(lang.get("booking.editTitle"));
+        setHeaderText(lang.get("booking.editHeader"));
 
         DialogUtil.applyTheme(this);
 
@@ -82,7 +85,7 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
         content.getChildren().addAll(
                 infoLabel,
                 new Separator(),
-                new Label("Tjänster:"), serviceSelector
+                new Label(lang.get("table.serviceItems")), serviceSelector
         );
         getDialogPane().setContent(content);
     }
