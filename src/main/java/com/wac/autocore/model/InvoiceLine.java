@@ -8,7 +8,7 @@ public class InvoiceLine {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @ManyToOne
     @JoinColumn(name = "invoice_id")
@@ -29,11 +29,11 @@ public class InvoiceLine {
         this.total = total;
     }
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
