@@ -1,14 +1,11 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -21,9 +18,8 @@ import javafx.scene.layout.VBox;
  * <b>MechanicView</b>
  * <p>Ansvar: Visar och hanterar mekaniker i användargränssnittet.</p>
  */
-public class MechanicView extends VBox {
+public class MechanicView extends BaseView {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
     private final MechanicService mechanicService;
 
     private final ObservableList<Mechanic> mechanicObservableList;
@@ -34,36 +30,26 @@ public class MechanicView extends VBox {
     public MechanicView(MechanicService mechanicService) {
         this.mechanicService = mechanicService;
         this.mechanicObservableList = FXCollections.observableArrayList(mechanicService.listAll());
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(10));
-        this.setAlignment(Pos.TOP_LEFT);
-
-        show();
+        initView();
     }
 
-    private void show() {
-        renderTitle();
-        renderContentColumn();
+    @Override
+    protected String getTitleKey() {
+        return "mechanic.title";
     }
 
-    private void renderTitle() {
-        Label title = new Label(lang.get("mechanic.title"));
-        getChildren().add(title);
-        title.getStyleClass().add("text-title");
-    }
-
-    private void renderContentColumn() {
+    @Override
+    protected void buildContent() {
         VBox.setVgrow(tableContainer, Priority.ALWAYS);
         VBox.setVgrow(contentColumn, Priority.ALWAYS);
 
         contentColumn.getChildren().add(tableContainer);
         getChildren().add(contentColumn);
 
-        renderTable();
+        initializeTable();
     }
 
-    private void renderTable() {
+    private void initializeTable() {
         TableView<Mechanic> mechanicTableView = new TableView<>();
 
         mechanicTableView.setEditable(false);

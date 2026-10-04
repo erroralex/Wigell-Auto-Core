@@ -4,7 +4,6 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,37 +18,47 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-public class MechanicBookingsView extends VBox {
+public class MechanicBookingsView extends BaseView {
 
     private final MechanicService mechanicService;
     private final ObservableList<Booking> bookingObservableList = FXCollections.observableArrayList();
     private final TableView<Booking> bookingTableView = new TableView<>();
     private final Label nameLabel = new Label();
-    private Label titleLabel;
-    private static final LanguageManager lang =  LanguageManager.getInstance();
+    private final Runnable onClose;
 
     public MechanicBookingsView(Mechanic mechanic, MechanicService mechanicService, Runnable onClose) {
         this.mechanicService = mechanicService;
+        this.onClose = onClose;
 
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setAlignment(Pos.TOP_LEFT);
+        initializeTable();
+        setMechanic(mechanic);
 
-        nameLabel.getStyleClass().add("text-content");
+        initView();
+    }
 
-        titleLabel = new Label(lang.get("mechanic.bookingsTitle"));
-        titleLabel.getStyleClass().add("text-title");
+    @Override
+    protected void buildHeader() {
+        title = new Label();
+        title.textProperty().bind(lang.bind(getTitleKey()));
+        title.getStyleClass().add("text-title");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(10, titleLabel, spacer, closeButton(onClose));
+        HBox header = new HBox(10, title, spacer, closeButton(onClose));
         header.setAlignment(Pos.CENTER_LEFT);
 
-        this.getChildren().addAll(header, nameLabel);
+        getChildren().add(header);
+    }
 
-        renderTable();
-        setMechanic(mechanic);
+    @Override
+    protected String getTitleKey() {
+        return "mechanic.bookingsTitle";
+    }
+
+    @Override
+    protected void buildContent() {
+        getChildren().addAll(nameLabel, bookingTableView);
     }
 
     private Button closeButton(Runnable onClose) {
@@ -64,7 +73,7 @@ public class MechanicBookingsView extends VBox {
         bookingObservableList.setAll(mechanicService.listBookingsByMechanicId(mechanic.getId()));
     }
 
-    private void renderTable() {
+    private void initializeTable() {
         bookingTableView.setEditable(false);
         bookingTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         bookingTableView.setPlaceholder(new Label(lang.get("table.empty")));
@@ -95,6 +104,5 @@ public class MechanicBookingsView extends VBox {
         bookingTableView.getColumns().add(statusColumn);
 
         bookingTableView.setItems(bookingObservableList);
-        getChildren().add(bookingTableView);
     }
 }

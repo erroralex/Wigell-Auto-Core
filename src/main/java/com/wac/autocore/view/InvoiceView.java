@@ -2,10 +2,11 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.service.InvoiceService;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
+import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -19,6 +20,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseButton;
 
 import java.time.LocalDate;
 
@@ -26,11 +28,10 @@ import java.time.LocalDate;
  * <b>InvoiceView</b>
  * <p>Ansvar: Visar och hanterar fakturor i användargränssnittet.</p>
  */
-public class InvoiceView extends VBox {
+public class InvoiceView extends BaseView {
 
     private final InvoiceService invoiceService;
     private final WorkOrderService workOrderService;
-    private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
     private final SortedList<Invoice> sortedData = new SortedList<>(invoiceMasterData);
@@ -38,26 +39,34 @@ public class InvoiceView extends VBox {
     private final TableView<Invoice> invoiceTable = new TableView<>();
 
     private final Button btnCreateInvoice = new Button(lang.get("btn.create"));
+    private final Button btnViewDetails = new Button();
 
     public InvoiceView(InvoiceService invoiceService, WorkOrderService workOrderService) {
         this.invoiceService = invoiceService;
         this.workOrderService = workOrderService;
-        //this.garageSystem = garageSystem;
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
-
-        Label title = new Label(lang.get("invoice.title"));
-        title.getStyleClass().add("text-title");
 
         this.loadMasterData();
         this.initializeTable();
 
-        HBox buttonBar = this.createButtonBar();
+        this.invoiceTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) ->
+                        btnViewDetails.setDisable(newValue == null)
+        );
 
-        this.getChildren().addAll(title, buttonBar, invoiceTable);
+        btnViewDetails.setDisable(true);
+
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "invoice.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
+        getChildren().addAll(createButtonBar(), invoiceTable);
     }
 
     private void loadMasterData() {
@@ -126,6 +135,21 @@ public class InvoiceView extends VBox {
 
         this.sortedData.comparatorProperty().bind(this.invoiceTable.comparatorProperty());
         this.invoiceTable.setItems(this.sortedData);
+        invoiceTable.setRowFactory(table -> {
+            TableRow<Invoice> row = new TableRow<>();
+
+            row.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.PRIMARY
+                        && event.getClickCount() == 2
+                        && !row.isEmpty()) {
+                    invoiceTable.getSelectionModel().select(row.getItem());
+                    openDetailDialog();
+                }
+            });
+
+            return row;
+        });
+
     }
 
     private HBox createButtonBar() {
@@ -133,8 +157,11 @@ public class InvoiceView extends VBox {
 
         btnCreateInvoice.getStyleClass().addAll("btn", btnPrimary);
         btnCreateInvoice.setOnAction(event -> this.openCreateInvoiceDialog());
+        btnViewDetails.textProperty().bind(lang.bind("invoice.viewDetails"));
+        btnViewDetails.getStyleClass().addAll("btn", btnPrimary);
+        btnViewDetails.setOnAction(event -> this.openDetailDialog());
 
-        HBox box = new HBox(15, btnCreateInvoice);
+        HBox box = new HBox(15, btnCreateInvoice, btnViewDetails);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
@@ -144,20 +171,24 @@ public class InvoiceView extends VBox {
         CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService);
 
         dialog.showAndWait().ifPresent(result -> {
-
-            Invoice invoice = invoiceService.create(
-                    result.getWorkOrderId(),
-                    result.getDiscountCode()
-            );
-
-            if (invoice != null) {
+            try {
+                invoiceService.create(result.getWorkOrderId(), result.getDiscountCode());
                 refreshData();
                 AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
-            }
-
-            else {
-                AlertHelper.showError(lang.get("error.invoice"), lang.get("error.invoiceCreate"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
             }
         });
+    }
+
+    private void openDetailDialog() {
+        Invoice selected = invoiceTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        InvoiceDetailDialog dialog = new InvoiceDetailDialog(selected);
+        dialog.showAndWait();
     }
 }

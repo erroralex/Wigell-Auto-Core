@@ -2,13 +2,11 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -23,9 +21,7 @@ import javafx.scene.layout.VBox;
  * <b>CustomerView</b>
  * <p>Ansvar: Visar och hanterar kundinformation i användargränssnittet.</p>
  */
-public class CustomerView extends VBox {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class CustomerView extends BaseView {
 
     private final TableView<Customer> customerTable = new TableView<>();
     private final ObservableList<Customer> masterData = FXCollections.observableArrayList();
@@ -35,20 +31,23 @@ public class CustomerView extends VBox {
 
     public CustomerView(CustomerService customerService) {
         this.customerService = customerService;
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-        VBox.setVgrow(customerTable, Priority.ALWAYS);
-
-        Label title = new Label(lang.get("customer.title"));
-        title.getStyleClass().add("text-title");
 
         loadMasterData();
         initializeTable();
         configureSearch();
 
-        this.getChildren().addAll(title, createToolbar(), customerTable);
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "customer.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(customerTable, Priority.ALWAYS);
+        getChildren().addAll(createToolbar(), customerTable);
     }
 
     private void loadMasterData() {
@@ -127,5 +126,4 @@ public class CustomerView extends VBox {
             refreshData();
         }
     }
-
 }

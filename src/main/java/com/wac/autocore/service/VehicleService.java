@@ -1,5 +1,7 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.CustomerRepo;
 import com.wac.autocore.repository.VehicleRepo;
@@ -47,9 +49,7 @@ public class VehicleService {
         validateCustomer(customerId);
 
         if (vehicleRepo.existsByRegistrationNumber(registrationNumber)) {
-            throw new IllegalArgumentException(
-                    "Vehicle with registration number " + registrationNumber + " already exists."
-            );
+            throw new ValidationException("error.regNumberExists", registrationNumber);
         }
 
         return vehicleRepo.save(
@@ -59,20 +59,14 @@ public class VehicleService {
 
     public Vehicle update(Vehicle vehicle) {
         if (!vehicleRepo.existsById(vehicle.getId())) {
-            throw new IllegalArgumentException(
-                    "Vehicle with ID " + vehicle.getId() + " does not exist."
-            );
+            throw new EntityNotFoundException("Vehicle", vehicle.getId());
         }
 
         validateCustomer(vehicle.getCustomerId());
         vehicleRepo.findByRegistrationNumber(vehicle.getRegistrationNumber())
                 .filter(existing -> existing.getId() != vehicle.getId())
                 .ifPresent(existing -> {
-                    throw new IllegalArgumentException(
-                            "Vehicle with registration number "
-                                    + vehicle.getRegistrationNumber()
-                                    + " already exists."
-                    );
+                    throw new ValidationException("error.regNumberExists", vehicle.getRegistrationNumber());
                 });
 
         return vehicleRepo.save(vehicle);
@@ -84,9 +78,7 @@ public class VehicleService {
 
     private void validateCustomer(int customerId) {
         if (!customerRepo.existsById(customerId)) {
-            throw new IllegalArgumentException(
-                    "Customer with ID " + customerId + " does not exist."
-            );
+            throw new EntityNotFoundException("Customer", customerId);
         }
     }
 

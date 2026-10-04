@@ -1,6 +1,8 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
@@ -10,16 +12,16 @@ import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
-public class  BookingService {
+public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ServiceItemRepository serviceItemRepository;
@@ -50,16 +52,32 @@ public class  BookingService {
         return bookingRepository.findByMechanicId(mechanicId);
     }
 
+    @Transactional
+    public Booking create(int vehicleId, int mechanicId, LocalDate date,
+                          LocalTime startTime, String description,
+                          List<Integer> serviceItemIds) {
 
-    public Booking create(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, LocalTime endTime, String description, int serviceItemId) {
+        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+            throw new ValidationException("error.serviceSelect");
+        }
 
-        ServiceItem serviceItem = findServiceItemById(serviceItemId)
-                .orElseThrow(() -> new RuntimeException("Service item not found: " + serviceItemId));
+        List<ServiceItem> serviceItems = serviceItemIds.stream()
+                .distinct()
+                .map(id -> findServiceItemById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
+                .collect(Collectors.toList());
 
-        List<Booking> mechanicBookingsSameDay = bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
+        int totalDuration = serviceItems.stream()
+                .mapToInt(ServiceItem::getEstimatedMinutes)
+                .sum();
+        LocalTime endTime = startTime.plusMinutes(totalDuration);
+
+        List<Booking> mechanicBookingsSameDay =
+                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
 
         boolean overlaps = mechanicBookingsSameDay.stream()
-                .anyMatch(b -> b.getStartTime().isBefore(endTime) && b.getEndTime().isAfter(startTime));
+                .anyMatch(b -> b.getStartTime().isBefore(endTime)
+                        && b.getEndTime().isAfter(startTime));
 
         if (overlaps) {
             String mechanicName = mechanicRepository.findById(mechanicId)
@@ -71,15 +89,66 @@ public class  BookingService {
         }
 
         Booking booking = new Booking(
-                vehicleId, mechanicId, date, startTime, endTime, description);
+                vehicleId, mechanicId, date, startTime, endTime, description
+        );
 
-        Set<ServiceItem> serviceItems = new HashSet<>();
-        serviceItems.add(serviceItem);
-        booking.setServiceItems(serviceItems);
+        serviceItems.forEach(booking::addServiceItem);
 
         return bookingRepository.save(booking);
     }
 
+    @Transactional
+    public Booking update(int bookingId, int vehicleId, int mechanicId, LocalDate date,
+                          LocalTime startTime, String description,
+                          List<Integer> serviceItemIds) {
+
+        Booking booking = findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
+
+        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+            throw new ValidationException("error.serviceSelect");
+        }
+
+        List<ServiceItem> serviceItems = serviceItemIds.stream()
+                .distinct()
+                .map(id -> findServiceItemById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
+                .collect(Collectors.toList());
+
+        int totalDuration = serviceItems.stream()
+                .mapToInt(ServiceItem::getEstimatedMinutes)
+                .sum();
+        LocalTime endTime = startTime.plusMinutes(totalDuration);
+
+        List<Booking> mechanicBookingsSameDay =
+                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
+
+        boolean overlaps = mechanicBookingsSameDay.stream()
+                .filter(b -> b.getId() != bookingId)
+                .anyMatch(b -> b.getStartTime().isBefore(endTime)
+                        && b.getEndTime().isAfter(startTime));
+
+        if (overlaps) {
+            String mechanicName = mechanicRepository.findById(mechanicId)
+                    .map(Mechanic::getName)
+                    .orElse("Unknown");
+            throw new MechanicDoubleBookingException(
+                    mechanicName, date, startTime, endTime
+            );
+        }
+
+        booking.setVehicleId(vehicleId);
+        booking.setMechanicId(mechanicId);
+        booking.setDate(date);
+        booking.setStartTime(startTime);
+        booking.setEndTime(endTime);
+        booking.setDescription(description);
+        booking.getItems().clear();
+        bookingRepository.saveAndFlush(booking);
+        serviceItems.forEach(booking::addServiceItem);
+
+        return bookingRepository.save(booking);
+    }
 
     public boolean isVehicleBooked(int vehicleId, LocalDate date) {
         return bookingRepository.existsByVehicleIdAndDate(vehicleId, date);

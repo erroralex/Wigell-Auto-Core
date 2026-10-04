@@ -1,14 +1,26 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.exception.BookingLockedException;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+/**
+ * <b>Booking</b>
+ * <p>Ansvar: En bokning av ett fordon hos en mekaniker. Bokningen äger sina tjänsterader
+ * ({@link BookingServiceItem}) där namn, pris och tid frystes när tjänsten lades till.</p>
+ * <p>Rader läggs bara till via {@link #addServiceItem(ServiceItem)}, som kontrollerar att
+ * bokningen fortfarande går att ändra.</p>
+ */
 @Entity
 @Table(name = "booking")
 public class Booking {
+
+    public static final String STATUS_BOOKED = "BOOKED";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,17 +45,19 @@ public class Booking {
     private String description;
 
     @Column(nullable = false)
-    private String status = "BOOKED";
+    private String status = STATUS_BOOKED;
 
-    @ManyToMany
-    @JoinTable(
-            name = "booking_service_item",
-            joinColumns = @JoinColumn(name = "booking_id"),
-            inverseJoinColumns = @JoinColumn(name = "service_item_id")
+    @OneToMany(
+            mappedBy = "booking",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
     )
-    private Set<ServiceItem> serviceItems = new HashSet<>();
+    @OrderBy("id ASC")
+    private List<BookingServiceItem> items = new ArrayList<>();
 
-    protected Booking() {}
+    protected Booking() {
+    }
 
     public Booking(int vehicleId, int mechanicId, LocalDate date,
                    LocalTime startTime, LocalTime endTime, String description) {
@@ -63,7 +77,7 @@ public class Booking {
         return vehicleId;
     }
 
-    protected void setVehicleId(int vehicleId) {
+    public void setVehicleId(int vehicleId) {
         this.vehicleId = vehicleId;
     }
 
@@ -107,12 +121,46 @@ public class Booking {
         this.description = description;
     }
 
-    public Set<ServiceItem> getServiceItems() {
-        return serviceItems;
+    /* Lägger till en tjänst som en frusen snapshot-rad.
+     * Samma tjänst läggs inte till två gånger. Kastar BookingLockedException
+     * om arbetet redan har påbörjats. */
+    public void addServiceItem(ServiceItem serviceItem) {
+        if (!STATUS_BOOKED.equals(status)) {
+            throw new BookingLockedException(id, status);
+        }
+
+        BookingServiceItem item = BookingServiceItem.snapshotOf(serviceItem);
+        if (containsService(item.getServiceItemId())) {
+            return;
+        }
+
+        item.setBooking(this);
+        items.add(item);
     }
 
-    public void setServiceItems(Set<ServiceItem> serviceItems) {
-        this.serviceItems = serviceItems;
+    public List<BookingServiceItem> getItems() {
+        return items;
+    }
+
+    private boolean containsService(int serviceItemId) {
+        for (BookingServiceItem item : items) {
+            if (item.getServiceItemId() == serviceItemId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public double getTotalAgreedPrice() {
+        return items.stream()
+                .mapToDouble(BookingServiceItem::getPriceAtBooking)
+                .sum();
+    }
+
+    public int getTotalDurationMinutes() {
+        return items.stream()
+                .mapToInt(BookingServiceItem::getDurationMinutes)
+                .sum();
     }
 
     public String getStatus() {

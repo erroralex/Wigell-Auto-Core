@@ -91,16 +91,18 @@ CREATE TABLE IF NOT EXISTS payment (
 CREATE TABLE IF NOT EXISTS booking_service_item (
     booking_id       INTEGER NOT NULL,
     service_item_id  INTEGER NOT NULL,
+    price            REAL NOT NULL,
     PRIMARY KEY (booking_id, service_item_id),
     FOREIGN KEY (booking_id) REFERENCES booking(id),
     FOREIGN KEY (service_item_id) REFERENCES service_item(id)
-    );
+);
 
 -- work_order_service_item: join table backing WorkOrder.
 -- This table is created with a composite primary key.
 CREATE TABLE IF NOT EXISTS work_order_service_item (
     work_order_id    INTEGER NOT NULL,
     service_item_id  INTEGER NOT NULL,
+    price            REAL NOT NULL,
     PRIMARY KEY (work_order_id, service_item_id),
     FOREIGN KEY (work_order_id) REFERENCES work_order(id),
     FOREIGN KEY (service_item_id) REFERENCES service_item(id)
