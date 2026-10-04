@@ -4,7 +4,6 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;

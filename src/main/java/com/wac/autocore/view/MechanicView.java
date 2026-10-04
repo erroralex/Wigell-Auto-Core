@@ -1,14 +1,11 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;

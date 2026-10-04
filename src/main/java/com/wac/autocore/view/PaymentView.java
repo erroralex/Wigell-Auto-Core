@@ -3,10 +3,10 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.service.InvoiceService;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.PaymentService;
 import com.wac.autocore.view.dialog.ProcessPaymentDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -184,19 +184,12 @@ public class PaymentView extends BaseView {
         ProcessPaymentDialog dialog = new ProcessPaymentDialog(selected);
 
         dialog.showAndWait().ifPresent(result -> {
-
-            Payment payment = paymentService.processPayment(
-                    result.getInvoiceId(),
-                    result.getPaymentType()
-            );
-
-            if (payment != null && payment.isSuccessful()) {
+            try {
+                paymentService.processPayment(result.getInvoiceId(), result.getPaymentType());
                 refreshData();
                 AlertHelper.showInfo(lang.get("payment.registered"), lang.get("payment.registeredMsg"));
-            }
-
-            else {
-                AlertHelper.showError(lang.get("error.payment"), lang.get("error.paymentProcess"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
             }
         });
     }

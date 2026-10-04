@@ -7,6 +7,7 @@ import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -149,21 +150,16 @@ public class CreateVehicleDialog {
 
         Vehicle vehicle;
         try {
-            vehicle = vehicleService.create(
+            vehicleService.create(
                     registrationNumber,
                     make,
                     model,
                     year,
                     selectedCustomer.getId()
             );
-        } catch (IllegalArgumentException exception) {
+        } catch (RuntimeException exception) {
             markFieldError(registrationNumberField);
-            AlertHelper.showError(lang.get("error.vehicle"), lang.get("error.vehicleSave"));
-            return false;
-        }
-
-        if (vehicle == null) {
-            AlertHelper.showError(lang.get("error.vehicle"), lang.get("error.vehicleSave"));
+            ErrorFacade.handle(exception);
             return false;
         }
 

@@ -9,8 +9,6 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-import java.util.IllformedLocaleException;
-
 public class AdminServiceItemDialog extends Dialog<Double> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
@@ -73,11 +71,10 @@ public class AdminServiceItemDialog extends Dialog<Double> {
                 );
 
                 if (newPrice <= 0) {
-                    throw new IllegalArgumentException(); // TODO: CHANGE TO CUSTOM EXCEPTION
+                    rejectPrice(event);
                 }
-            } catch (Exception e) {
-                errorLabel.setText(lang.get("error.serviceItem.invalidPrice"));
-                event.consume();
+            } catch (NumberFormatException e) {
+               rejectPrice(event);
             }
         });
 
@@ -89,5 +86,11 @@ public class AdminServiceItemDialog extends Dialog<Double> {
             }
             return null;
         });
+    }
+
+    // Visar felmeddelandet och hindrar dialogen från att stängas
+    private void rejectPrice(ActionEvent event) {
+        errorLabel.setText(lang.get("error.serviceItem.invalidPrice"));
+        event.consume();
     }
 }
