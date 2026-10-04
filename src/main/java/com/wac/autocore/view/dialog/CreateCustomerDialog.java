@@ -5,6 +5,7 @@ import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -116,15 +117,15 @@ public class CreateCustomerDialog {
             return false;
         }
 
-        Customer customer = customerService.create(name, phone, email);
-        if (customer == null) {
-            AlertHelper.showError(lang.get("error.customer"), lang.get("error.customerSave"));
+        try {
+            Customer customer = customerService.create(name, phone, email);
+            if (vipCheckBox.isSelected()) {
+                customer.setVip(true);
+                customerService.update(customer);
+            }
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
             return false;
-        }
-
-        if (vipCheckBox.isSelected()) {
-            customer.setVip(true);
-            customerService.update(customer);
         }
 
         return true;

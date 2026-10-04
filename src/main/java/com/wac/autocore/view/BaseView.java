@@ -20,7 +20,8 @@ public abstract class BaseView extends VBox {
     }
 
     protected void buildHeader() {
-        title = new Label(lang.get(getTitleKey()));
+        title = new Label();
+        title.textProperty().bind(lang.bind(getTitleKey()));
         title.getStyleClass().add("text-title");
 
         getChildren().add(title);

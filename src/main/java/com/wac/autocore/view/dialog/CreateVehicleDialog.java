@@ -1,7 +1,6 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Customer;
-import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.VehicleService;
@@ -148,7 +147,6 @@ public class CreateVehicleDialog {
             return false;
         }
 
-        Vehicle vehicle;
         try {
             vehicleService.create(
                     registrationNumber,

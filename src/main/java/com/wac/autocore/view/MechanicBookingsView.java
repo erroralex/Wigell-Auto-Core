@@ -38,7 +38,8 @@ public class MechanicBookingsView extends BaseView {
 
     @Override
     protected void buildHeader() {
-        title = new Label(lang.get(getTitleKey()));
+        title = new Label();
+        title.textProperty().bind(lang.bind(getTitleKey()));
         title.getStyleClass().add("text-title");
 
         Region spacer = new Region();

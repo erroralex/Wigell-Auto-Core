@@ -217,7 +217,7 @@ public class BookingView extends BaseView {
 
             try {
 
-                Booking newBooking = bookingService.update(
+                bookingService.update(
                         selected.getId(),
                         selected.getVehicleId(),
                         selected.getMechanicId(),
