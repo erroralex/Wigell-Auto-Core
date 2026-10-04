@@ -28,7 +28,7 @@ import java.time.LocalDate;
  * <b>InvoiceView</b>
  * <p>Ansvar: Visar och hanterar fakturor i användargränssnittet.</p>
  */
-public class InvoiceView extends VBox {
+public class InvoiceView extends BaseView {
 
     private final InvoiceService invoiceService;
     private final WorkOrderService workOrderService;
@@ -45,20 +45,9 @@ public class InvoiceView extends VBox {
     public InvoiceView(InvoiceService invoiceService, WorkOrderService workOrderService) {
         this.invoiceService = invoiceService;
         this.workOrderService = workOrderService;
-        //this.garageSystem = garageSystem;
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
-
-        Label title = new Label(lang.get("invoice.title"));
-        title.getStyleClass().add("text-title");
 
         this.loadMasterData();
         this.initializeTable();
-
-        HBox buttonBar = this.createButtonBar();
 
         this.invoiceTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) ->
@@ -67,7 +56,18 @@ public class InvoiceView extends VBox {
 
         btnViewDetails.setDisable(true);
 
-        this.getChildren().addAll(title, buttonBar, invoiceTable);
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "invoice.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
+        getChildren().addAll(createButtonBar(), invoiceTable);
     }
 
     private void loadMasterData() {
