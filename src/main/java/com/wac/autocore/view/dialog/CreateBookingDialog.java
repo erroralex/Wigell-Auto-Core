@@ -1,6 +1,5 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;

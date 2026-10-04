@@ -4,7 +4,6 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -39,7 +38,8 @@ public class MechanicBookingsView extends BaseView {
 
     @Override
     protected void buildHeader() {
-        title = new Label(lang.get(getTitleKey()));
+        title = new Label();
+        title.textProperty().bind(lang.bind(getTitleKey()));
         title.getStyleClass().add("text-title");
 
         Region spacer = new Region();

@@ -1,5 +1,7 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.repository.PaymentRepo;
@@ -24,9 +26,14 @@ public class PaymentService {
 
     public Payment processPayment(Integer invoiceId, String paymentType) {
 
-        Invoice invoice = invoiceService.findById(invoiceId).get();
+        Invoice invoice = invoiceService.findById(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("Invoice", invoiceId));
 
-        Payment payment = new Payment(invoiceId, invoice.getAmount(), paymentType);
+        if (invoice.isPaid()) {
+            throw new ValidationException("error.invoiceAlreadyPaid", String.valueOf(invoiceId));
+        }
+
+        Payment payment = new Payment(invoiceId, invoice.getTotalAmount(), paymentType);
         payment.setSuccessful(true);
 
         invoice.setPaid(true);

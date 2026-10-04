@@ -2,11 +2,11 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.service.InvoiceService;
-import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
 import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -171,19 +171,12 @@ public class InvoiceView extends BaseView {
         CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService);
 
         dialog.showAndWait().ifPresent(result -> {
-
-            Invoice invoice = invoiceService.create(
-                    result.getWorkOrderId(),
-                    result.getDiscountCode()
-            );
-
-            if (invoice != null) {
+            try {
+                invoiceService.create(result.getWorkOrderId(), result.getDiscountCode());
                 refreshData();
                 AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
-            }
-
-            else {
-                AlertHelper.showError(lang.get("error.invoice"), lang.get("error.invoiceCreate"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
             }
         });
     }
