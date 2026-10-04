@@ -1,16 +1,14 @@
 package com.wac.autocore.view;
 
-
-import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -195,7 +193,7 @@ public class BookingView extends VBox {
 
         dialog.showAndWait().ifPresent(result -> {
             try {
-                Booking newBooking = bookingService.create(
+                bookingService.create(
                     result.getVehicleId(),
                     result.getMechanicId(),
                     result.getDate(),
@@ -204,24 +202,10 @@ public class BookingView extends VBox {
                     result.getServiceItemIds()
                 );
 
-                if (newBooking != null) {
-                    bookingObservableList.setAll(bookingService.listAll());
-
-                    AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
-                } else {
-                    AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));
-                }
-            } catch (MechanicDoubleBookingException e) {
-                AlertHelper.showError(
-                        lang.get("error.booking"),
-                        lang.get("error.mechanicBusy")
-                );
+                bookingObservableList.setAll(bookingService.listAll());
+                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
             } catch (RuntimeException e) {
-
-                AlertHelper.showError(
-                        lang.get("error.booking"),
-                        lang.get("error.serviceNotFound")
-                );
+                ErrorFacade.handle(e);
             }
         });
     }
@@ -259,7 +243,7 @@ public class BookingView extends VBox {
                 if (newBooking != null) {
                     bookingObservableList.setAll(bookingService.listAll());
 
-                    AlertHelper.showInfo("bokning uppdaterad","bokning uppdaterad"); // TODO lang
+                    AlertHelper.showInfo(lang.get("booking.update"), lang.get("booking.updated"));
                 } else {
                     AlertHelper.showError(lang.get("error.booking"), lang.get("error.bookingCreate"));
                 }
