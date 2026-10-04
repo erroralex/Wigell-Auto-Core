@@ -30,7 +30,7 @@ import java.util.Map;
  * <p>Ansvar: Visar och hanterar arbetsordrar i användargränssnittet. Under listan visas
  * jobben för vald arbetsorder med namn, tid och avtalat pris.</p>
  */
-public class WorkOrderView extends VBox {
+public class WorkOrderView extends BaseView {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -52,21 +52,9 @@ public class WorkOrderView extends VBox {
 
     public WorkOrderView(WorkOrderService workOrderService) {
         this.workOrderService = workOrderService;
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-        VBox.setVgrow(workOrderTable, Priority.ALWAYS);
-
-        Label title = new Label(lang.get("workOrder.title"));
-        title.getStyleClass().add("text-title");
-
         refreshData();
         initializeTable();
         initializeJobTable();
-
-        HBox buttonBar = createButtonBar();
-        VBox jobSection = createJobSection();
 
         // Valet i listan styr både knapparna och vilka jobb som visas
         workOrderTable.getSelectionModel().selectedItemProperty().addListener(
@@ -78,7 +66,19 @@ public class WorkOrderView extends VBox {
 
         updateButtonStates(null);
         showJobs(null);
-        this.getChildren().addAll(title, buttonBar, workOrderTable, jobSection);
+
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "workOrder.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(workOrderTable, Priority.ALWAYS);
+        getChildren().addAll(createButtonBar(), workOrderTable, createJobSection());
     }
 
     private void refreshData() {
