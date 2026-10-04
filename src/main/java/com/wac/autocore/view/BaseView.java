@@ -11,6 +11,7 @@ public abstract class BaseView extends VBox {
 
     protected final LanguageManager lang = LanguageManager.getInstance();
     protected abstract String getTitleKey();
+    protected Label title;
 
     public final void initView() {
         buildHeader();
@@ -20,7 +21,7 @@ public abstract class BaseView extends VBox {
     }
 
     protected void buildHeader() {
-        Label title = new Label(lang.get(getTitleKey()));
+        title = new Label(lang.get(getTitleKey()));
         title.getStyleClass().add("text-title");
 
         getChildren().add(title);
