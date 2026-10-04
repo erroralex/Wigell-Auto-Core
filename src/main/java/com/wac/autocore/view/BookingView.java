@@ -35,9 +35,7 @@ import java.util.stream.Collectors;
  * <b>BookingView</b>
  * <p>Ansvar: Visar och hanterar bokningar i användargränssnittet.</p>
  */
-public class BookingView extends VBox {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class BookingView extends BaseView {
 
     private final BookingService bookingService;
 
@@ -63,41 +61,33 @@ public class BookingView extends VBox {
                 .stream()
                 .collect(Collectors.toMap(Mechanic::getId, mechanic -> mechanic));
 
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
+        initializeTable();
 
-        show();
+        initView();
     }
 
-    private void show() {
-        renderTitle();
-        renderDescText();
-        renderTable();
+    @Override
+    protected String getTitleKey() {
+        return "booking.title";
     }
 
-    private void renderTitle() {
-        Label title = new Label(lang.get("booking.title"));
-        title.setId("h1");
-        getChildren().add(title);
-        title.getStyleClass().add("text-title");
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(bookingTableView, Priority.ALWAYS);
+        getChildren().addAll(createButtonBar(), bookingTableView);
     }
 
-    private void renderDescText() {
+   /* private void renderDescText() {
         Label description = new Label(lang.get("booking.sortInfo"));
         description.getStyleClass().add("text-secondary");
         getChildren().add(description);
-    }
+    }*/
 
-    private void renderTable() {
+    private void initializeTable() {
         bookingTableView = new TableView<>();
-        HBox buttonBar = createButtonBar();
 
         bookingTableView.setEditable(false);
         bookingTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
-        VBox.setVgrow(bookingTableView, Priority.ALWAYS);
 
         TableColumn<Booking, Number> bookingIdColumn =      new TableColumn<>(lang.get("table.bookingId"));
         TableColumn<Booking, String> regIdColumn =          new TableColumn<>(lang.get("table.regNumber"));
@@ -149,8 +139,6 @@ public class BookingView extends VBox {
         bookingTableView.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> btnEditServices.setDisable(newValue == null)
         );
-
-        getChildren().addAll(buttonBar, bookingTableView);
     }
 
     private String fetchMechanic(int mechanicId) {
@@ -234,8 +222,8 @@ public class BookingView extends VBox {
 
         if (!Booking.STATUS_BOOKED.equals(selected.getStatus())) {
             AlertHelper.showError(
-                    "Kan inte redigera",
-                    "Arbetet har redan påbörjats – bokningen kan inte ändras."
+                    lang.get("error.title"),
+                    lang.get("error.bookingStarted")
             );
             return;
         }
