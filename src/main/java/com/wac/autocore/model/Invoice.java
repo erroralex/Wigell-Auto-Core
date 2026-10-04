@@ -4,6 +4,8 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "invoice")
@@ -22,13 +24,14 @@ public class Invoice {
     @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean paid = false;
 
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<InvoiceLine> lines = new ArrayList<>();
+
     protected Invoice() {}
 
-    public Invoice(int workOrderId, LocalDate invoiceDate, double amount) {
+    public Invoice(int workOrderId, LocalDate invoiceDate) {
         this.workOrderId = workOrderId;
         this.invoiceDate = invoiceDate;
-        this.amount = amount;
-        this.totalAmount = amount;
     }
 
     public int getId() {
@@ -57,7 +60,6 @@ public class Invoice {
 
     public void setAmount(double amount) {
         this.amount = amount;
-        calculateTotalAmount();
     }
 
     public double getDiscount() {
@@ -66,7 +68,10 @@ public class Invoice {
 
     public void setDiscount(double discount) {
         this.discount = discount;
-        calculateTotalAmount();
+    }
+
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public double getTotalAmount() {
@@ -81,8 +86,16 @@ public class Invoice {
         this.paid = paid;
     }
 
-    private void calculateTotalAmount() {
-        this.totalAmount = amount - discount;
+    public List<InvoiceLine> getLines() {
+        return this.lines;
+    }
+
+    public void setLines(List<InvoiceLine> lines) {
+        this.lines = lines;
+    }
+
+    public void addLine(InvoiceLine line) {
+        this.lines.add(line);
     }
 
     @Override

@@ -14,24 +14,19 @@ import java.net.URL;
  * <b>HomeView</b>
  * <p>Ansvar: Startvy som visar logotyp och välkomsttext.</p>
  */
-public class HomeView extends VBox {
+public class HomeView extends BaseView {
 
     private static final String LOGO_PATH = "assets/wigell-auto-logo.png";
-    private final LanguageManager lang = LanguageManager.getInstance();
+
+    Label welcomeLabel = new Label();
 
     public HomeView() {
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-
-        Label welcomeLabel = new Label();
         welcomeLabel.textProperty().bind(lang.bind("home.welcome"));
         welcomeLabel.getStyleClass().add("text-content");
         welcomeLabel.setWrapText(true);
         welcomeLabel.setMaxWidth(900);
 
-        this.getChildren().addAll(createLogo(), welcomeLabel);
+        initView();
     }
 
     // Visar logotypen, eller appens namn som text om bilden inte kan laddas
@@ -51,5 +46,19 @@ public class HomeView extends VBox {
             logo.textProperty().bind(lang.bind("app.title"));
         }
         return logo;
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return null; // Not needed here, title is added in the constructor for the view. See above.
+    }
+
+    @Override
+    protected void buildContent() {
+        getChildren().addAll(createLogo(), welcomeLabel);
+    }
+
+    @Override
+    protected void buildHeader() { // Overrides the functionality built into BaseView to instead do it through constructor of HomeView.
     }
 }

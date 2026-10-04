@@ -1,15 +1,13 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.Customer;
-import com.wac.autocore.model.Invoice;
-import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.*;
 import com.wac.autocore.repository.InvoiceRepo;
+import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +45,6 @@ public class InvoiceService {
         }
 
         // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
-        double amount = workOrder.getTotalPrice();
 
         Booking booking = bookingService.findById(workOrder.getBookingId())
                 .orElseThrow(() -> new EntityNotFoundException("Booking", workOrder.getBookingId()));
@@ -56,25 +53,38 @@ public class InvoiceService {
         Customer customer = customerService.findById(vehicle.getCustomerId())
                 .orElseThrow(() -> new EntityNotFoundException("Customer", vehicle.getCustomerId()));
 
-        double discount = 0;
 
-        if (customer.isVip())
-            discount += amount * 0.10;
+        Invoice invoice = new Invoice(workOrderId, LocalDate.now());
 
-        if (discountCode != null && !discountCode.trim().isEmpty()) {
+        DiscountStrategy strategy = selectStrategy(discountCode);
 
-            if (discountCode.equalsIgnoreCase("WELCOME10"))
-                discount += amount * 0.10;
+        for (WorkOrderItem workOrderItem : workOrder.getItems()) {
+            double amount = workOrderItem.getAgreedPrice();
 
-            else if (discountCode.equalsIgnoreCase("SERVICE200"))
-                discount += 200.0;
+            double discount = strategy.calculateDiscount(amount);
+
+            if (customer.isVip())
+                discount += new VipDiscount().calculateDiscount(amount);
+
+            discount = Math.min(discount, amount);
+            double total = amount - discount;
+
+            invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount, total));
         }
 
-        if (discount > amount)
-            discount = amount;
+        double amountSum = 0;
+        double discountSum = 0;
+        double totalSum = 0;
 
-        Invoice invoice = new Invoice(workOrderId, LocalDate.now(), amount);
-        invoice.setDiscount(discount);
+        for (InvoiceLine invoiceLine : invoice.getLines()) {
+            amountSum += invoiceLine.getAmount();
+            discountSum += invoiceLine.getDiscount();
+            totalSum += invoiceLine.getTotal();
+        }
+
+        invoice.setAmount(amountSum);
+        invoice.setDiscount(discountSum);
+        invoice.setTotalAmount(totalSum);
 
         return invoiceRepo.save(invoice);
     }
@@ -89,5 +99,16 @@ public class InvoiceService {
 
     public Invoice update(Invoice invoice) {
         return invoiceRepo.save(invoice);
+    }
+
+    private DiscountStrategy selectStrategy(String discountCode) {
+
+        if ("WELCOME10".equals(discountCode))
+            return new Welcome10Discount();
+
+        if ("SERVICE200".equals(discountCode))
+            return new Service200Discount();
+
+        return new NoDiscount();
     }
 }
