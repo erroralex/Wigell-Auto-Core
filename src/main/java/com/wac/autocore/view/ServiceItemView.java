@@ -22,42 +22,35 @@ import java.text.NumberFormat;
  * <b>ServiceItemView</b>
  * <p>Ansvar: Visar och hanterar servicepunkter i användargränssnittet.</p>
  */
-public class ServiceItemView extends VBox {
+public class ServiceItemView extends BaseView {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
     private final ServiceItemService serviceItemService;
 
     private final Button btnEditPrice = new Button(lang.get("serviceItem.editPrice"));
-
+    private final TableView<ServiceItem> itemTableView = new TableView<>();
     private final ObservableList<ServiceItem> serviceItemList;
 
     public ServiceItemView(ServiceItemService serviceItemService) {
         this.serviceItemService = serviceItemService;
         this.serviceItemList = FXCollections.observableArrayList(serviceItemService.listAll());
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
 
-        show();
+        initializeTable();
+        initView();
     }
 
-    private void show() {
-        renderTitle();
-        renderTable();
+    @Override
+    protected String getTitleKey() {
+        return "serviceItem.title";
     }
 
-    private void renderTitle() {
-        Label title = new Label(lang.get("serviceItem.title"));
-        title.setId("h1");
-        getChildren().add(title);
-        title.getStyleClass().add("text-title");
-
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(itemTableView, Priority.ALWAYS);
+        getChildren().addAll(createButtonBar(itemTableView), itemTableView);
     }
 
-    private void renderTable() {
-        TableView<ServiceItem> itemTableView = new TableView<>();
-
+    private void initializeTable() {
         itemTableView.setEditable(false);
         itemTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         itemTableView.setPlaceholder(new Label(lang.get("table.empty")));
@@ -87,30 +80,6 @@ public class ServiceItemView extends VBox {
         itemTableView.getColumns().add(durationColumn);
 
         itemTableView.setItems(serviceItemList);
-
-        getChildren().addAll(createButtonBar(itemTableView), itemTableView);
-
-        /*Button editPriceButton =
-                new Button(lang.get("serviceItem.editPrice"));
-
-        editPriceButton.setOnAction(event -> {
-            ServiceItem selected =
-                    itemTableView.getSelectionModel().getSelectedItem();
-
-            if (selected == null) {
-                return;
-            }
-
-            AdminServiceItemDialog dialog =
-                    new AdminServiceItemDialog(serviceItemService,
-                            selected);
-
-            dialog.showAndWait();
-
-            itemTableView.refresh();
-        });
-
-        getChildren().add(editPriceButton);*/
     }
 
     private HBox createButtonBar(TableView<ServiceItem> itemTableView) {
@@ -171,6 +140,4 @@ public class ServiceItemView extends VBox {
             serviceItemList.setAll(serviceItemService.listAll());
         });
     }
-
-
 }

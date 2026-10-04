@@ -29,9 +29,7 @@ import java.time.format.DateTimeFormatter;
  * <b>PaymentView</b>
  * <p>Ansvar: Visar och hanterar betalningar i användargränssnittet.</p>
  */
-public class PaymentView extends VBox {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class PaymentView extends BaseView {
 
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
@@ -46,19 +44,9 @@ public class PaymentView extends VBox {
     public PaymentView(InvoiceService invoiceService, PaymentService paymentService) {
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
-        this.getStyleClass().add("content-area");
-        this.setSpacing(20);
-        this.setPadding(new Insets(20));
-        this.setAlignment(Pos.TOP_LEFT);
-        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
-
-        Label title = new Label(lang.get("payment.title"));
-        title.getStyleClass().add("text-title");
 
         this.loadMasterData();
         this.initializeTable();
-
-        HBox buttonBar = this.createButtonBar();
 
         this.invoiceTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) ->
@@ -67,7 +55,18 @@ public class PaymentView extends VBox {
 
         this.updateButtonState(null);
 
-        this.getChildren().addAll(title, buttonBar, invoiceTable);
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "payment.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
+        getChildren().addAll(createButtonBar(), invoiceTable);
     }
 
     private void loadMasterData() {
