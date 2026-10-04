@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -32,6 +33,7 @@ public class AdminServiceItemDialog extends Dialog<Double> {
 
         setTitle(lang.get("serviceItem.editPrice"));
         setHeaderText(serviceItem.getName());
+        DialogUtil.applyTheme(this);
 
         getDialogPane().getButtonTypes().addAll(
                 saveButtonType,

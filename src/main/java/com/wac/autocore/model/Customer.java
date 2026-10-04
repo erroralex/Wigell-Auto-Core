@@ -1,5 +1,7 @@
 package com.wac.autocore.model;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 
 @Entity
@@ -13,6 +15,8 @@ public class Customer {
     private String name;
     private String phone;
     private String email;
+
+    @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean vip = false;
 
     protected Customer() {}

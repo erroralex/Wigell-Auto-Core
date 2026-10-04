@@ -5,6 +5,7 @@ import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
+import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -19,6 +20,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseButton;
 
 import java.time.LocalDate;
 
@@ -38,6 +40,7 @@ public class InvoiceView extends VBox {
     private final TableView<Invoice> invoiceTable = new TableView<>();
 
     private final Button btnCreateInvoice = new Button(lang.get("btn.create"));
+    private final Button btnViewDetails = new Button();
 
     public InvoiceView(InvoiceService invoiceService, WorkOrderService workOrderService) {
         this.invoiceService = invoiceService;
@@ -56,6 +59,13 @@ public class InvoiceView extends VBox {
         this.initializeTable();
 
         HBox buttonBar = this.createButtonBar();
+
+        this.invoiceTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) ->
+                        btnViewDetails.setDisable(newValue == null)
+        );
+
+        btnViewDetails.setDisable(true);
 
         this.getChildren().addAll(title, buttonBar, invoiceTable);
     }
@@ -126,6 +136,21 @@ public class InvoiceView extends VBox {
 
         this.sortedData.comparatorProperty().bind(this.invoiceTable.comparatorProperty());
         this.invoiceTable.setItems(this.sortedData);
+        invoiceTable.setRowFactory(table -> {
+            TableRow<Invoice> row = new TableRow<>();
+
+            row.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.PRIMARY
+                        && event.getClickCount() == 2
+                        && !row.isEmpty()) {
+                    invoiceTable.getSelectionModel().select(row.getItem());
+                    openDetailDialog();
+                }
+            });
+
+            return row;
+        });
+
     }
 
     private HBox createButtonBar() {
@@ -133,8 +158,11 @@ public class InvoiceView extends VBox {
 
         btnCreateInvoice.getStyleClass().addAll("btn", btnPrimary);
         btnCreateInvoice.setOnAction(event -> this.openCreateInvoiceDialog());
+        btnViewDetails.textProperty().bind(lang.bind("invoice.viewDetails"));
+        btnViewDetails.getStyleClass().addAll("btn", btnPrimary);
+        btnViewDetails.setOnAction(event -> this.openDetailDialog());
 
-        HBox box = new HBox(15, btnCreateInvoice);
+        HBox box = new HBox(15, btnCreateInvoice, btnViewDetails);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
@@ -159,5 +187,16 @@ public class InvoiceView extends VBox {
                 AlertHelper.showError(lang.get("error.invoice"), lang.get("error.invoiceCreate"));
             }
         });
+    }
+
+    private void openDetailDialog() {
+        Invoice selected = invoiceTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        InvoiceDetailDialog dialog = new InvoiceDetailDialog(selected);
+        dialog.showAndWait();
     }
 }
