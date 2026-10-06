@@ -122,7 +122,7 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getItems().size()))
         );
 
-        // Statusen sparas som CREATED/IN_PROGRESS/COMPLETED, bara visningen översätts
+        // Statusen sparas som CONFIRMED/IN_PROGRESS/COMPLETED, bara visningen översätts
         TableColumn<WorkOrder, String> statusCol = new TableColumn<>(lang.get("table.status"));
         statusCol.setCellValueFactory(c ->
                 new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
@@ -225,7 +225,7 @@ public class WorkOrderView extends BaseView {
             return;
         }
         String status = selected.getStatus();
-        btnStart.setDisable(!WorkOrderService.STATUS_CREATED.equals(status));
+        btnStart.setDisable(!WorkOrderService.STATUS_CONFIRMED.equals(status));
         btnComplete.setDisable(!WorkOrderService.STATUS_IN_PROGRESS.equals(status));
     }
 

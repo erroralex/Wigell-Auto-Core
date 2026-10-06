@@ -30,7 +30,9 @@ public class WorkOrder {
     @Column(name = "service_item_id")
     private List<WorkOrderItem> items = new ArrayList<>();
 
-    private String status = "CREATED";
+    private String status = "CONFIRMED";
+
+    private String type = "PLANNED";
 
     protected WorkOrder() {}
 
@@ -93,6 +95,10 @@ public class WorkOrder {
         return status;
     }
 
+    public String getType() {
+        return type;
+    }
+
     public void setStatus(String status) {
         this.status = status;
     }
@@ -103,6 +109,7 @@ public class WorkOrder {
                 " - Booking ID: " + bookingId +
                 " | Mechanic ID: " + mechanicId +
                 " | Jobs: " + items.size() +
-                " | Status: " + status;
+                " | Status: " + status +
+                " | Type: " + type;
     }
 }
