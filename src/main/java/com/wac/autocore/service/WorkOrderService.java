@@ -5,7 +5,6 @@ import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
-import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.WorkOrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class WorkOrderService {
 
-    public static final String STATUS_CREATED = "CREATED";
+    public static final String STATUS_CONFIRMED = "CONFIRMED";
     public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
     public static final String STATUS_COMPLETED = "COMPLETED";
 
@@ -106,10 +105,10 @@ public class WorkOrderService {
         return workOrderRepository.save(workOrder);
     }
 
-    // Startar en arbetsorder. Tillåts bara från status CREATED.
+    // Startar en arbetsorder. Tillåts bara från status CONFIRMED.
     public boolean startWorkOrder(int workOrderId) {
         WorkOrder workOrder = findById(workOrderId);
-        if (workOrder == null || !STATUS_CREATED.equals(workOrder.getStatus())) {
+        if (workOrder == null || !STATUS_CONFIRMED.equals(workOrder.getStatus())) {
             return false;
         }
 
