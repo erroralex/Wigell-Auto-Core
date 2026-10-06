@@ -72,21 +72,8 @@ public class BookingService {
                 .sum();
         LocalTime endTime = startTime.plusMinutes(totalDuration);
 
-        List<Booking> mechanicBookingsSameDay =
-                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
-
-        boolean overlaps = mechanicBookingsSameDay.stream()
-                .anyMatch(b -> b.getStartTime().isBefore(endTime)
-                        && b.getEndTime().isAfter(startTime));
-
-        if (overlaps) {
-            String mechanicName = mechanicRepository.findById(mechanicId)
-                    .map(Mechanic::getName)
-                    .orElse("Unknown");
-            throw new MechanicDoubleBookingException(
-                    mechanicName, date, startTime, endTime
-            );
-        }
+        // Använder den nya metoden för att kontrollera överlappning av mekanikerbokningar
+        checkMechanicOverlap(mechanicId, date, startTime, endTime, null);
 
         Booking booking = new Booking(
                 vehicleId, mechanicId, date, startTime, endTime, description
@@ -120,22 +107,9 @@ public class BookingService {
                 .sum();
         LocalTime endTime = startTime.plusMinutes(totalDuration);
 
-        List<Booking> mechanicBookingsSameDay =
-                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
-
-        boolean overlaps = mechanicBookingsSameDay.stream()
-                .filter(b -> b.getId() != bookingId)
-                .anyMatch(b -> b.getStartTime().isBefore(endTime)
-                        && b.getEndTime().isAfter(startTime));
-
-        if (overlaps) {
-            String mechanicName = mechanicRepository.findById(mechanicId)
-                    .map(Mechanic::getName)
-                    .orElse("Unknown");
-            throw new MechanicDoubleBookingException(
-                    mechanicName, date, startTime, endTime
-            );
-        }
+        // Använder den nya metoden för att kontrollera överlappning av mekanikerbokningar,
+        // exkluderar den aktuella bokningen från kontrollen med excludedBookingId
+        checkMechanicOverlap(mechanicId, date, startTime, endTime, bookingId);
 
         booking.setVehicleId(vehicleId);
         booking.setMechanicId(mechanicId);
@@ -149,6 +123,34 @@ public class BookingService {
 
         return bookingRepository.save(booking);
     }
+
+    // Metod för att kontrollera överlappning av mekanikerbokningar
+    private void checkMechanicOverlap(int mechanicId,
+                                      LocalDate date,
+                                      LocalTime startTime,
+                                      LocalTime endTime,
+                                      Integer excludedBookingId) {
+        List<Booking> mechanicBookingSameDay =
+                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
+
+        boolean overlaps = mechanicBookingSameDay.stream()
+                .filter(b -> excludedBookingId == null
+                        || b.getId() != excludedBookingId)
+                .anyMatch(b -> b.getStartTime().isBefore(endTime)
+                && b.getEndTime().isAfter(startTime));
+
+        if (overlaps) {
+            String mechanicName = mechanicRepository.findById(mechanicId)
+                    .map(Mechanic::getName)
+                    .orElse("Unknown");
+
+            throw new MechanicDoubleBookingException(
+                    mechanicName, date, startTime, endTime
+            );
+
+        }
+
+}
 
     public boolean isVehicleBooked(int vehicleId, LocalDate date) {
         return bookingRepository.existsByVehicleIdAndDate(vehicleId, date);
