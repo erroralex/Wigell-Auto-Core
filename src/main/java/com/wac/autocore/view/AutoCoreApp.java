@@ -1,7 +1,6 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
-import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.service.*;
 import com.wac.autocore.view.util.ErrorFacade;
 import com.wac.autocore.view.util.GlobalExceptionHandler;
@@ -46,6 +45,8 @@ public class AutoCoreApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         GlobalExceptionHandler.install();
+
+
         try {
             AutoCoreApp.primaryStage = primaryStage;
 
