@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * <p>Ansvar: Affärslogik för arbetsordrar: Skapa, starta och avsluta, samt hämtning för vyerna.</p>
  * <p>{@link #createWorkOrder(int)} kastar ett {@code DomainException} med språknyckel när
  * ordern inte kan skapas, så att vyn kan visa rätt orsak via {@code ErrorFacade}.
- * {@link #startWorkOrder(WorkOrder)} och {@link #completeWorkOrder(WorkOrder)} returnerar {@code false}
+ * {@link #startWorkOrder(WorkOrder)} och {@link #completeWorkOrder(WorkOrder)} kastar {@code IllegalStatusTransitionException}
  * när övergången inte är tillåten.</p>
  */
 @Service
@@ -100,26 +100,29 @@ public class WorkOrderService {
         bookingRepository.save(booking);
         return workOrderRepository.save(workOrder);
     }
-    
+
     public void startWorkOrder(WorkOrder workOrder) {
         workOrder.start();
-
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(WorkOrderStatus.IN_PROGRESS.name());
-            bookingRepository.save(booking);
-        });
-
+        syncBookingStatus(workOrder, WorkOrderStatus.IN_PROGRESS);
         workOrderRepository.save(workOrder);
     }
 
     public void completeWorkOrder(WorkOrder workOrder) {
         workOrder.complete();
+        syncBookingStatus(workOrder, WorkOrderStatus.COMPLETED);
+        workOrderRepository.save(workOrder);
+    }
 
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(WorkOrderStatus.COMPLETED.name());
+    // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
+    private void syncBookingStatus(WorkOrder workOrder, WorkOrderStatus status) {
+        Integer bookingId = workOrder.getBookingId();
+        if (bookingId == null) {
+            return;
+        }
+
+        bookingRepository.findById(bookingId).ifPresent(booking -> {
+            booking.setStatus(status.name());
             bookingRepository.save(booking);
         });
-
-        workOrderRepository.save(workOrder);
     }
 }

@@ -28,6 +28,8 @@ import java.util.Map;
  */
 public class WorkOrderView extends BaseView {
 
+    private static final String NO_VALUE = "-";
+
     private final TableView<WorkOrder> workOrderTable = new TableView<>();
     private final ObservableList<WorkOrder> masterData = FXCollections.observableArrayList();
 
@@ -98,19 +100,27 @@ public class WorkOrderView extends BaseView {
 
         TableColumn<WorkOrder, String> bookingCol = new TableColumn<>(lang.get("table.bookingTask"));
         bookingCol.setCellValueFactory(c -> {
-            Booking booking = bookingsById.get(c.getValue().getBookingId());
+            Integer bookingId = c.getValue().getBookingId();
+            if (bookingId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Booking booking = bookingsById.get(bookingId);
             String display = booking != null
                     ? booking.getDescription()
-                    : lang.get("common.unknownId", c.getValue().getBookingId());
+                    : lang.get("common.unknownId", bookingId);
             return new SimpleStringProperty(display);
         });
 
         TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>(lang.get("table.mechanic"));
         mechanicCol.setCellValueFactory(c -> {
-            Mechanic mechanic = mechanicsById.get(c.getValue().getMechanicId());
+            Integer mechanicId = c.getValue().getMechanicId();
+            if (mechanicId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Mechanic mechanic = mechanicsById.get(mechanicId);
             String display = mechanic != null
                     ? mechanic.getName()
-                    : lang.get("common.unknownId", c.getValue().getMechanicId());
+                    : lang.get("common.unknownId", mechanicId);
             return new SimpleStringProperty(display);
         });
 
@@ -228,26 +238,39 @@ public class WorkOrderView extends BaseView {
 
     private void startSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null)
+        if (selected == null) {
             return;
-        workOrderService.startWorkOrder(selected);
-        refreshData();
-        AlertHelper.showInfo(
-            lang.get("workOrder.started"),
-            lang.get("workOrder.startedMsg")
-        );
+        }
+
+        try {
+            workOrderService.startWorkOrder(selected);
+            refreshData();
+
+            AlertHelper.showInfo(lang.get(
+                    "workOrder.started"),
+                    lang.get("workOrder.startedMsg"));
+
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+        }
     }
 
     private void completeSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null)
+        if (selected == null) {
             return;
+        }
 
-        workOrderService.completeWorkOrder(selected);
+        try {
+            workOrderService.completeWorkOrder(selected);
             refreshData();
-        AlertHelper.showInfo(
-                lang.get("workOrder.completed"),
-                lang.get("workOrder.completedMsg")
-        );
+
+            AlertHelper.showInfo(lang.get(
+                    "workOrder.completed"),
+                    lang.get("workOrder.completedMsg"));
+
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+        }
     }
 }
