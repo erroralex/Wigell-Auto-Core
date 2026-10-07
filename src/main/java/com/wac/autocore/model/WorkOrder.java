@@ -1,5 +1,6 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
 
 import javax.persistence.*;
@@ -31,7 +32,8 @@ public class WorkOrder {
     @Column(name = "service_item_id")
     private List<WorkOrderItem> items = new ArrayList<>();
 
-    private String status = "CONFIRMED";
+    @Enumerated(EnumType.STRING)
+    private WorkOrderStatus status = WorkOrderStatus.CONFIRMED;
 
     private String type = "PLANNED";
 
@@ -58,6 +60,18 @@ public class WorkOrder {
 
         return new WorkOrder(booking.getId(), booking.getVehicleId(), booking.getMechanicId(), copiedItems);
     }
+
+    private void transitionTo(WorkOrderStatus next) {
+        if (!this.status.canChangeTo(next)) {
+            throw new IllegalStatusTransitionException(this.status, next);
+        }
+        this.status = next;
+    }
+
+    public void confirm()  { transitionTo(WorkOrderStatus.CONFIRMED); }
+    public void start()    { transitionTo(WorkOrderStatus.IN_PROGRESS); }
+    public void complete() { transitionTo(WorkOrderStatus.COMPLETED); }
+    public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
 
     public int getId() {
         return id;
@@ -97,16 +111,12 @@ public class WorkOrder {
                 .sum();
     }
 
-    public String getStatus() {
+    public WorkOrderStatus getStatus() {
         return status;
     }
 
     public String getType() {
         return type;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     @Override

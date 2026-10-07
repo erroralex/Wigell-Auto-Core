@@ -1,9 +1,6 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.model.WorkOrderItem;
+import com.wac.autocore.model.*;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
@@ -224,44 +221,33 @@ public class WorkOrderView extends BaseView {
             btnComplete.setDisable(true);
             return;
         }
-        String status = selected.getStatus();
-        btnStart.setDisable(!WorkOrderService.STATUS_CONFIRMED.equals(status));
-        btnComplete.setDisable(!WorkOrderService.STATUS_IN_PROGRESS.equals(status));
+        WorkOrderStatus status = selected.getStatus();
+        btnStart.setDisable(!status.equals(WorkOrderStatus.CONFIRMED));
+        btnComplete.setDisable(!status.equals(WorkOrderStatus.IN_PROGRESS));
     }
 
     private void startSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+        if (selected == null)
             return;
-        }
-
-        if (workOrderService.startWorkOrder(selected.getId())) {
-            refreshData();
-            AlertHelper.showInfo(
-                    lang.get("workOrder.started"),
-                    lang.get("workOrder.startedMsg"));
-        } else {
-            AlertHelper.showError(
-                    lang.get("error.workOrderStart"),
-                    lang.get("error.workOrderStartMsg"));
-        }
+        workOrderService.startWorkOrder(selected);
+        refreshData();
+        AlertHelper.showInfo(
+            lang.get("workOrder.started"),
+            lang.get("workOrder.startedMsg")
+        );
     }
 
     private void completeSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+        if (selected == null)
             return;
-        }
 
-        if (workOrderService.completeWorkOrder(selected.getId())) {
+        workOrderService.completeWorkOrder(selected);
             refreshData();
-            AlertHelper.showInfo(
-                    lang.get("workOrder.completed"),
-                    lang.get("workOrder.completedMsg"));
-        } else {
-            AlertHelper.showError(
-                    lang.get("error.workOrderComplete"),
-                    lang.get("error.workOrderCompleteMsg"));
-        }
+        AlertHelper.showInfo(
+                lang.get("workOrder.completed"),
+                lang.get("workOrder.completedMsg")
+        );
     }
 }
