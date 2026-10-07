@@ -238,26 +238,39 @@ public class WorkOrderView extends BaseView {
 
     private void startSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null)
+        if (selected == null) {
             return;
-        workOrderService.startWorkOrder(selected);
-        refreshData();
-        AlertHelper.showInfo(
-                lang.get("workOrder.started"),
-                lang.get("workOrder.startedMsg")
-        );
+        }
+
+        try {
+            workOrderService.startWorkOrder(selected);
+            refreshData();
+
+            AlertHelper.showInfo(lang.get(
+                    "workOrder.started"),
+                    lang.get("workOrder.startedMsg"));
+
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+        }
     }
 
     private void completeSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null)
+        if (selected == null) {
             return;
+        }
 
-        workOrderService.completeWorkOrder(selected);
-        refreshData();
-        AlertHelper.showInfo(
-                lang.get("workOrder.completed"),
-                lang.get("workOrder.completedMsg")
-        );
+        try {
+            workOrderService.completeWorkOrder(selected);
+            refreshData();
+
+            AlertHelper.showInfo(lang.get(
+                    "workOrder.completed"),
+                    lang.get("workOrder.completedMsg"));
+
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+        }
     }
 }
