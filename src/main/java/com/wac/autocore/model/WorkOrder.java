@@ -84,9 +84,6 @@ public class WorkOrder {
         if (mechanicId == null) {
             throw new ValidationException("error.workOrder.missingMechanic");
         }
-        if (bookingId == null) {
-            throw new ValidationException("error.workOrder.missingPlannedDate");
-        }
     }
 
     protected void validateTypeSpecific() {} // Intentionally empty.
