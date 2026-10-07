@@ -197,6 +197,7 @@ class HistoricalPricingIntegrationTest {
             assertEquals(scenario.workOrderId, invoice.getWorkOrderId());
             assertEquals(scenario.bookingId, workOrder.getBookingId());
             assertEquals(scenario.vehicleId, booking.getVehicleId());
+            assertEquals(scenario.vehicleId, workOrder.getVehicleId());
             assertEquals(scenario.serviceItemId(OIL_CHANGE),
                     lineNamed(workOrder.getItems(), WorkOrderItem::getServiceName, OIL_CHANGE).getServiceItemId());
         }
@@ -358,9 +359,15 @@ class HistoricalPricingIntegrationTest {
                     "Prisrevision", new ArrayList<>(ids.values()));
 
             // Arbetsordern går hela vägen till COMPLETED, som en riktig fakturerbar order
-            int workOrderId = workOrders.createWorkOrder(booking.getId()).getId();
-            assertTrue(workOrders.startWorkOrder(workOrderId), "Arrange: work order should start");
-            assertTrue(workOrders.completeWorkOrder(workOrderId), "Arrange: work order should complete");
+            WorkOrder workOrder = workOrders.createWorkOrder(booking.getId());
+            int workOrderId = workOrder.getId();
+
+            workOrders.startWorkOrder(workOrder);
+            workOrders.completeWorkOrder(workOrder);
+
+            assertEquals(WorkOrderStatus.COMPLETED,
+                    ctx.getBean(WorkOrderRepository.class).findById(workOrderId).get().getStatus(),
+                    "Arrange: work order should be completed");
 
             Integer invoiceId = invoice
                     ? ctx.getBean(InvoiceService.class).create(workOrderId, discountCode).getId()

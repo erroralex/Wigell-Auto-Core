@@ -17,16 +17,12 @@ import java.util.stream.Collectors;
  * <p>Ansvar: Affärslogik för arbetsordrar: Skapa, starta och avsluta, samt hämtning för vyerna.</p>
  * <p>{@link #createWorkOrder(int)} kastar ett {@code DomainException} med språknyckel när
  * ordern inte kan skapas, så att vyn kan visa rätt orsak via {@code ErrorFacade}.
- * {@link #startWorkOrder(int)} och {@link #completeWorkOrder(int)} returnerar {@code false}
+ * {@link #startWorkOrder(WorkOrder)} och {@link #completeWorkOrder(WorkOrder)} kastar {@code IllegalStatusTransitionException}
  * när övergången inte är tillåten.</p>
  */
 @Service
 @Transactional
 public class WorkOrderService {
-
-    public static final String STATUS_CONFIRMED = "CONFIRMED";
-    public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
-    public static final String STATUS_COMPLETED = "COMPLETED";
 
     private static final String BOOKING_STATUS_WORK_ORDER_CREATED = "WORK_ORDER_CREATED";
 
@@ -80,7 +76,8 @@ public class WorkOrderService {
         return mechanicRepository.findAll();
     }
 
-    // Skapar en arbetsorder för en bokning. Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
+    // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
+    // Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
     public WorkOrder createWorkOrder(int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
@@ -98,46 +95,41 @@ public class WorkOrderService {
             throw new EntityNotFoundException("Mechanic", booking.getMechanicId());
         }
 
-        WorkOrder workOrder = WorkOrder.createFrom(booking);
+        WorkOrder workOrder = PlannedWorkOrder.createFrom(booking);
 
         booking.setStatus(BOOKING_STATUS_WORK_ORDER_CREATED);
         bookingRepository.save(booking);
         return workOrderRepository.save(workOrder);
     }
 
-    // Startar en arbetsorder. Tillåts bara från status CONFIRMED.
-    public boolean startWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findById(workOrderId);
-        if (workOrder == null || !STATUS_CONFIRMED.equals(workOrder.getStatus())) {
-            return false;
-        }
-
-        workOrder.setStatus(STATUS_IN_PROGRESS);
-
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(STATUS_IN_PROGRESS);
-            bookingRepository.save(booking);
-        });
-
+    public void startWorkOrder(WorkOrder workOrder) {
+        workOrder.start();
+        syncBookingStatus(workOrder, WorkOrderStatus.IN_PROGRESS);
         workOrderRepository.save(workOrder);
-        return true;
     }
 
-    // Avslutar en arbetsorder. Tillåts bara från status IN_PROGRESS.
-    public boolean completeWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findById(workOrderId);
-        if (workOrder == null || !STATUS_IN_PROGRESS.equals(workOrder.getStatus())) {
-            return false;
+    public void completeWorkOrder(WorkOrder workOrder) {
+        workOrder.complete();
+        syncBookingStatus(workOrder, WorkOrderStatus.COMPLETED);
+        workOrderRepository.save(workOrder);
+    }
+
+    // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
+    private void syncBookingStatus(WorkOrder workOrder, WorkOrderStatus status) {
+        Integer bookingId = workOrder.getBookingId();
+        if (bookingId == null) {
+            return;
         }
 
-        workOrder.setStatus(STATUS_COMPLETED);
-
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(STATUS_COMPLETED);
+        bookingRepository.findById(bookingId).ifPresent(booking -> {
+            booking.setStatus(status.name());
             bookingRepository.save(booking);
         });
+    }
 
+    public void confirmWorkOrder(WorkOrder workOrder) {
+        workOrder.confirm();
+        syncBookingStatus(workOrder, WorkOrderStatus.CONFIRMED);
         workOrderRepository.save(workOrder);
-        return true;
     }
 }

@@ -7,7 +7,6 @@ import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,18 +20,15 @@ public class InvoiceService {
 
     private final InvoiceRepo invoiceRepo;
     private final WorkOrderService workOrderService;
-    private final BookingService bookingService;
     private final VehicleService vehicleService;
     private final CustomerService customerService;
 
     public InvoiceService(InvoiceRepo invoiceRepo,
                           WorkOrderService workOrderService,
-                          BookingService bookingService,
                           VehicleService vehicleService,
                           CustomerService customerService) {
         this.invoiceRepo = invoiceRepo;
         this.workOrderService = workOrderService;
-        this.bookingService = bookingService;
         this.vehicleService = vehicleService;
         this.customerService = customerService;
     }
@@ -44,20 +40,21 @@ public class InvoiceService {
             throw new EntityNotFoundException("WorkOrder", workOrderId);
         }
 
-        // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
+        Integer vehicleId = workOrder.getVehicleId();
+        if (vehicleId == null) {
+            throw new EntityNotFoundException("Vehicle", "none on WorkOrder " + workOrderId);
+        }
 
-        Booking booking = bookingService.findById(workOrder.getBookingId())
-                .orElseThrow(() -> new EntityNotFoundException("Booking", workOrder.getBookingId()));
-        Vehicle vehicle = vehicleService.findById(booking.getVehicleId())
-                .orElseThrow(() -> new EntityNotFoundException("Vehicle", booking.getVehicleId()));
+        Vehicle vehicle = vehicleService.findById(vehicleId)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle", vehicleId));
         Customer customer = customerService.findById(vehicle.getCustomerId())
                 .orElseThrow(() -> new EntityNotFoundException("Customer", vehicle.getCustomerId()));
-
 
         Invoice invoice = new Invoice(workOrderId, LocalDate.now());
 
         DiscountStrategy strategy = selectStrategy(discountCode);
 
+        // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
         for (WorkOrderItem workOrderItem : workOrder.getItems()) {
             double amount = workOrderItem.getAgreedPrice();
 

@@ -1,9 +1,6 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.model.WorkOrderItem;
+import com.wac.autocore.model.*;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
@@ -30,6 +27,8 @@ import java.util.Map;
  * jobben för vald arbetsorder med namn, tid och avtalat pris.</p>
  */
 public class WorkOrderView extends BaseView {
+
+    private static final String NO_VALUE = "-";
 
     private final TableView<WorkOrder> workOrderTable = new TableView<>();
     private final ObservableList<WorkOrder> masterData = FXCollections.observableArrayList();
@@ -101,19 +100,27 @@ public class WorkOrderView extends BaseView {
 
         TableColumn<WorkOrder, String> bookingCol = new TableColumn<>(lang.get("table.bookingTask"));
         bookingCol.setCellValueFactory(c -> {
-            Booking booking = bookingsById.get(c.getValue().getBookingId());
+            Integer bookingId = c.getValue().getBookingId();
+            if (bookingId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Booking booking = bookingsById.get(bookingId);
             String display = booking != null
                     ? booking.getDescription()
-                    : lang.get("common.unknownId", c.getValue().getBookingId());
+                    : lang.get("common.unknownId", bookingId);
             return new SimpleStringProperty(display);
         });
 
         TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>(lang.get("table.mechanic"));
         mechanicCol.setCellValueFactory(c -> {
-            Mechanic mechanic = mechanicsById.get(c.getValue().getMechanicId());
+            Integer mechanicId = c.getValue().getMechanicId();
+            if (mechanicId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Mechanic mechanic = mechanicsById.get(mechanicId);
             String display = mechanic != null
                     ? mechanic.getName()
-                    : lang.get("common.unknownId", c.getValue().getMechanicId());
+                    : lang.get("common.unknownId", mechanicId);
             return new SimpleStringProperty(display);
         });
 
@@ -224,9 +231,9 @@ public class WorkOrderView extends BaseView {
             btnComplete.setDisable(true);
             return;
         }
-        String status = selected.getStatus();
-        btnStart.setDisable(!WorkOrderService.STATUS_CONFIRMED.equals(status));
-        btnComplete.setDisable(!WorkOrderService.STATUS_IN_PROGRESS.equals(status));
+        WorkOrderStatus status = selected.getStatus();
+        btnStart.setDisable(!status.equals(WorkOrderStatus.CONFIRMED));
+        btnComplete.setDisable(!status.equals(WorkOrderStatus.IN_PROGRESS));
     }
 
     private void startSelectedWorkOrder() {
@@ -235,15 +242,16 @@ public class WorkOrderView extends BaseView {
             return;
         }
 
-        if (workOrderService.startWorkOrder(selected.getId())) {
+        try {
+            workOrderService.startWorkOrder(selected);
             refreshData();
-            AlertHelper.showInfo(
-                    lang.get("workOrder.started"),
+
+            AlertHelper.showInfo(lang.get(
+                    "workOrder.started"),
                     lang.get("workOrder.startedMsg"));
-        } else {
-            AlertHelper.showError(
-                    lang.get("error.workOrderStart"),
-                    lang.get("error.workOrderStartMsg"));
+
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
         }
     }
 
@@ -253,15 +261,16 @@ public class WorkOrderView extends BaseView {
             return;
         }
 
-        if (workOrderService.completeWorkOrder(selected.getId())) {
+        try {
+            workOrderService.completeWorkOrder(selected);
             refreshData();
-            AlertHelper.showInfo(
-                    lang.get("workOrder.completed"),
+
+            AlertHelper.showInfo(lang.get(
+                    "workOrder.completed"),
                     lang.get("workOrder.completedMsg"));
-        } else {
-            AlertHelper.showError(
-                    lang.get("error.workOrderComplete"),
-                    lang.get("error.workOrderCompleteMsg"));
+
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
         }
     }
 }

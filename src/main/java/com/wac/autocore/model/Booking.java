@@ -201,6 +201,14 @@ public class Booking implements BookingPrototype {
         this.status = status;
     }
 
+    public void removeServiceItem(int serviceItemId) {
+        if (!STATUS_BOOKED.equals(status)) {
+            throw new BookingLockedException(id, status);
+        }
+
+        items.removeIf(item -> item.getServiceItemId() == serviceItemId);
+    }
+
     @Override
     public String toString() {
         return id + " - Vehicle ID: " + vehicleId +
@@ -209,4 +217,5 @@ public class Booking implements BookingPrototype {
                 " | Description: " + description +
                 " | Status: " + status;
     }
+
 }

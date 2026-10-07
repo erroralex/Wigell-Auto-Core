@@ -4,11 +4,11 @@ import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.BookingPrototype;
+import com.wac.autocore.model.BookingServiceItem;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.model.BookingPrototype;
-import com.wac.autocore.model.BookingServiceItem;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -184,9 +184,19 @@ public class BookingService {
         booking.setStartTime(startTime);
         booking.setEndTime(endTime);
         booking.setDescription(description);
-        booking.getItems().clear();
-        bookingRepository.saveAndFlush(booking);
-        serviceItems.forEach(booking::addServiceItem);
+
+        List<Integer> oldServiceItemIds = booking.getItems().stream()
+                .map(BookingServiceItem::getServiceItemId)
+                .collect(Collectors.toList());
+
+
+        oldServiceItemIds.stream()
+                .filter(id -> !serviceItemIds.contains(id))
+                .forEach(booking::removeServiceItem);
+
+        serviceItems.stream()
+                .filter(serviceItem -> !oldServiceItemIds.contains(serviceItem.getId()))
+                .forEach(booking::addServiceItem);
 
         return bookingRepository.save(booking);
     }

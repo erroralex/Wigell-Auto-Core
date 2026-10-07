@@ -1,5 +1,6 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
 
 import javax.persistence.*;
@@ -9,67 +10,86 @@ import java.util.List;
 
 /**
  * <b>WorkOrder</b>
- * <p>Ansvar: En arbetsorder för en bokning. Ordern bär en kopia av bokningens tjänster
- * ({@link WorkOrderItem}) med namn, avtalat pris och tid, så att verkstaden vet vilka jobb
- * som ska utföras och fakturan kan tas fram utan att läsa tjänstekatalogen.</p>
- * <p>Skapas bara via {@link #createFrom(Booking)}. Jobben ändras inte efter att ordern skapats.</p>
+ * <p>Ansvar: Den gemensamma basen för alla ordertyper. Varje typ skapas via fabriksmetoden i sin subklass.</p>
  */
 @Entity
 @Table(name = "work_order")
-public class WorkOrder {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type")
+public abstract class WorkOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int bookingId;
-    private int mechanicId;
+    private Integer bookingId;
+    private Integer vehicleId;
+    private Integer mechanicId;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "work_order_service_item", joinColumns = @JoinColumn(name = "work_order_id"))
     @Column(name = "service_item_id")
     private List<WorkOrderItem> items = new ArrayList<>();
 
-    private String status = "CONFIRMED";
-
-    private String type = "PLANNED";
+    @Enumerated(EnumType.STRING)
+    private WorkOrderStatus status = WorkOrderStatus.DRAFT;
 
     protected WorkOrder() {}
 
-    public WorkOrder(int bookingId, int mechanicId, List<WorkOrderItem> items) {
+    protected WorkOrder(Integer bookingId, Integer vehicleId, Integer mechanicId, List<WorkOrderItem> items) {
         this.bookingId = bookingId;
+        this.vehicleId = vehicleId;
         this.mechanicId = mechanicId;
         this.items.addAll(items);
     }
 
-    /* Skapar en arbetsorder från en bokning. Mekanikern och alla tjänsterader
-     * kopieras, med priser och tider som de avtalades vid bokningen. */
-    public static WorkOrder createFrom(Booking booking) {
-        if (booking == null || booking.getItems().isEmpty()) {
-            throw new ValidationException("error.workOrderNoServices");
+    private void transitionTo(WorkOrderStatus next) {
+        if (!this.status.canChangeTo(next)) {
+            throw new IllegalStatusTransitionException(this.status, next);
         }
-
-        List<WorkOrderItem> copiedItems = new ArrayList<>();
-        for (BookingServiceItem bookingLine : booking.getItems()) {
-            copiedItems.add(WorkOrderItem.from(bookingLine));
-        }
-
-        return new WorkOrder(booking.getId(), booking.getMechanicId(), copiedItems);
+        this.status = next;
     }
+
+    public void confirm()  {
+        validateCommon();
+        validateTypeSpecific();
+        transitionTo(WorkOrderStatus.CONFIRMED);
+    }
+
+    private void validateCommon() {
+        if (vehicleId == null) {
+            throw new ValidationException("error.workOrder.missingVehicle");
+        }
+        if (items.isEmpty()) {
+            throw new ValidationException("error.workOrder.missingServices");
+        }
+        if (mechanicId == null) {
+            throw new ValidationException("error.workOrder.missingMechanic");
+        }
+    }
+
+    protected void validateTypeSpecific() {} // Intentionally empty.
+    public void start()    { transitionTo(WorkOrderStatus.IN_PROGRESS); }
+    public void complete() { transitionTo(WorkOrderStatus.COMPLETED); }
+    public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
 
     public int getId() {
         return id;
     }
 
-    public int getBookingId() {
+    public Integer getBookingId() {
         return bookingId;
     }
 
-    public int getMechanicId() {
+    public Integer getVehicleId() {
+        return vehicleId;
+    }
+
+    public Integer getMechanicId() {
         return mechanicId;
     }
 
-    public void setMechanicId(int mechanicId) {
+    public void setMechanicId(Integer mechanicId) {
         this.mechanicId = mechanicId;
     }
 
@@ -91,25 +111,17 @@ public class WorkOrder {
                 .sum();
     }
 
-    public String getStatus() {
+    public WorkOrderStatus getStatus() {
         return status;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     @Override
     public String toString() {
         return id +
                 " - Booking ID: " + bookingId +
+                " | Vehicle ID: " + vehicleId +
                 " | Mechanic ID: " + mechanicId +
                 " | Jobs: " + items.size() +
-                " | Status: " + status +
-                " | Type: " + type;
+                " | Status: " + status;
     }
 }
