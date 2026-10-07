@@ -102,6 +102,20 @@ public class WorkOrderService {
         return workOrderRepository.save(workOrder);
     }
 
+    // Skapar en garantiorder från en tidigare arbetsorder och sparar den som utkast.
+    public WarrantyWorkOrder createWarranty(int originalWorkOrderId,
+                                            String problemDescription) {
+        WorkOrder original = workOrderRepository.findById(originalWorkOrderId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "WorkOrder", originalWorkOrderId
+                ));
+
+        WarrantyWorkOrder warranty =
+                WarrantyWorkOrder.draft(original, problemDescription);
+
+        return workOrderRepository.save(warranty);
+    }
+
     public void startWorkOrder(WorkOrder workOrder) {
         workOrder.start();
         syncBookingStatus(workOrder, WorkOrderStatus.IN_PROGRESS);
