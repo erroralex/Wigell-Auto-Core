@@ -1,5 +1,6 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
 
 import javax.persistence.*;
@@ -57,6 +58,18 @@ public class WorkOrder {
 
         return new WorkOrder(booking.getId(), booking.getMechanicId(), copiedItems);
     }
+
+    private void transitionTo(WorkOrderStatus next) {
+        if (!this.status.canChangeTo(next)) {
+            throw new IllegalStatusTransitionException(this.status, next);
+        }
+        this.status = next;
+    }
+
+    public void confirm()  { transitionTo(WorkOrderStatus.CONFIRMED); }
+    public void start()    { transitionTo(WorkOrderStatus.IN_PROGRESS); }
+    public void complete() { transitionTo(WorkOrderStatus.COMPLETED); }
+    public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
 
     public int getId() {
         return id;

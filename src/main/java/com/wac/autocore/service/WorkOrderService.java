@@ -17,16 +17,12 @@ import java.util.stream.Collectors;
  * <p>Ansvar: Affärslogik för arbetsordrar: Skapa, starta och avsluta, samt hämtning för vyerna.</p>
  * <p>{@link #createWorkOrder(int)} kastar ett {@code DomainException} med språknyckel när
  * ordern inte kan skapas, så att vyn kan visa rätt orsak via {@code ErrorFacade}.
- * {@link #startWorkOrder(int)} och {@link #completeWorkOrder(int)} returnerar {@code false}
+ * {@link #startWorkOrder(WorkOrder)} och {@link #completeWorkOrder(WorkOrder)} returnerar {@code false}
  * när övergången inte är tillåten.</p>
  */
 @Service
 @Transactional
 public class WorkOrderService {
-
-    public static final String STATUS_CONFIRMED = "CONFIRMED";
-    public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
-    public static final String STATUS_COMPLETED = "COMPLETED";
 
     private static final String BOOKING_STATUS_WORK_ORDER_CREATED = "WORK_ORDER_CREATED";
 
@@ -104,40 +100,26 @@ public class WorkOrderService {
         bookingRepository.save(booking);
         return workOrderRepository.save(workOrder);
     }
-
-    // Startar en arbetsorder. Tillåts bara från status CONFIRMED.
-    public boolean startWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findById(workOrderId);
-        if (workOrder == null || !STATUS_CONFIRMED.equals(workOrder.getStatus())) {
-            return false;
-        }
-
-        workOrder.setStatus(STATUS_IN_PROGRESS);
+    
+    public void startWorkOrder(WorkOrder workOrder) {
+        workOrder.start();
 
         bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(STATUS_IN_PROGRESS);
+            booking.setStatus(WorkOrderStatus.IN_PROGRESS.name());
             bookingRepository.save(booking);
         });
 
         workOrderRepository.save(workOrder);
-        return true;
     }
 
-    // Avslutar en arbetsorder. Tillåts bara från status IN_PROGRESS.
-    public boolean completeWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findById(workOrderId);
-        if (workOrder == null || !STATUS_IN_PROGRESS.equals(workOrder.getStatus())) {
-            return false;
-        }
-
-        workOrder.setStatus(STATUS_COMPLETED);
+    public void completeWorkOrder(WorkOrder workOrder) {
+        workOrder.complete();
 
         bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(STATUS_COMPLETED);
+            booking.setStatus(WorkOrderStatus.COMPLETED.name());
             bookingRepository.save(booking);
         });
 
         workOrderRepository.save(workOrder);
-        return true;
     }
 }
