@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * <b>WorkOrder</b>
- * <p>Ansvar: En arbetsorder för en bokning. Ordern bär en kopia av bokningens tjänster
+ * <p>Ansvar: En arbetsorder för en valfri bokning. Ordern bär en kopia av bokningens tjänster
  * ({@link WorkOrderItem}) med namn, avtalat pris och tid, så att verkstaden vet vilka jobb
  * som ska utföras och fakturan kan tas fram utan att läsa tjänstekatalogen.</p>
  * <p>Skapas bara via {@link #createFrom(Booking)}. Jobben ändras inte efter att ordern skapats.</p>
@@ -23,9 +23,9 @@ public class WorkOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int bookingId;
+    private Integer bookingId;
     private Integer vehicleId;
-    private int mechanicId;
+    private Integer mechanicId;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "work_order_service_item", joinColumns = @JoinColumn(name = "work_order_id"))
@@ -39,7 +39,7 @@ public class WorkOrder {
 
     protected WorkOrder() {}
 
-    public WorkOrder(int bookingId, Integer vehicleId, int mechanicId, List<WorkOrderItem> items) {
+    public WorkOrder(Integer bookingId, Integer vehicleId, Integer mechanicId, List<WorkOrderItem> items) {
         this.bookingId = bookingId;
         this.vehicleId = vehicleId;
         this.mechanicId = mechanicId;
@@ -77,7 +77,7 @@ public class WorkOrder {
         return id;
     }
 
-    public int getBookingId() {
+    public Integer getBookingId() {
         return bookingId;
     }
 
@@ -85,11 +85,11 @@ public class WorkOrder {
         return vehicleId;
     }
 
-    public int getMechanicId() {
+    public Integer getMechanicId() {
         return mechanicId;
     }
 
-    public void setMechanicId(int mechanicId) {
+    public void setMechanicId(Integer mechanicId) {
         this.mechanicId = mechanicId;
     }
 
