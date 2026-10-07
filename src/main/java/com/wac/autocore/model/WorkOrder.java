@@ -10,14 +10,13 @@ import java.util.List;
 
 /**
  * <b>WorkOrder</b>
- * <p>Ansvar: En arbetsorder för en valfri bokning. Ordern bär en kopia av bokningens tjänster
- * ({@link WorkOrderItem}) med namn, avtalat pris och tid, så att verkstaden vet vilka jobb
- * som ska utföras och fakturan kan tas fram utan att läsa tjänstekatalogen.</p>
- * <p>Skapas bara via {@link #createFrom(Booking)}. Jobben ändras inte efter att ordern skapats.</p>
+ * <p>Ansvar: Den gemensamma basen för alla ordertyper. Varje typ skapas via fabriksmetoden i sin subklass.</p>
  */
 @Entity
 @Table(name = "work_order")
-public class WorkOrder {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type")
+public abstract class WorkOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,30 +34,13 @@ public class WorkOrder {
     @Enumerated(EnumType.STRING)
     private WorkOrderStatus status = WorkOrderStatus.DRAFT;
 
-    private String type = "PLANNED";
-
     protected WorkOrder() {}
 
-    public WorkOrder(Integer bookingId, Integer vehicleId, Integer mechanicId, List<WorkOrderItem> items) {
+    protected WorkOrder(Integer bookingId, Integer vehicleId, Integer mechanicId, List<WorkOrderItem> items) {
         this.bookingId = bookingId;
         this.vehicleId = vehicleId;
         this.mechanicId = mechanicId;
         this.items.addAll(items);
-    }
-
-    /* Skapar en arbetsorder från en bokning. Fordonet, mekanikern och alla tjänsterader
-     * kopieras, med priser och tider som de avtalades vid bokningen. */
-    public static WorkOrder createFrom(Booking booking) {
-        if (booking == null || booking.getItems().isEmpty()) {
-            throw new ValidationException("error.workOrderNoServices");
-        }
-
-        List<WorkOrderItem> copiedItems = new ArrayList<>();
-        for (BookingServiceItem bookingLine : booking.getItems()) {
-            copiedItems.add(WorkOrderItem.from(bookingLine));
-        }
-
-        return new WorkOrder(booking.getId(), booking.getVehicleId(), booking.getMechanicId(), copiedItems);
     }
 
     private void transitionTo(WorkOrderStatus next) {
@@ -133,10 +115,6 @@ public class WorkOrder {
         return status;
     }
 
-    public String getType() {
-        return type;
-    }
-
     @Override
     public String toString() {
         return id +
@@ -144,7 +122,6 @@ public class WorkOrder {
                 " | Vehicle ID: " + vehicleId +
                 " | Mechanic ID: " + mechanicId +
                 " | Jobs: " + items.size() +
-                " | Status: " + status +
-                " | Type: " + type;
+                " | Status: " + status;
     }
 }

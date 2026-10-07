@@ -73,6 +73,8 @@ public class WorkOrderServiceTest {
         assertEquals(1, result.getItems().size());
         assertEquals("Oil Change", result.getItems().get(0).getServiceName());
         assertEquals(899.0, result.getItems().get(0).getAgreedPrice());
+        assertInstanceOf(PlannedWorkOrder.class, result);
+        assertEquals(WorkOrderStatus.CONFIRMED, result.getStatus());
 
         verify(bookingRepository).save(booking);
         verify(workOrderRepository).save(any(WorkOrder.class));
