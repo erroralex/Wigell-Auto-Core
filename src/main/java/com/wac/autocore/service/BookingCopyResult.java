@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// Samlar bokning och eventuella prisändringar i ett resultatobjekt från BookingService.copyBookingAsNew().
+// Samlar bokning och eventuella prisändringar i ett resultatobjekt från BookingService.createFromPrevious().
 public final class BookingCopyResult {
 
     private final Booking booking;
