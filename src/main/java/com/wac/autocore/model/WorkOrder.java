@@ -23,6 +23,7 @@ public class WorkOrder {
     private int id;
 
     private int bookingId;
+    private Integer vehicleId;
     private int mechanicId;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -36,13 +37,14 @@ public class WorkOrder {
 
     protected WorkOrder() {}
 
-    public WorkOrder(int bookingId, int mechanicId, List<WorkOrderItem> items) {
+    public WorkOrder(int bookingId, Integer vehicleId, int mechanicId, List<WorkOrderItem> items) {
         this.bookingId = bookingId;
+        this.vehicleId = vehicleId;
         this.mechanicId = mechanicId;
         this.items.addAll(items);
     }
 
-    /* Skapar en arbetsorder från en bokning. Mekanikern och alla tjänsterader
+    /* Skapar en arbetsorder från en bokning. Fordonet, mekanikern och alla tjänsterader
      * kopieras, med priser och tider som de avtalades vid bokningen. */
     public static WorkOrder createFrom(Booking booking) {
         if (booking == null || booking.getItems().isEmpty()) {
@@ -54,7 +56,7 @@ public class WorkOrder {
             copiedItems.add(WorkOrderItem.from(bookingLine));
         }
 
-        return new WorkOrder(booking.getId(), booking.getMechanicId(), copiedItems);
+        return new WorkOrder(booking.getId(), booking.getVehicleId(), booking.getMechanicId(), copiedItems);
     }
 
     public int getId() {
@@ -63,6 +65,10 @@ public class WorkOrder {
 
     public int getBookingId() {
         return bookingId;
+    }
+
+    public Integer getVehicleId() {
+        return vehicleId;
     }
 
     public int getMechanicId() {
@@ -107,6 +113,7 @@ public class WorkOrder {
     public String toString() {
         return id +
                 " - Booking ID: " + bookingId +
+                " | Vehicle ID: " + vehicleId +
                 " | Mechanic ID: " + mechanicId +
                 " | Jobs: " + items.size() +
                 " | Status: " + status +
