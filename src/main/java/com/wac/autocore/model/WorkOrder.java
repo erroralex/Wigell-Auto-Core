@@ -26,6 +26,9 @@ public abstract class WorkOrder {
     private Integer vehicleId;
     private Integer mechanicId;
 
+    @Column (name = "problem_description")
+    private String problemDescription;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "work_order_service_item", joinColumns = @JoinColumn(name = "work_order_id"))
     @Column(name = "service_item_id")
@@ -91,6 +94,14 @@ public abstract class WorkOrder {
 
     public void setMechanicId(Integer mechanicId) {
         this.mechanicId = mechanicId;
+    }
+
+    public String getProblemDescription() {
+        return problemDescription;
+    }
+
+    protected void setProblemDescription(String problemDescription) {
+        this.problemDescription = problemDescription;
     }
 
     // Skrivskyddad lista med jobben som ska utföras
