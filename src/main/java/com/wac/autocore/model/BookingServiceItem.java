@@ -67,6 +67,19 @@ public class BookingServiceItem {
         );
     }
 
+    // Skapar en ny instans av BookingServiceItem med samma värden, men utan det gamla id:t.
+    // Används när man vill duplicera en tjänsterad för en ny bokning.
+    // Kopierar tillfälligt priset, Servicelagret hämtar sedan dagens pris och tidsåtgång från ServiceItem.
+    BookingServiceItem copyAsNew() {
+        return new BookingServiceItem(
+                serviceItemId,
+                serviceName,
+                priceAtBooking,
+                durationMinutes
+        );
+
+    }
+
     void setBooking(Booking booking) {
         this.booking = booking;
     }

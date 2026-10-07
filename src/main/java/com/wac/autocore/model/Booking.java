@@ -18,9 +18,39 @@ import java.util.List;
  */
 @Entity
 @Table(name = "booking")
-public class Booking {
+
+// Implementerar BookingPrototype för att kunna skapa en kopia av bokningen med nya datum och starttid, enligt prototypmönstret.
+public class Booking implements BookingPrototype {
 
     public static final String STATUS_BOOKED = "BOOKED";
+
+    // Implementerar copyAsNew-metoden från BookingPrototype
+    // för att skapa en ny instans av Booking med samma data, men med nytt datum och starttid.
+    @Override
+    public Booking copyAsNew(LocalDate date, LocalTime startTime) {
+
+        // Beräknar ny sluttid baserat på starttid och total varaktighet från tjänsterna.
+        LocalTime newEndTime = startTime.plusMinutes(getTotalDurationMinutes());
+
+        Booking copy = new Booking(
+                this.vehicleId,
+                this.mechanicId,
+                date,
+                startTime,
+                newEndTime,
+                this.description
+        );
+
+        // Läser in orginalets lista och kopierar varje tjänsterad till den nya bokningen.
+        for (BookingServiceItem item : this.items) {
+            BookingServiceItem copiedItem = item.copyAsNew();
+            copiedItem.setBooking(copy);
+            copy.items.add(copiedItem);
+
+        }
+        return copy; //Prototype: "originalet vet hur det skapar en självständig kopia av sig själv"
+
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
