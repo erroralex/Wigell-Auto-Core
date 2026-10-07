@@ -222,19 +222,14 @@ public class WorkOrderView extends BaseView {
             return;
         }
         WorkOrderStatus status = selected.getStatus();
-        //btnStart.setDisable(!WorkOrderService.STATUS_CONFIRMED.equals(status));
         btnStart.setDisable(!status.equals(WorkOrderStatus.CONFIRMED));
         btnComplete.setDisable(!status.equals(WorkOrderStatus.IN_PROGRESS));
-
-        //btnComplete.setDisable(!WorkOrderService.STATUS_IN_PROGRESS.equals(status));
     }
 
     private void startSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+        if (selected == null)
             return;
-        }
-
         workOrderService.startWorkOrder(selected);
         refreshData();
         AlertHelper.showInfo(
@@ -245,9 +240,8 @@ public class WorkOrderView extends BaseView {
 
     private void completeSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+        if (selected == null)
             return;
-        }
 
         workOrderService.completeWorkOrder(selected);
             refreshData();
@@ -255,6 +249,5 @@ public class WorkOrderView extends BaseView {
                 lang.get("workOrder.completed"),
                 lang.get("workOrder.completedMsg")
         );
-
     }
 }
