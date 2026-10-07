@@ -362,6 +362,7 @@ class HistoricalPricingIntegrationTest {
             WorkOrder workOrder = workOrders.createWorkOrder(booking.getId());
             int workOrderId = workOrder.getId();
 
+            workOrder.confirm();
             workOrders.startWorkOrder(workOrder);
             workOrders.completeWorkOrder(workOrder);
 
