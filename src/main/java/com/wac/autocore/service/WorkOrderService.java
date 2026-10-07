@@ -76,7 +76,8 @@ public class WorkOrderService {
         return mechanicRepository.findAll();
     }
 
-    // Skapar en arbetsorder för en bokning. Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
+    // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
+    // Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
     public WorkOrder createWorkOrder(int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
@@ -94,7 +95,7 @@ public class WorkOrderService {
             throw new EntityNotFoundException("Mechanic", booking.getMechanicId());
         }
 
-        WorkOrder workOrder = WorkOrder.createFrom(booking);
+        WorkOrder workOrder = PlannedWorkOrder.createFrom(booking);
 
         booking.setStatus(BOOKING_STATUS_WORK_ORDER_CREATED);
         bookingRepository.save(booking);
