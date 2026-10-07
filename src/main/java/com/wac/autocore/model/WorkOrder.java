@@ -30,7 +30,8 @@ public class WorkOrder {
     @Column(name = "service_item_id")
     private List<WorkOrderItem> items = new ArrayList<>();
 
-    private String status = "CONFIRMED";
+    @Enumerated(EnumType.STRING)
+    private WorkOrderStatus status = WorkOrderStatus.CONFIRMED;
 
     private String type = "PLANNED";
 
@@ -91,16 +92,12 @@ public class WorkOrder {
                 .sum();
     }
 
-    public String getStatus() {
+    public WorkOrderStatus getStatus() {
         return status;
     }
 
     public String getType() {
         return type;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     @Override
