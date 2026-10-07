@@ -33,7 +33,7 @@ public class WorkOrder {
     private List<WorkOrderItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    private WorkOrderStatus status = WorkOrderStatus.CONFIRMED;
+    private WorkOrderStatus status = WorkOrderStatus.DRAFT;
 
     private String type = "PLANNED";
 
@@ -68,7 +68,25 @@ public class WorkOrder {
         this.status = next;
     }
 
-    public void confirm()  { transitionTo(WorkOrderStatus.CONFIRMED); }
+    public void confirm()  {
+        validateCommon();
+        validateTypeSpecific();
+        transitionTo(WorkOrderStatus.CONFIRMED);
+    }
+
+    private void validateCommon() {
+        if (vehicleId == null) {
+            throw new ValidationException("error.workOrder.missingVehicle");
+        }
+        if (items.isEmpty()) {
+            throw new ValidationException("error.workOrder.missingServices");
+        }
+        if (mechanicId == null) {
+            throw new ValidationException("error.workOrder.missingMechanic");
+        }
+    }
+
+    protected void validateTypeSpecific() {} // Intentionally empty.
     public void start()    { transitionTo(WorkOrderStatus.IN_PROGRESS); }
     public void complete() { transitionTo(WorkOrderStatus.COMPLETED); }
     public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
