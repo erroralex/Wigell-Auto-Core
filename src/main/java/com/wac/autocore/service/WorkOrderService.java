@@ -125,4 +125,10 @@ public class WorkOrderService {
             bookingRepository.save(booking);
         });
     }
+
+    public void confirmWorkOrder(WorkOrder workOrder) {
+        workOrder.confirm();
+        syncBookingStatus(workOrder, WorkOrderStatus.CONFIRMED);
+        workOrderRepository.save(workOrder);
+    }
 }
