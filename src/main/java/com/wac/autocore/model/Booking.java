@@ -171,6 +171,14 @@ public class Booking {
         this.status = status;
     }
 
+    public void removeServiceItem(int serviceItemId) {
+        if (!STATUS_BOOKED.equals(status)) {
+            throw new BookingLockedException(id, status);
+        }
+
+        items.removeIf(item -> item.getServiceItemId() == serviceItemId);
+    }
+
     @Override
     public String toString() {
         return id + " - Vehicle ID: " + vehicleId +
@@ -179,4 +187,5 @@ public class Booking {
                 " | Description: " + description +
                 " | Status: " + status;
     }
+
 }
