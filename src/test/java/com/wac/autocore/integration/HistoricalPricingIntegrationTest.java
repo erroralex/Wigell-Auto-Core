@@ -197,6 +197,7 @@ class HistoricalPricingIntegrationTest {
             assertEquals(scenario.workOrderId, invoice.getWorkOrderId());
             assertEquals(scenario.bookingId, workOrder.getBookingId());
             assertEquals(scenario.vehicleId, booking.getVehicleId());
+            assertEquals(scenario.vehicleId, workOrder.getVehicleId());
             assertEquals(scenario.serviceItemId(OIL_CHANGE),
                     lineNamed(workOrder.getItems(), WorkOrderItem::getServiceName, OIL_CHANGE).getServiceItemId());
         }
