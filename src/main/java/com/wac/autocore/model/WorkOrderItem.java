@@ -83,6 +83,10 @@ public class WorkOrderItem {
         return this.chargeable;
     }
 
+    public void setChargeable(boolean chargeable) {
+        this.chargeable = chargeable;
+    }
+
     /* Tidsåtgång som avtalades vid bokningen. */
     public int getDurationMinutes() {
         return durationMinutes;

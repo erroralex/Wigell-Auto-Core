@@ -2,6 +2,7 @@ package com.wac.autocore.model;
 
 import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.exception.EntityNotFoundException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -75,6 +76,21 @@ public abstract class WorkOrder {
     public void start()    { transitionTo(WorkOrderStatus.IN_PROGRESS); }
     public void complete() { transitionTo(WorkOrderStatus.COMPLETED); }
     public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
+
+    public void setItemChargeable(int serviceItemId, boolean chargeable) {
+        if (status != WorkOrderStatus.DRAFT && status != WorkOrderStatus.CONFIRMED) {
+            throw new RuntimeException(); // TODO
+        }
+
+        for (WorkOrderItem item : items) {
+            if (item.getServiceItemId() == serviceItemId) {
+                item.setChargeable(chargeable);
+                return;
+            }
+        }
+
+        throw new EntityNotFoundException("WorkOrderItem", serviceItemId);
+    }
 
     public int getId() {
         return id;
