@@ -5,6 +5,7 @@ import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
+import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +30,16 @@ public class WorkOrderService {
     private final WorkOrderRepository workOrderRepository;
     private final BookingRepository bookingRepository;
     private final MechanicRepository mechanicRepository;
+    private final VehicleRepo vehicleRepo;
 
     public WorkOrderService(WorkOrderRepository workOrderRepository,
                             BookingRepository bookingRepository,
-                            MechanicRepository mechanicRepository) {
+                            MechanicRepository mechanicRepository,
+                            VehicleRepo vehicleRepo) {
         this.workOrderRepository = workOrderRepository;
         this.bookingRepository = bookingRepository;
         this.mechanicRepository = mechanicRepository;
+        this.vehicleRepo = vehicleRepo;
     }
 
     @Transactional(readOnly = true)
@@ -114,6 +118,17 @@ public class WorkOrderService {
                 WarrantyWorkOrder.draft(original, problemDescription);
 
         return workOrderRepository.save(warranty);
+    }
+
+    // Skapar en drop-in-order (bil utan bokning) och sparar den som utkast.
+    // Servicen kontrollerar att fordonet finns, modellen validerar resten.
+    public DropInWorkOrder createDropIn(int vehicleId, String problemDescription) {
+        if (!vehicleRepo.existsById(vehicleId)) {
+            throw new EntityNotFoundException("Vehicle", vehicleId);
+        }
+
+        DropInWorkOrder dropIn = DropInWorkOrder.draft(vehicleId, problemDescription);
+        return workOrderRepository.save(dropIn);
     }
 
     public void startWorkOrder(WorkOrder workOrder) {

@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
+import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ public class WorkOrderServiceTest {
     private WorkOrderRepository workOrderRepository;
     private BookingRepository bookingRepository;
     private MechanicRepository mechanicRepository;
+    private VehicleRepo vehicleRepo;
 
     private WorkOrderService workOrderService;
 
@@ -25,11 +27,13 @@ public class WorkOrderServiceTest {
         workOrderRepository = mock(WorkOrderRepository.class);
         bookingRepository = mock(BookingRepository.class);
         mechanicRepository = mock(MechanicRepository.class);
+        vehicleRepo = mock(VehicleRepo.class);
 
         workOrderService = new WorkOrderService(
                 workOrderRepository,
                 bookingRepository,
-                mechanicRepository
+                mechanicRepository,
+                vehicleRepo
         );
     }
 
