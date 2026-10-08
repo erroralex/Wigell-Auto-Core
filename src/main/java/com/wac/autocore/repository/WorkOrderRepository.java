@@ -1,6 +1,7 @@
 package com.wac.autocore.repository;
 
 import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.WorkOrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -16,7 +17,7 @@ import java.util.Optional;
 @Repository
 public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
 
-    List<WorkOrder> findByStatus(String status);
+    List<WorkOrder> findByStatus(WorkOrderStatus status);
     List<WorkOrder> findByMechanicId(int mechanicId);
     Optional<WorkOrder> findByBookingId(int bookingId);
     boolean existsByBookingId(int bookingId);
