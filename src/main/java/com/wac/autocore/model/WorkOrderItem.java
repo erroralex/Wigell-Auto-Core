@@ -26,6 +26,10 @@ public class WorkOrderItem {
     @Column(name = "agreed_price", nullable = false)
     private double agreedPrice;
 
+    @Column(name = "chargeable")
+    private boolean chargeable = true;
+
+
     @Column(name = "duration_minutes", nullable = false)
     private int durationMinutes;
 
@@ -73,6 +77,10 @@ public class WorkOrderItem {
     /* Pris som avtalades vid bokningen. */
     public double getAgreedPrice() {
         return agreedPrice;
+    }
+
+    public boolean isChargeable() {
+        return this.chargeable;
     }
 
     /* Tidsåtgång som avtalades vid bokningen. */

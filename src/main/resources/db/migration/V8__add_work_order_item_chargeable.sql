@@ -1,0 +1,1 @@
+ALTER TABLE work_order_service_item ADD COLUMN chargeable INTEGER NOT NULL DEFAULT 1;
