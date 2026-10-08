@@ -9,6 +9,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <b>WorkOrder</b>
@@ -79,18 +80,35 @@ public abstract class WorkOrder {
     public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
 
     public void setItemChargeable(int serviceItemId, boolean chargeable) {
-        if (status != WorkOrderStatus.DRAFT && status != WorkOrderStatus.CONFIRMED) {
-            throw new WorkOrderLockedException(this.getId(), this.status);
-        }
-
+        ensureEditable();
         for (WorkOrderItem item : items) {
             if (item.getServiceItemId() == serviceItemId) {
                 item.setChargeable(chargeable);
                 return;
             }
         }
-
         throw new EntityNotFoundException("WorkOrderItem", serviceItemId);
+    }
+
+    // Lägger till ett jobb på ordern. Bara subklasser som tillåter nya jobb exponerar detta.
+    protected void addItem(WorkOrderItem item) {
+        Objects.requireNonNull(item, "item must not be null");
+        ensureEditable();
+
+        boolean alreadyAdded = items.stream()
+                .anyMatch(existing -> existing.getServiceItemId() == item.getServiceItemId());
+        if (alreadyAdded) {
+            throw new ValidationException("error.workOrder.duplicateService", item.getServiceName());
+        }
+
+        items.add(item);
+    }
+
+    // Ordern får bara ändras innan arbetet har påbörjat
+    private void ensureEditable() {
+        if (status != WorkOrderStatus.DRAFT && status != WorkOrderStatus.CONFIRMED) {
+            throw new WorkOrderLockedException(this.getId(), this.status);
+        }
     }
 
     public int getId() {
