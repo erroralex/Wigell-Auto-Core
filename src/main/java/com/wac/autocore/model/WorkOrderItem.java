@@ -26,7 +26,8 @@ public class WorkOrderItem {
     @Column(name = "agreed_price", nullable = false)
     private double agreedPrice;
 
-    @Column(name = "chargeable")
+
+    @Column(name = "chargeable", columnDefinition = "INTEGER")
     private boolean chargeable = true;
 
 
