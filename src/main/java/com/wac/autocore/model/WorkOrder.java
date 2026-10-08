@@ -3,6 +3,7 @@ package com.wac.autocore.model;
 import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.WorkOrderLockedException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -79,7 +80,7 @@ public abstract class WorkOrder {
 
     public void setItemChargeable(int serviceItemId, boolean chargeable) {
         if (status != WorkOrderStatus.DRAFT && status != WorkOrderStatus.CONFIRMED) {
-            throw new RuntimeException(); // TODO
+            throw new WorkOrderLockedException(this.getId(), this.status);
         }
 
         for (WorkOrderItem item : items) {
