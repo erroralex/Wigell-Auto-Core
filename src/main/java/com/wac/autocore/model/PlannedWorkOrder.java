@@ -45,6 +45,11 @@ public class PlannedWorkOrder extends WorkOrder {
     }
 
     @Override
+    public WorkOrderType getType() {
+        return WorkOrderType.PLANNED;
+    }
+
+    @Override
     protected void validateTypeSpecific() {
         if (getBookingId() == null) {
             throw new ValidationException("error.workOrderMissingBooking");

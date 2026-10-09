@@ -56,6 +56,11 @@ public class WarrantyWorkOrder extends WorkOrder {
 
     }
 
+    @Override
+    public WorkOrderType getType() {
+        return WorkOrderType.WARRANTY;
+    }
+
     // Validerar att originalorder-id är satt och giltigt. Anropas av confirm() i bas-klassen.
     @Override
     protected void validateTypeSpecific() {

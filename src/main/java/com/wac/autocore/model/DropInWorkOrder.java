@@ -51,6 +51,11 @@ public class DropInWorkOrder extends WorkOrder {
     }
 
     @Override
+    public WorkOrderType getType() {
+        return WorkOrderType.DROP_IN;
+    }
+
+    @Override
     protected void validateTypeSpecific() {
         requireProblemDescription(getProblemDescription());
     }
