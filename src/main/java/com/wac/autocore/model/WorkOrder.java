@@ -114,6 +114,23 @@ public abstract class WorkOrder {
         items.add(item);
     }
 
+    /// Overloaded method to add a ServiceItem instead of a WorkOrderItem.
+    public void addItem(ServiceItem service) {
+        addItem(WorkOrderItem.snapshotOf(service));
+    }
+
+    public void removeItem(int serviceItemId) {
+        ensureEditable();
+
+        boolean removed = items.removeIf(
+                item -> item.getServiceItemId() == serviceItemId
+        );
+
+        if (!removed) {
+            throw new EntityNotFoundException("WorkOrderItem", serviceItemId);
+        }
+    }
+
     // Ordern får bara ändras innan arbetet har påbörjat
     private void ensureEditable() {
         if (status != WorkOrderStatus.DRAFT && status != WorkOrderStatus.CONFIRMED) {
