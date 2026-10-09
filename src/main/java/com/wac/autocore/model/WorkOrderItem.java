@@ -1,6 +1,7 @@
 package com.wac.autocore.model;
 
 import com.wac.autocore.exception.PricingIntegrityException;
+import com.wac.autocore.exception.ValidationException;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -82,6 +83,30 @@ public class WorkOrderItem {
                 || service.getEstimatedMinutes() < 0) {
             throw new PricingIntegrityException("Service item " + service.getId() + " has invalid catalog data");
         }
+        return new WorkOrderItem(
+                service.getId(),
+                service.getName(),
+                service.getPrice(),
+                service.getEstimatedMinutes()
+        );
+    }
+
+    public static WorkOrderItem snapshotOf(ServiceItem service) {
+        if (service == null) {
+            throw new ValidationException("error.workOrderSelect");
+        }
+
+        if (service.getId() <= 0) {
+            throw new PricingIntegrityException(""); // TODO: ADD PROPER MESSAGE
+        }
+
+        if (service.getName() == null
+                || service.getName().trim().isEmpty()
+                || service.getPrice() < 0
+                || service.getEstimatedMinutes() < 0) {
+            throw new PricingIntegrityException(""); // TODO: ADD PROPER MESSAGE
+        }
+
         return new WorkOrderItem(
                 service.getId(),
                 service.getName(),
