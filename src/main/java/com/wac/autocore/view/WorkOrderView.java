@@ -5,6 +5,7 @@ import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
+import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleStringProperty;
@@ -49,6 +50,7 @@ public class WorkOrderView extends BaseView {
     private final Button btnStart = new Button(lang.get("btn.start"));
     private final Button btnComplete = new Button(lang.get("btn.complete"));
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
+    private final Button btnQuickDraft = new Button(lang.get("btn.quickDraft"));
 
     public WorkOrderView(WorkOrderService workOrderService,
                          CustomerService customerService,
@@ -137,7 +139,7 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getItems().size()))
         );
 
-        // Statusen sparas som CONFIRMED/IN_PROGRESS/COMPLETED, bara visningen översätts
+        // Statusen sparas som CONFIRMED/IN_PROGRESS/COMPLETED/DRAFT, bara visningen översätts
         TableColumn<WorkOrder, String> statusCol = new TableColumn<>(lang.get("table.status"));
         statusCol.setCellValueFactory(c ->
                 new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
@@ -253,10 +255,33 @@ public class WorkOrderView extends BaseView {
         btnCreate.getStyleClass().addAll("btn", btnPrimary);
         btnCreate.setOnAction(event -> openCreateWorkOrderDialog());
 
-        HBox box = new HBox(15, btnStart, btnComplete, btnCreate);
+        btnQuickDraft.getStyleClass().addAll("btn", btnPrimary);
+        btnQuickDraft.setOnAction(event -> openQuickDraftDialog());
+
+        HBox box = new HBox(15, btnQuickDraft, btnStart, btnComplete, btnCreate);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
+    }
+
+    private void openQuickDraftDialog() {
+        QuickDraftWorkOrderDialog dialog =
+                new QuickDraftWorkOrderDialog(workOrderService, customerService, vehicleService);
+
+        dialog.showAndWait().ifPresent(draft -> {
+            refreshData();
+            selectWorkOrder(draft.getId());
+        });
+    }
+
+    private void selectWorkOrder(int id) {
+        masterData.stream()
+                .filter(workOrder -> workOrder.getId() == id)
+                .findFirst()
+                .ifPresent(workOrder -> {
+                    workOrderTable.getSelectionModel().select(workOrder);
+                    workOrderTable.scrollTo(workOrder);
+                });
     }
 
     private void updateButtonStates(WorkOrder selected) {

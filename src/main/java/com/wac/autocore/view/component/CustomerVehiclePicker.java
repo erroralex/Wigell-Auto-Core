@@ -51,7 +51,6 @@ public class CustomerVehiclePicker extends VBox {
         this.vehicleService = vehicleService;
         this.vehicles = vehicleService.findAll();
 
-
         customerCombo.getItems().addAll(customerService.findAll());
         customerCombo.setPromptText(lang.get("workOrder.field.customer"));
         customerCombo.setMaxWidth(Double.MAX_VALUE);
@@ -96,6 +95,10 @@ public class CustomerVehiclePicker extends VBox {
 
     public Vehicle getSelectedVehicle() {
         return vehicleCombo.getValue();
+    }
+
+    public void focusCustomer() {
+        customerCombo.requestFocus();
     }
 
     private static HBox createRow(ComboBox<?> combo, Button button) {

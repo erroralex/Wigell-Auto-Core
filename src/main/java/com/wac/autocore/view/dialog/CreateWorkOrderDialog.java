@@ -161,7 +161,10 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         hintLabel.managedProperty().bind(hintLabel.visibleProperty());
 
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
+        Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);
         saveButton.disableProperty().bind(hint.isNotNull());
+        saveButton.getStyleClass().addAll("btn", "btn-primary");
+        cancelButton.getStyleClass().addAll("btn", "btn-secondary");
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             Type type = typeCombo.getValue();
