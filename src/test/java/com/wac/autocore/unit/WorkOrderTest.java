@@ -6,6 +6,7 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderItem;
 import com.wac.autocore.model.WorkOrderStatus;
+import com.wac.autocore.model.WorkOrderType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -92,5 +93,11 @@ public class WorkOrderTest {
         TestWorkOrder(Integer vehicleId, Integer mechanicId) {
             super(null, vehicleId, mechanicId, new ArrayList<>());
         }
+
+        @Override
+        public WorkOrderType getType() {
+            return WorkOrderType.PLANNED;
+        }
     }
+
 }
