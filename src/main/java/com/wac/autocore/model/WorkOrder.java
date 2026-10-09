@@ -6,6 +6,7 @@ import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.WorkOrderLockedException;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,15 @@ public abstract class WorkOrder {
 
     @Column (name = "problem_description")
     private String problemDescription;
+
+    @Column(name = "planned_date")
+    private LocalDate plannedDate;
+
+    @Column(name = "customer_instructions")
+    private String customerInstructions;
+
+    @Column(name = "comments")
+    private String comments;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "work_order_service_item", joinColumns = @JoinColumn(name = "work_order_id"))
@@ -137,6 +147,34 @@ public abstract class WorkOrder {
 
     protected void setProblemDescription(String problemDescription) {
         this.problemDescription = problemDescription;
+    }
+
+    // Valfria uppgifter för utkast. Kan fyllas i senare och låses när arbetet påbörjas.
+    public LocalDate getPlannedDate() {
+        return plannedDate;
+    }
+
+    public void setPlannedDate(LocalDate plannedDate) {
+        ensureEditable();
+        this.plannedDate = plannedDate;
+    }
+
+    public String getCustomerInstructions() {
+        return customerInstructions;
+    }
+
+    public void setCustomerInstructions(String customerInstructions) {
+        ensureEditable();
+        this.customerInstructions = customerInstructions;
+    }
+
+    public String getComments() {
+        return comments;
+    }
+
+    public void setComments(String comments) {
+        ensureEditable();
+        this.comments = comments;
     }
 
     // Skrivskyddad lista med jobben som ska utföras

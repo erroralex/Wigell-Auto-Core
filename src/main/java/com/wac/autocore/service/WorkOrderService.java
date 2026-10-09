@@ -7,6 +7,7 @@ import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
+import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,15 +32,18 @@ public class WorkOrderService {
     private final BookingRepository bookingRepository;
     private final MechanicRepository mechanicRepository;
     private final VehicleRepo vehicleRepo;
+    private final ServiceItemRepository serviceItemRepository;
 
     public WorkOrderService(WorkOrderRepository workOrderRepository,
                             BookingRepository bookingRepository,
                             MechanicRepository mechanicRepository,
-                            VehicleRepo vehicleRepo) {
+                            VehicleRepo vehicleRepo,
+                            ServiceItemRepository serviceItemRepository) {
         this.workOrderRepository = workOrderRepository;
         this.bookingRepository = bookingRepository;
         this.mechanicRepository = mechanicRepository;
         this.vehicleRepo = vehicleRepo;
+        this.serviceItemRepository = serviceItemRepository;
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +66,12 @@ public class WorkOrderService {
         return workOrderRepository.findCompletedNotInvoiced();
     }
 
+    // Hämtar alla arbetsordrar med status "COMPLETED" för att kunna skapa en garantiorder.
+    @Transactional(readOnly = true)
+    public List<WorkOrder> findCompletedWorkOrders() {
+        return workOrderRepository.findByStatus(WorkOrderStatus.COMPLETED);
+    }
+
     @Transactional(readOnly = true)
     public List<Booking> findBookableBookings() {
         return bookingRepository.findAll().stream()
@@ -78,6 +88,11 @@ public class WorkOrderService {
     @Transactional(readOnly = true)
     public List<Mechanic> findAllMechanics() {
         return mechanicRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceItem> findAllServiceItems() {
+        return serviceItemRepository.findAll();
     }
 
     // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
@@ -122,12 +137,21 @@ public class WorkOrderService {
 
     // Skapar en drop-in-order (bil utan bokning) och sparar den som utkast.
     // Servicen kontrollerar att fordonet finns, modellen validerar resten.
-    public DropInWorkOrder createDropIn(int vehicleId, String problemDescription) {
+    public DropInWorkOrder createDropIn(int vehicleId,
+                                        String problemDescription,
+                                        List<Integer> serviceItemIds) {
         if (!vehicleRepo.existsById(vehicleId)) {
             throw new EntityNotFoundException("Vehicle", vehicleId);
         }
 
+        // Tjänsterna kopieras som snapshots så senare prisändringar inte påverkar ordern.
         DropInWorkOrder dropIn = DropInWorkOrder.draft(vehicleId, problemDescription);
+        for (int serviceItemId : serviceItemIds) {
+            ServiceItem service = serviceItemRepository.findById(serviceItemId)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ServiceItem", serviceItemId, "error.serviceNotFound"));
+            dropIn.addService(service);
+        }
         return workOrderRepository.save(dropIn);
     }
 

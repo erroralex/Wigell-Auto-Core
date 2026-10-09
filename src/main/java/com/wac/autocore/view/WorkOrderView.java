@@ -1,6 +1,8 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.*;
+import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
@@ -41,13 +43,19 @@ public class WorkOrderView extends BaseView {
     private final Map<Integer, Mechanic> mechanicsById = new HashMap<>();
 
     private final WorkOrderService workOrderService;
+    private final CustomerService customerService;
+    private final VehicleService vehicleService;
 
     private final Button btnStart = new Button(lang.get("btn.start"));
     private final Button btnComplete = new Button(lang.get("btn.complete"));
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
 
-    public WorkOrderView(WorkOrderService workOrderService) {
+    public WorkOrderView(WorkOrderService workOrderService,
+                         CustomerService customerService,
+                         VehicleService vehicleService) {
         this.workOrderService = workOrderService;
+        this.customerService = customerService;
+        this.vehicleService = vehicleService;
         refreshData();
         initializeTable();
         initializeJobTable();
@@ -192,13 +200,39 @@ public class WorkOrderView extends BaseView {
         );
     }
 
-    // Mekaniker och tjänster ärvs från bokningen, så dialogen väljer bara bokning
+    // Dialogen låter användaren välja typ (planerad, drop-in eller reklamation) och skapa arbetsordern
     private void openCreateWorkOrderDialog() {
-        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(workOrderService.findBookableBookings());
+        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
+                workOrderService.findBookableBookings(),
+                workOrderService.findAllBookings(),
+                workOrderService.findCompletedWorkOrders(),
+                workOrderService.findAllServiceItems(),
+                customerService,
+                vehicleService
+        );
 
-        dialog.showAndWait().ifPresent(booking -> {
+        dialog.showAndWait().ifPresent(result -> {
             try {
-                workOrderService.createWorkOrder(booking.getId());
+                switch (result.getType()) {
+                    case PLANNED:
+                        workOrderService.createWorkOrder(result.getBooking().getId());
+                        break;
+                    case DROP_IN:
+                        workOrderService.createDropIn(
+                                result.getVehicle().getId(),
+                                result.getProblemDescription(),
+                                result.getServiceItemIds()
+                        );
+                        break;
+                    case WARRANTY:
+                        workOrderService.createWarranty(
+                                result.getOriginalWorkOrder().getId(),
+                                result.getProblemDescription()
+                        );
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown work order type: " + result.getType());
+                }
                 refreshData();
                 AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
             } catch (RuntimeException e) {
