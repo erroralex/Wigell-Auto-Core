@@ -93,18 +93,19 @@ public class WorkOrderItem {
 
     public static WorkOrderItem snapshotOf(ServiceItem service) {
         if (service == null) {
-            throw new ValidationException("error.workOrderSelect");
+            throw new ValidationException("error.serviceSelect");
         }
 
         if (service.getId() <= 0) {
-            throw new PricingIntegrityException(""); // TODO: ADD PROPER MESSAGE
+            throw new PricingIntegrityException("Service item is not saved");
         }
 
         if (service.getName() == null
                 || service.getName().trim().isEmpty()
                 || service.getPrice() < 0
                 || service.getEstimatedMinutes() < 0) {
-            throw new PricingIntegrityException(""); // TODO: ADD PROPER MESSAGE
+            throw new PricingIntegrityException("Service item " + service.getId()
+                    + " has invalid catalog data");
         }
 
         return new WorkOrderItem(
