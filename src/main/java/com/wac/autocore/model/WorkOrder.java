@@ -88,6 +88,7 @@ public abstract class WorkOrder {
     public void start()    { transitionTo(WorkOrderStatus.IN_PROGRESS); }
     public void complete() { transitionTo(WorkOrderStatus.COMPLETED); }
     public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
+    public void reopen()   { transitionTo(WorkOrderStatus.DRAFT); }
 
     public void setItemChargeable(int serviceItemId, boolean chargeable) {
         ensureEditable();
