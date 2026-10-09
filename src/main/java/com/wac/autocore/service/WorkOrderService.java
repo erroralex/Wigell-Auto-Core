@@ -167,6 +167,8 @@ public class WorkOrderService {
         workOrderRepository.save(workOrder);
     }
 
+
+
     // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
     private void syncBookingStatus(WorkOrder workOrder, WorkOrderStatus status) {
         Integer bookingId = workOrder.getBookingId();

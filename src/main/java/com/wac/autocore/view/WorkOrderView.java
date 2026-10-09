@@ -5,6 +5,7 @@ import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
+import com.wac.autocore.view.dialog.EditWorkOrderDialog;
 import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.ErrorFacade;
@@ -52,6 +53,7 @@ public class WorkOrderView extends BaseView {
     private final Button btnComplete = new Button(lang.get("btn.complete"));
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
     private final Button btnQuickDraft = new Button(lang.get("btn.quickDraft"));
+    private final Button btnEdit = new Button(lang.get("btn.edit"));
 
     public WorkOrderView(WorkOrderService workOrderService,
                          CustomerService customerService,
@@ -294,7 +296,10 @@ public class WorkOrderView extends BaseView {
         btnQuickDraft.getStyleClass().addAll("btn", btnPrimary);
         btnQuickDraft.setOnAction(event -> openQuickDraftDialog());
 
-        HBox box = new HBox(15, btnQuickDraft, btnStart, btnComplete, btnCreate);
+        btnEdit.getStyleClass().addAll("btn", btnPrimary);
+        btnEdit.setOnAction(event -> openEditWorkOrderDialog());
+
+        HBox box = new HBox(15, btnQuickDraft, btnStart, btnComplete, btnCreate, btnEdit);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
@@ -367,5 +372,17 @@ public class WorkOrderView extends BaseView {
         } catch (RuntimeException e) {
             ErrorFacade.handle(e);
         }
+    }
+
+    private void openEditWorkOrderDialog() {
+        WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) return;
+
+        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, workOrderService);
+
+        dialog.showAndWait().ifPresent(result -> {
+
+        });
     }
 }

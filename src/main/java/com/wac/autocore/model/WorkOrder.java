@@ -160,6 +160,7 @@ public abstract class WorkOrder {
     }
 
     public void setMechanicId(Integer mechanicId) {
+        ensureEditable();
         this.mechanicId = mechanicId;
     }
 
