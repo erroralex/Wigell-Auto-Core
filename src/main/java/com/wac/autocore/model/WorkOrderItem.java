@@ -12,7 +12,7 @@ import java.util.Objects;
  * <p>Ansvar: Ett jobb på en arbetsorder. Namn, avtalat pris och tidsåtgång kopieras från
  * bokningens rad ({@link BookingServiceItem}) när arbetsordern skapas eller från katalogtjänst.</p>
  * <p>Raden är ett värdeobjekt: den har ingen egen identitet och lever bara som en del av
- * sin {@link WorkOrder}. Skapas via {@link #from(BookingServiceItem)} eller {@link #from(ServiceItem)}.</p>
+ * sin {@link WorkOrder}. Skapas via {@link #from(BookingServiceItem)} eller {@link #snapshotOf(ServiceItem)}.</p>
  */
 @Embeddable
 public class WorkOrderItem {
@@ -65,29 +65,6 @@ public class WorkOrderItem {
                 bookingLine.getServiceName(),
                 bookingLine.getPriceAtBooking(),
                 bookingLine.getDurationMinutes()
-        );
-    }
-
-    /* Kopierar en tjänst från katalogen till ett jobb på arbetsordern. Pris och tid fryses
-     * som de är i katalogen just nu, så att senare prisändringar inte påverkar ordern. */
-    public static WorkOrderItem from(ServiceItem service) {
-        if (service == null) {
-            throw new PricingIntegrityException("Service item is missing");
-        }
-        if (service.getId() <= 0) {
-            throw new PricingIntegrityException("Service item is not saved");
-        }
-        if (service.getName() == null
-                || service.getName().trim().isEmpty()
-                || service.getPrice() < 0
-                || service.getEstimatedMinutes() < 0) {
-            throw new PricingIntegrityException("Service item " + service.getId() + " has invalid catalog data");
-        }
-        return new WorkOrderItem(
-                service.getId(),
-                service.getName(),
-                service.getPrice(),
-                service.getEstimatedMinutes()
         );
     }
 

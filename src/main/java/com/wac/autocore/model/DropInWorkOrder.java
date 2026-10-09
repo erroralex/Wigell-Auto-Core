@@ -47,7 +47,7 @@ public class DropInWorkOrder extends WorkOrder {
 
     // Lägger till en tjänst från katalogen. Pris och tid fryses när raden skapas.
     public void addService(ServiceItem service) {
-        addItem((WorkOrderItem.from(service)));
+        addItem((WorkOrderItem.snapshotOf(service)));
     }
 
     @Override
