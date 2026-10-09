@@ -217,6 +217,9 @@ public abstract class WorkOrder {
         return status;
     }
 
+    // Varje subklass anger sin typ, så nya ordertyper inte kräver ändringar i vyn
+    public abstract WorkOrderType getType();
+
     @Override
     public String toString() {
         return id +
