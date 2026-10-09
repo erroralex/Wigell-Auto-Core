@@ -5,6 +5,7 @@ import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
+import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleStringProperty;
@@ -41,6 +42,7 @@ public class WorkOrderView extends BaseView {
 
     private final Map<Integer, Booking> bookingsById = new HashMap<>();
     private final Map<Integer, Mechanic> mechanicsById = new HashMap<>();
+    private final Map<Integer, Vehicle> vehiclesById = new HashMap<>();
 
     private final WorkOrderService workOrderService;
     private final CustomerService customerService;
@@ -49,6 +51,7 @@ public class WorkOrderView extends BaseView {
     private final Button btnStart = new Button(lang.get("btn.start"));
     private final Button btnComplete = new Button(lang.get("btn.complete"));
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
+    private final Button btnQuickDraft = new Button(lang.get("btn.quickDraft"));
 
     public WorkOrderView(WorkOrderService workOrderService,
                          CustomerService customerService,
@@ -96,6 +99,11 @@ public class WorkOrderView extends BaseView {
             mechanicsById.put(mechanic.getId(), mechanic);
         }
 
+        vehiclesById.clear();
+        for (Vehicle vehicle : vehicleService.findAll()) {
+            vehiclesById.put(vehicle.getId(), vehicle);
+        }
+
         masterData.setAll(workOrderService.findAll());
     }
 
@@ -105,6 +113,20 @@ public class WorkOrderView extends BaseView {
         idCol.setCellValueFactory(c ->
                 new SimpleStringProperty(String.valueOf(c.getValue().getId()))
         );
+
+        // Regnummer räcker för att känna igen bilen vid disken
+        TableColumn<WorkOrder, String> vehicleCol = new TableColumn<>(lang.get("table.vehicle"));
+        vehicleCol.setCellValueFactory(c -> {
+            Integer vehicleId = c.getValue().getVehicleId();
+            if (vehicleId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Vehicle vehicle = vehiclesById.get(vehicleId);
+            String display = vehicle != null
+                    ? vehicle.getRegistrationNumber()
+                    : lang.get("common.unknownId", vehicleId);
+            return new SimpleStringProperty(display);
+        });
 
         TableColumn<WorkOrder, String> bookingCol = new TableColumn<>(lang.get("table.bookingTask"));
         bookingCol.setCellValueFactory(c -> {
@@ -132,18 +154,34 @@ public class WorkOrderView extends BaseView {
             return new SimpleStringProperty(display);
         });
 
+        // Planerade ordrar saknar beskrivning; radbrytningar visas som mellanslag i tabellen
+        TableColumn<WorkOrder, String> problemCol = new TableColumn<>(lang.get("table.problemDescription"));
+        problemCol.setCellValueFactory(c -> {
+            String description = c.getValue().getProblemDescription();
+            if (description == null || description.trim().isEmpty()) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            return new SimpleStringProperty(description.trim().replaceAll("\\s*\\R\\s*", " "));
+        });
+
         TableColumn<WorkOrder, String> itemCountCol = new TableColumn<>(lang.get("table.itemCount"));
         itemCountCol.setCellValueFactory(c ->
                 new SimpleStringProperty(String.valueOf(c.getValue().getItems().size()))
         );
 
-        // Statusen sparas som CONFIRMED/IN_PROGRESS/COMPLETED, bara visningen översätts
+        // Statusen sparas som CONFIRMED/IN_PROGRESS/COMPLETED/DRAFT, bara visningen översätts
         TableColumn<WorkOrder, String> statusCol = new TableColumn<>(lang.get("table.status"));
         statusCol.setCellValueFactory(c ->
                 new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
         );
 
-        workOrderTable.getColumns().addAll(idCol, bookingCol, mechanicCol, itemCountCol, statusCol);
+        idCol.setMaxWidth(80);
+        problemCol.setPrefWidth(300);
+
+        workOrderTable.getColumns().addAll(
+                idCol, vehicleCol, bookingCol, mechanicCol, problemCol, itemCountCol, statusCol
+        );
+
         workOrderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         workOrderTable.setPlaceholder(new Label(lang.get("table.empty")));
         workOrderTable.setItems(masterData);
@@ -253,10 +291,33 @@ public class WorkOrderView extends BaseView {
         btnCreate.getStyleClass().addAll("btn", btnPrimary);
         btnCreate.setOnAction(event -> openCreateWorkOrderDialog());
 
-        HBox box = new HBox(15, btnStart, btnComplete, btnCreate);
+        btnQuickDraft.getStyleClass().addAll("btn", btnPrimary);
+        btnQuickDraft.setOnAction(event -> openQuickDraftDialog());
+
+        HBox box = new HBox(15, btnQuickDraft, btnStart, btnComplete, btnCreate);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
+    }
+
+    private void openQuickDraftDialog() {
+        QuickDraftWorkOrderDialog dialog =
+                new QuickDraftWorkOrderDialog(workOrderService, customerService, vehicleService);
+
+        dialog.showAndWait().ifPresent(draft -> {
+            refreshData();
+            selectWorkOrder(draft.getId());
+        });
+    }
+
+    private void selectWorkOrder(int id) {
+        masterData.stream()
+                .filter(workOrder -> workOrder.getId() == id)
+                .findFirst()
+                .ifPresent(workOrder -> {
+                    workOrderTable.getSelectionModel().select(workOrder);
+                    workOrderTable.scrollTo(workOrder);
+                });
     }
 
     private void updateButtonStates(WorkOrder selected) {
