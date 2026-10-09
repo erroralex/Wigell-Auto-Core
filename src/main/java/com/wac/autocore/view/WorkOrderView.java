@@ -23,6 +23,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * <b>WorkOrderView</b>
@@ -299,10 +300,10 @@ public class WorkOrderView extends BaseView {
         String btnPrimary = "btn-primary";
 
         btnStart.getStyleClass().addAll("btn", btnPrimary);
-        btnStart.setOnAction(event -> startSelectedWorkOrder());
+        btnStart.setOnAction(event -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
 
         btnComplete.getStyleClass().addAll("btn", btnPrimary);
-        btnComplete.setOnAction(event -> completeSelectedWorkOrder());
+        btnComplete.setOnAction(event -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
 
         btnCreate.getStyleClass().addAll("btn", btnPrimary);
         btnCreate.setOnAction(event -> openCreateWorkOrderDialog());
@@ -311,8 +312,13 @@ public class WorkOrderView extends BaseView {
         btnQuickDraft.setOnAction(event -> openQuickDraftDialog());
 
         btnConfirm.getStyleClass().addAll("btn", btnPrimary);
+        btnConfirm.setOnAction(event -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
+
         btnCancel.getStyleClass().addAll("btn", "btn-secondary");
+        btnCancel.setOnAction(event -> cancelSelectedWorkOrder());
+
         btnReopen.getStyleClass().addAll("btn", "btn-secondary");
+        btnReopen.setOnAction(event -> runAction(workOrderService::reopenWorkOrder, "workOrder.reopened", "workOrder.reopenedMsg"));
 
         HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate);
         box.setPadding(new Insets(15, 0, 0, 0));
@@ -352,41 +358,43 @@ public class WorkOrderView extends BaseView {
         button.setDisable(selected == null || !selected.getStatus().canChangeTo(target));
     }
 
-    private void startSelectedWorkOrder() {
+    // Gemensam hantering för alla åtgärder: kör servicen, laddar om tabellen och visar resultatet.
+    // Fel (t.ex. valideringsfel vid Confirm) visas via ErrorFacade.
+    private void runAction(Consumer<WorkOrder> action, String titleKey, String messageKey) {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             return;
         }
 
         try {
-            workOrderService.startWorkOrder(selected);
-            refreshData();
-
-            AlertHelper.showInfo(lang.get(
-                    "workOrder.started"),
-                    lang.get("workOrder.startedMsg"));
-
+            action.accept(selected);
+            refreshAfterAction(selected.getId());
+            AlertHelper.showInfo(lang.get(titleKey), lang.get(messageKey));
         } catch (RuntimeException e) {
             ErrorFacade.handle(e);
+            refreshAfterAction(selected.getId());
         }
     }
 
-    private void completeSelectedWorkOrder() {
+    // Tabellen byter ut alla rader vid refresh och markeringen försvinner. Vi markerar samma order igen
+    // så att knapparna återspeglar den nya statusen.
+    private void refreshAfterAction(int workOrderId) {
+        refreshData();
+        selectWorkOrder(workOrderId);
+        updateButtonStates(workOrderTable.getSelectionModel().getSelectedItem());
+    }
+
+    private void cancelSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             return;
         }
 
-        try {
-            workOrderService.completeWorkOrder(selected);
-            refreshData();
-
-            AlertHelper.showInfo(lang.get(
-                    "workOrder.completed"),
-                    lang.get("workOrder.completedMsg"));
-
-        } catch (RuntimeException e) {
-            ErrorFacade.handle(e);
+        boolean confirmed = AlertHelper.showConfirmation(
+                lang.get("workOrder.cancelConfirmTitle"),
+                lang.get("workOrder.cancelConfirmMsg", selected.getId()));
+        if (confirmed) {
+            runAction(workOrderService::cancelWorkOrder, "workOrder.cancelled", "workOrder.cancelledMsg");
         }
     }
 }
