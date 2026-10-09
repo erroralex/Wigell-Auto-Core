@@ -75,6 +75,20 @@ public class WorkOrderTest {
         assertEquals(1, workOrder.getItems().size());
     }
 
+    @Test
+    void removeItemCannotRemoveLastService() {
+        TestWorkOrder workOrder = new TestWorkOrder(1, 1);
+        workOrder.addItem(createService(1, 899.0));
+
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> workOrder.removeItem(1)
+        );
+
+        assertEquals("Validation failed: " + "error.workOrder.missingServices", exception.getMessage());
+        assertEquals(1, workOrder.getItems().size());
+    }
+
 
     private ServiceItem createService(int id, double price) {
         ServiceItem service = mock(ServiceItem.class);

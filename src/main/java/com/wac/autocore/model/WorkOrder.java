@@ -122,13 +122,18 @@ public abstract class WorkOrder {
     public void removeItem(int serviceItemId) {
         ensureEditable();
 
-        boolean removed = items.removeIf(
-                item -> item.getServiceItemId() == serviceItemId
-        );
+        boolean itemExists = items.stream()
+                .anyMatch(item -> item.getServiceItemId() == serviceItemId);
 
-        if (!removed) {
+        if (!itemExists) {
             throw new EntityNotFoundException("WorkOrderItem", serviceItemId);
         }
+
+        if (items.size() == 1) {
+            throw new ValidationException("error.workOrder.missingServices");
+        }
+
+        items.removeIf(item -> item.getServiceItemId() == serviceItemId);
     }
 
     // Ordern får bara ändras innan arbetet har påbörjat
