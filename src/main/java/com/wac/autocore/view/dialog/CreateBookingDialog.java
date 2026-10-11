@@ -4,6 +4,8 @@ import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.view.component.ServicePackageSelectorBox;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
@@ -27,6 +29,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final BookingService bookingService;
+    private final ServicePackageSelectorBox servicePackageSelector;
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
@@ -39,8 +42,12 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ServiceSelectorBox serviceSelector;
 
-    public CreateBookingDialog(BookingService bookingService) {
+    public CreateBookingDialog(BookingService bookingService, ServicePackageService servicePackageService) {
         this.bookingService = bookingService;
+
+        this.servicePackageSelector = new ServicePackageSelectorBox(
+                servicePackageService.findAll());
+
         this.serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
 
         errorLabel.getStyleClass().add("text-error");
@@ -79,6 +86,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("table.startTime")), startTimeComboBox,
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
+                new Label(lang.get("booking.package")), servicePackageSelector,
                 new Label(lang.get("table.serviceItem")), serviceSelector
         );
         getDialogPane().setContent(content);
