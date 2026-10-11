@@ -4,6 +4,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 public class BookingView extends BaseView {
 
     private final BookingService bookingService;
+    private final ServicePackageService servicePackageService;
 
     private final ObservableList<Booking> bookingObservableList;
 
@@ -47,8 +49,9 @@ public class BookingView extends BaseView {
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
     private final Button btnEditServices = new Button(lang.get("btn.edit"));
 
-    public BookingView(BookingService bookingService) {
+    public BookingView(BookingService bookingService, ServicePackageService servicePackageService) {
         this.bookingService = bookingService;
+        this.servicePackageService = servicePackageService;
         this.bookingObservableList = FXCollections.observableArrayList(bookingService.listAll());
 
         vehicleMap = bookingService.listAllVehicles()
@@ -176,7 +179,7 @@ public class BookingView extends BaseView {
     }
 
     private void openCreateBookingDialog() {
-        CreateBookingDialog dialog = new CreateBookingDialog(bookingService);
+        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService);
 
         dialog.showAndWait().ifPresent(result -> {
             try {

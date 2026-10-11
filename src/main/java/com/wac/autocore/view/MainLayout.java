@@ -60,7 +60,7 @@ public class MainLayout extends BorderPane {
             case HOME:              return new HomeView();
             case CUSTOMERS:         return new CustomerView(customerService);
             case VEHICLES:          return new VehicleView(customerService, vehicleService);
-            case BOOKINGS:          return new BookingView(bookingService);
+            case BOOKINGS:          return new BookingView(bookingService, servicePackageService);
             case SERVICE_ITEMS:     return new ServiceItemView(serviceItemService);
             case SERVICE_PACKAGES:  return new ServicePackageView(servicePackageService, serviceItemService);
             case MECHANICS:         return new MechanicView(mechanicService);
