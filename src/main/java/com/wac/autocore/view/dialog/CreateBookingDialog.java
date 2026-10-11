@@ -1,6 +1,7 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
@@ -17,6 +18,7 @@ import javafx.util.StringConverter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -86,7 +88,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("table.startTime")), startTimeComboBox,
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
-                new Label(lang.get("booking.package")), servicePackageSelector,
+                new Label(lang.get("servicePackage.label")), servicePackageSelector,
                 new Label(lang.get("table.serviceItem")), serviceSelector
         );
         getDialogPane().setContent(content);
@@ -98,6 +100,16 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         setConverters();
         inputEventListeners();
+
+        servicePackageSelector.selectedPackageProperty().addListener((observable, oldPackage, newPackage) -> {
+            if (newPackage != null) {
+                List<Integer> ids = new ArrayList<>();
+                for (ServiceItem service : newPackage.getServices()) {
+                    ids.add(service.getId());
+                }
+                serviceSelector.selectServiceIds(ids);
+            }
+        });
 
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
         saveButton.getStyleClass().addAll("btn", "btn-primary");
@@ -291,6 +303,5 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         public List<Integer> getServiceItemIds() {
             return serviceItemIds;
         }
-
     }
 }
