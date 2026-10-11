@@ -58,7 +58,7 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
         return new ServicePackageDialog(
                 servicePackageService,
                 availableServices,
-                Objects.requireNonNull(existingServicePackage, "existing")
+                Objects.requireNonNull(existingServicePackage, "existingServicePackage")
         );
     }
 
