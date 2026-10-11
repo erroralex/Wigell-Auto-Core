@@ -5,15 +5,16 @@ package com.wac.autocore.view;
  * <p>Ansvar: Definierar applikationens navigerbara sektioner och deras språknycklar.</p>
  */
 public enum NavigationItem {
-    HOME(           "nav.home"),
-    CUSTOMERS(      "nav.customers"),
-    VEHICLES(       "nav.vehicles"),
-    BOOKINGS(       "nav.bookings"),
-    SERVICE_ITEMS(  "nav.serviceItems"),
-    MECHANICS(      "nav.mechanics"),
-    WORK_ORDERS(    "nav.workOrders"),
-    INVOICES(       "nav.invoices"),
-    PAYMENTS(       "nav.payments");
+    HOME(            "nav.home"),
+    CUSTOMERS(       "nav.customers"),
+    VEHICLES(        "nav.vehicles"),
+    BOOKINGS(        "nav.bookings"),
+    SERVICE_ITEMS(   "nav.serviceItems"),
+    SERVICE_PACKAGES("nav.servicePackages"),
+    MECHANICS(       "nav.mechanics"),
+    WORK_ORDERS(     "nav.workOrders"),
+    INVOICES(        "nav.invoices"),
+    PAYMENTS(        "nav.payments");
 
     private final String key;
 

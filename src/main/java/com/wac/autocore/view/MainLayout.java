@@ -18,7 +18,6 @@ public class MainLayout extends BorderPane {
     private final SideNavigation sideNavigation;
     private NavigationItem currentItem;
 
-
     public MainLayout(InvoiceService invoiceService,
                       PaymentService paymentService,
                       BookingService bookingService,
@@ -28,6 +27,7 @@ public class MainLayout extends BorderPane {
                       ServiceItemService serviceItemService,
                       MechanicService mechanicService,
                       ServicePackageService servicePackageService) {
+
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.bookingService = bookingService;
@@ -57,16 +57,17 @@ public class MainLayout extends BorderPane {
 
     private Node createView(NavigationItem item) {
         switch (item) {
-            case HOME:          return new HomeView();
-            case CUSTOMERS:     return new CustomerView(customerService);
-            case VEHICLES:      return new VehicleView(customerService, vehicleService);
-            case BOOKINGS:      return new BookingView(bookingService, servicePackageService);
-            case SERVICE_ITEMS: return new ServiceItemView(serviceItemService);
-            case MECHANICS:     return new MechanicView(mechanicService);
-            case WORK_ORDERS:   return new WorkOrderView(workOrderService, customerService, vehicleService);
-            case INVOICES:      return new InvoiceView(invoiceService, workOrderService);
-            case PAYMENTS:      return new PaymentView(invoiceService, paymentService);
-            default:            throw new IllegalStateException("Unknown NavigationItem: " + item);
+            case HOME:              return new HomeView();
+            case CUSTOMERS:         return new CustomerView(customerService);
+            case VEHICLES:          return new VehicleView(customerService, vehicleService);
+            case BOOKINGS:          return new BookingView(bookingService, servicePackageService);
+            case SERVICE_ITEMS:     return new ServiceItemView(serviceItemService);
+            case SERVICE_PACKAGES:  return new ServicePackageView(servicePackageService, serviceItemService);
+            case MECHANICS:         return new MechanicView(mechanicService);
+            case WORK_ORDERS:       return new WorkOrderView(workOrderService, customerService, vehicleService);
+            case INVOICES:          return new InvoiceView(invoiceService, workOrderService);
+            case PAYMENTS:          return new PaymentView(invoiceService, paymentService);
+            default:                throw new IllegalStateException("Unknown NavigationItem: " + item);
         }
     }
 }
