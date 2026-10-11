@@ -18,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,13 +85,25 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
+    @Transactional
+    public BookingCopyResult createFromPrevious(int previousBookingId,
+                                                LocalDate date,
+                                                LocalTime startTime,
+                                                Integer mechanicId) {
+        return createFromPrevious(previousBookingId, date, startTime,
+                mechanicId, null, null, null);
+    }
+
     // Skapar en ny bokning från en tidigare med dagens tjänstepriser, utan att ändra originalet.
     // Återanvänder originalets mekaniker om mechanicId är null och kontrollerar dubbelbokning före sparandet.
     @Transactional
     public BookingCopyResult createFromPrevious(int previousBookingId,
                                                 LocalDate date,
                                                 LocalTime startTime,
-                                                Integer mechanicId) {
+                                                Integer mechanicId,
+                                                Integer vehicleId,
+                                                String description,
+                                                List<Integer> serviceItemIds) {
         Booking previous = findById(previousBookingId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Booking", previousBookingId, "error.bookingNotFound"
@@ -106,7 +116,6 @@ public class BookingService {
         int selectedMechanicId = mechanicId == null
                 ? previous.getMechanicId()
                 : mechanicId;
-
         if (!mechanicRepository.existsById(selectedMechanicId)) {
             throw new EntityNotFoundException("Mechanic", selectedMechanicId);
         }
@@ -115,39 +124,44 @@ public class BookingService {
         Booking copy = prototype.copyAsNew(date, startTime);
         copy.setMechanicId(selectedMechanicId);
 
-        List<BookingPriceChange> priceChanges = new ArrayList<>();
+        if (vehicleId != null) copy.setVehicleId(vehicleId);
+        if (description != null) copy.setDescription(description);
 
+        List<Integer> wantedIds = (serviceItemIds == null || serviceItemIds.isEmpty())
+                ? previous.getItems().stream()
+                .map(BookingServiceItem::getServiceItemId)
+                .collect(Collectors.toList()) : serviceItemIds.stream().distinct().collect(Collectors.toList());
+
+        Map<Integer, Double> oldPrices = previous.getItems().stream()
+                .collect(Collectors.toMap(
+                        BookingServiceItem::getServiceItemId,
+                        BookingServiceItem::getPriceAtBooking,
+                        (a, b) -> a));
+
+        List<BookingPriceChange> priceChanges = new ArrayList<>();
         copy.getItems().clear();
 
-        for (BookingServiceItem previousItem : previous.getItems()) {
-            int serviceId = previousItem.getServiceItemId();
-
+        for (int serviceId : wantedIds) {
             ServiceItem currentService = findServiceItemById(serviceId)
                     .orElseThrow(() -> new EntityNotFoundException(
-                            "ServiceItem", serviceId, "error.serviceNotFound"
-                    ));
+                            "ServiceItem", serviceId, "error.serviceNotFound"));
 
-            if (Double.compare(previousItem.getPriceAtBooking(),
-                    currentService.getPrice()) != 0) {
+            Double oldPrice = oldPrices.get(serviceId);
+            if (oldPrice != null && Double.compare(oldPrice, currentService.getPrice()) != 0) {
                 priceChanges.add(new BookingPriceChange(
-                        serviceId,
-                        currentService.getName(),
-                        previousItem.getPriceAtBooking(),
-                        currentService.getPrice()
-                ));
+                        serviceId, currentService.getName(),
+                        oldPrice, currentService.getPrice()));
             }
 
             copy.addServiceItem(currentService);
         }
 
         copy.setEndTime(startTime.plusMinutes(copy.getTotalDurationMinutes()));
-
         checkMechanicOverlap(
                 selectedMechanicId, date, startTime, copy.getEndTime(), null
         );
 
         Booking savedBooking = bookingRepository.save(copy);
-
         return new BookingCopyResult(savedBooking, priceChanges);
     }
 
@@ -247,5 +261,49 @@ public class BookingService {
 
     public List<Vehicle> listAllVehicles() {
         return vehicleRepo.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Integer> listServiceItemIds(int id) {
+        Booking booking = findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Booking", id, "error.bookingNotFound"));
+
+        return booking.getItems().stream()
+                .map(BookingServiceItem::getServiceItemId)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingPriceChange> findPriceChanges(int id) {
+        Booking previous = findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Booking", id, "error.bookingNotFound"
+                ));
+
+        List<BookingPriceChange> changes = new ArrayList<>();
+
+        for (BookingServiceItem item : previous.getItems()) {
+            int serviceId = item.getServiceItemId();
+
+            ServiceItem current = findServiceItemById(serviceId)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ServiceItem", serviceId, "error.serviceNotFound"
+                    ));
+
+
+            if (Double.compare(item.getPriceAtBooking(), current.getPrice()) != 0) {
+                changes.add(new BookingPriceChange(
+                        serviceId,
+                        current.getName(),
+                        item.getPriceAtBooking(),
+                        current.getPrice()
+                ));
+            }
+
+        }
+
+
+
+        return changes;
     }
 }

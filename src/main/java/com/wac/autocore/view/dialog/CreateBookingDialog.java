@@ -1,8 +1,7 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.*;
+import com.wac.autocore.service.BookingPriceChange;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServicePackageService;
@@ -44,7 +43,15 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ServiceSelectorBox serviceSelector;
 
+    private VBox contentBox;
+
     public CreateBookingDialog(BookingService bookingService, ServicePackageService servicePackageService) {
+        this(bookingService, servicePackageService, null);
+    }
+
+    public CreateBookingDialog(BookingService bookingService,
+                               ServicePackageService servicePackageService,
+                               Booking previous) {
         this.bookingService = bookingService;
 
         this.servicePackageSelector = new ServicePackageSelectorBox(
@@ -66,6 +73,10 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         populateStartTimes();
 
         setContent();
+
+        if (previous != null) {
+            prefillFrom(previous);
+        }
     }
 
     private void populateStartTimes() {
@@ -78,10 +89,46 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         }
     }
 
+    private void prefillFrom(Booking previous) {
+        vehicleComboBox.getItems().stream()
+                .filter(v -> v.getId() == previous.getVehicleId())
+                .findFirst()
+                .ifPresent(vehicleComboBox::setValue);
+
+        mechanicComboBox.getItems().stream()
+                .filter(m -> m.getId() == previous.getMechanicId())
+                .findFirst()
+                .ifPresent(mechanicComboBox::setValue);
+
+        descriptionTextField.setText(previous.getDescription());
+
+        serviceSelector.selectServiceIds(
+                bookingService.listServiceItemIds(previous.getId()));
+
+        showPriceChangeNotice(bookingService.findPriceChanges(previous.getId()));
+    }
+
+    private void showPriceChangeNotice(List<BookingPriceChange> changes) {
+        if (changes.isEmpty()) return;
+
+        StringBuilder sb = new StringBuilder(lang.get("booking.priceChangedNotice"));
+        for (BookingPriceChange c : changes) {
+            sb.append("\n• ").append(c.getServiceName())
+                    .append(": ").append(c.getPreviousPrice())
+                    .append(" → ").append(c.getCurrentPrice());
+        }
+
+        Label notice = new Label(sb.toString());
+        notice.setWrapText(true);
+        notice.getStyleClass().add("text-warning");
+
+        contentBox.getChildren().add(1, notice);
+    }
+
     private void setContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
-        content.getChildren().addAll(
+        contentBox = new VBox(12);
+        contentBox.setPadding(new Insets(16));
+        contentBox.getChildren().addAll(
                 errorLabel,
                 new Label(lang.get("table.vehicle")), vehicleComboBox,
                 new Label(lang.get("table.date")), datePicker,
@@ -91,7 +138,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("servicePackage.label")), servicePackageSelector,
                 new Label(lang.get("table.serviceItem")), serviceSelector
         );
-        getDialogPane().setContent(content);
+        getDialogPane().setContent(contentBox);
 
         handleInput();
     }
@@ -169,7 +216,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             }
 
             if (serviceSelector.isEmpty()) {
-                //getSelectedItems().isEmpty()
                 errorLabel.setText(lang.get("error.serviceSelect"));
                 serviceSelector.setError(true);
                 event.consume();
