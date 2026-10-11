@@ -65,6 +65,8 @@ public class BookingView extends BaseView {
         initializeTable();
 
         initView();
+
+
     }
 
     @Override

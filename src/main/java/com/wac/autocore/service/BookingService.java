@@ -272,10 +272,11 @@ public class BookingService {
         for (BookingServiceItem item : previous.getItems()) {
             int serviceId = item.getServiceItemId();
 
-            ServiceItem current = findServiceItemById(id)
+            ServiceItem current = findServiceItemById(serviceId)
                     .orElseThrow(() -> new EntityNotFoundException(
                             "ServiceItem", serviceId, "error.serviceNotFound"
                     ));
+
 
             if (Double.compare(item.getPriceAtBooking(), current.getPrice()) != 0) {
                 changes.add(new BookingPriceChange(
@@ -285,10 +286,10 @@ public class BookingService {
                         current.getPrice()
                 ));
             }
-            System.out.println("lookup " + serviceId + " -> id=" + current.getId()
-                    + ", name=" + current.getName() + ", price=" + current.getPrice());
 
         }
+
+
 
         return changes;
     }
