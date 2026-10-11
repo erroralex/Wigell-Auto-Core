@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -247,5 +248,48 @@ public class BookingService {
 
     public List<Vehicle> listAllVehicles() {
         return vehicleRepo.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Integer> listServiceItemIds(int id) {
+        Booking booking = findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Booking", id, "error.bookingNotFound"));
+
+        return booking.getItems().stream()
+                .map(BookingServiceItem::getServiceItemId)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingPriceChange> findPriceChanges(int id) {
+        Booking previous = findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Booking", id, "error.bookingNotFound"
+                ));
+
+        List<BookingPriceChange> changes = new ArrayList<>();
+
+        for (BookingServiceItem item : previous.getItems()) {
+            int serviceId = item.getServiceItemId();
+
+            ServiceItem current = findServiceItemById(id)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ServiceItem", serviceId, "error.serviceNotFound"
+                    ));
+
+            if (Double.compare(item.getPriceAtBooking(), current.getPrice()) != 0) {
+                changes.add(new BookingPriceChange(
+                        serviceId,
+                        current.getName(),
+                        item.getPriceAtBooking(),
+                        current.getPrice()
+                ));
+            }
+            System.out.println("lookup " + serviceId + " -> id=" + current.getId()
+                    + ", name=" + current.getName() + ", price=" + current.getPrice());
+
+        }
+
+        return changes;
     }
 }

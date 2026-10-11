@@ -48,6 +48,7 @@ public class BookingView extends BaseView {
 
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
     private final Button btnEditServices = new Button(lang.get("btn.edit"));
+    private final Button btnCopyBooking = new Button(lang.get("btn.newBookingFromThis"));
 
     public BookingView(BookingService bookingService, ServicePackageService servicePackageService) {
         this.bookingService = bookingService;
@@ -76,12 +77,6 @@ public class BookingView extends BaseView {
         VBox.setVgrow(bookingTableView, Priority.ALWAYS);
         getChildren().addAll(createButtonBar(), bookingTableView);
     }
-
-   /* private void renderDescText() {
-        Label description = new Label(lang.get("booking.sortInfo"));
-        description.getStyleClass().add("text-secondary");
-        getChildren().add(description);
-    }*/
 
     private void initializeTable() {
         bookingTableView = new TableView<>();
@@ -137,7 +132,11 @@ public class BookingView extends BaseView {
         bookingTableView.getSortOrder().add(dateColumn);
 
         bookingTableView.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> btnEditServices.setDisable(newValue == null)
+                (obs, oldVal, newVal) -> {
+            boolean none = newVal == null;
+            btnEditServices.setDisable(none);
+            btnCopyBooking.setDisable(none);
+                }
         );
     }
 
@@ -172,7 +171,11 @@ public class BookingView extends BaseView {
         btnEditServices.setOnAction(event -> openEditServicesDialog());
         btnEditServices.setDisable(true);
 
-        HBox hBox = new HBox(15, btnCreate, btnEditServices);
+        btnCopyBooking.getStyleClass().addAll("btn", btnPrimary);
+        btnCopyBooking.setOnAction(e -> openCopyBookingDialog());
+        btnCopyBooking.setDisable(true);
+
+        HBox hBox = new HBox(15, btnCreate, btnEditServices, btnCopyBooking);
         hBox.setPadding(new Insets(15, 0, 0, 0));
         hBox.setAlignment(Pos.CENTER_LEFT);
         return hBox;
@@ -195,6 +198,32 @@ public class BookingView extends BaseView {
                 bookingObservableList.setAll(bookingService.listAll());
                 AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
             } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+            }
+        });
+    }
+
+    private void openCopyBookingDialog() {
+        Booking selected = bookingTableView.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService, selected);
+
+        dialog.showAndWait().ifPresent(result -> {
+            try {
+                bookingService.createFromPrevious(
+                        selected.getId(),
+                        result.getDate(),
+                        result.getStartTime(),
+                        result.getMechanicId()
+                );
+
+                bookingObservableList.setAll(bookingService.listAll());
+                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
+            } catch(RuntimeException e) {
                 ErrorFacade.handle(e);
             }
         });
