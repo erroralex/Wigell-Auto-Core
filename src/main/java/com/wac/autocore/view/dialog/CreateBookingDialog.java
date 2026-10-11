@@ -31,7 +31,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     private final BookingService bookingService;
     private final ServicePackageSelectorBox servicePackageSelector;
-    private final ServicePackageService servicePackageService;
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
@@ -54,7 +53,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                                ServicePackageService servicePackageService,
                                Booking previous) {
         this.bookingService = bookingService;
-        this.servicePackageService = servicePackageService;
 
         this.servicePackageSelector = new ServicePackageSelectorBox(
                 servicePackageService.findAll());

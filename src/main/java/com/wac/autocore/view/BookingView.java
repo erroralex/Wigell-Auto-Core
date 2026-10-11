@@ -220,7 +220,10 @@ public class BookingView extends BaseView {
                         selected.getId(),
                         result.getDate(),
                         result.getStartTime(),
-                        result.getMechanicId()
+                        result.getMechanicId(),
+                        result.getVehicleId(),
+                        result.getDescription(),
+                        result.getServiceItemIds()
                 );
 
                 bookingObservableList.setAll(bookingService.listAll());
