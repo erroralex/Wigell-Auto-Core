@@ -10,6 +10,7 @@ public enum NavigationItem {
     VEHICLES(       "nav.vehicles"),
     BOOKINGS(       "nav.bookings"),
     SERVICE_ITEMS(  "nav.serviceItems"),
+    SERVICE_PACKAGES(  "nav.servicePackages"),
     MECHANICS(      "nav.mechanics"),
     WORK_ORDERS(    "nav.workOrders"),
     INVOICES(       "nav.invoices"),
