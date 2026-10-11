@@ -111,12 +111,12 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
         plannedDatePicker.setMaxWidth(Double.MAX_VALUE);
 
         customerInstructionsArea.setText(workOrder.getCustomerInstructions());
-        customerInstructionsArea.setPromptText(lang.get("workOrder.customerInstructionsPrompt"));
+        customerInstructionsArea.setPromptText(lang.get("workOrder.edit.customerInstructionsPrompt"));
         customerInstructionsArea.setWrapText(true);
         customerInstructionsArea.setPrefRowCount(3);
 
         commentsArea.setText(workOrder.getComments());
-        commentsArea.setPromptText(lang.get("workOrder.commentsPrompt"));
+        commentsArea.setPromptText(lang.get("workOrder.edit.commentsPrompt"));
         commentsArea.setWrapText(true);
         commentsArea.setPrefRowCount(3);
     }
@@ -128,14 +128,14 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
 
         details.add(new Label(lang.get("table.mechanic")), 0, 0);
         details.add(mechanicComboBox, 1, 0);
-        details.add(new Label(lang.get("workOrder.plannedDate")), 0, 1);
+        details.add(new Label(lang.get("workOrder.edit.plannedDate")), 0, 1);
         details.add(plannedDatePicker, 1, 1);
 
         VBox content = new VBox(12,
                 details,
-                new Label(lang.get("workOrder.customerInstructions")),
+                new Label(lang.get("workOrder.edit.customerInstructions")),
                 customerInstructionsArea,
-                new Label(lang.get("workOrder.comments")),
+                new Label(lang.get("workOrder.edit.comments")),
                 commentsArea,
                 new Separator(),
                 new Label(lang.get("table.serviceItems")),
@@ -143,7 +143,7 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
         );
 
         if (!chargeBoxes.isEmpty()) {
-            content.getChildren().add(new Label(lang.get("workOrder.chargeCustomer")));
+            content.getChildren().add(new Label(lang.get("workOrder.edit.chargeCustomer")));
             content.getChildren().addAll(chargeBoxes.values());
         }
 
