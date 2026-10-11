@@ -45,8 +45,8 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
                         .collect(Collectors.toList())
         );
 
-        setTitle(lang.get("workOrder.editTitle"));
-        setHeaderText(lang.get("workOrder.editHeader"));
+        setTitle(lang.get("workOrder.edit.title"));
+        setHeaderText(lang.get("workOrder.edit.header"));
 
         DialogUtil.applyTheme(this);
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
