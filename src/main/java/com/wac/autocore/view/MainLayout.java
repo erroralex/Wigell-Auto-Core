@@ -14,8 +14,10 @@ public class MainLayout extends BorderPane {
     private final WorkOrderService workOrderService;
     private final ServiceItemService serviceItemService;
     private final MechanicService mechanicService;
+    private final ServicePackageService servicePackageService;
     private final SideNavigation sideNavigation;
     private NavigationItem currentItem;
+
 
     public MainLayout(InvoiceService invoiceService,
                       PaymentService paymentService,
@@ -24,7 +26,8 @@ public class MainLayout extends BorderPane {
                       VehicleService vehicleService,
                       WorkOrderService workOrderService,
                       ServiceItemService serviceItemService,
-                      MechanicService mechanicService) {
+                      MechanicService mechanicService,
+                      ServicePackageService servicePackageService) {
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.bookingService = bookingService;
@@ -33,6 +36,7 @@ public class MainLayout extends BorderPane {
         this.workOrderService = workOrderService;
         this.serviceItemService = serviceItemService;
         this.mechanicService = mechanicService;
+        this.servicePackageService = servicePackageService;
         this.getStyleClass().add("main-layout");
 
         LanguageManager.getInstance().localeProperty()
@@ -56,7 +60,7 @@ public class MainLayout extends BorderPane {
             case HOME:          return new HomeView();
             case CUSTOMERS:     return new CustomerView(customerService);
             case VEHICLES:      return new VehicleView(customerService, vehicleService);
-            case BOOKINGS:      return new BookingView(bookingService);
+            case BOOKINGS:      return new BookingView(bookingService, servicePackageService);
             case SERVICE_ITEMS: return new ServiceItemView(serviceItemService);
             case MECHANICS:     return new MechanicView(mechanicService);
             case WORK_ORDERS:   return new WorkOrderView(workOrderService, customerService, vehicleService);
