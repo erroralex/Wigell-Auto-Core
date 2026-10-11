@@ -3,21 +3,16 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.model.*;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.WorkOrderService;
-import com.wac.autocore.view.component.MultiSelectListView;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.DialogUtil;
-import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
@@ -31,6 +26,8 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
     private final DatePicker plannedDatePicker = new DatePicker();
     private final TextArea customerInstructionsArea = new TextArea();
     private final TextArea commentsArea = new TextArea();
+
+    private final Map<Integer, CheckBox> chargeBoxes = new LinkedHashMap<>();
 
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -55,6 +52,14 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
         setupFields(workOrderService);
+
+        if (workOrder instanceof  WarrantyWorkOrder) {
+            for (WorkOrderItem item : workOrder.getItems()) {
+                CheckBox cb = new CheckBox(item.getServiceName());
+                cb.setSelected(item.isChargeable());
+                chargeBoxes.put(item.getServiceItemId(), cb);
+            }
+        }
         buildContent();
 
         Button btnSave = (Button) getDialogPane().lookupButton(saveButtonType);
@@ -65,12 +70,16 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
                 return null;
             }
 
+            Map<Integer, Boolean> flags = new HashMap<>();
+            chargeBoxes.forEach((id, cb) -> flags.put(id, cb.isSelected()));
+
             return new Result(
                     serviceSelectorBox.getSelectedServiceIds(),
                     mechanicComboBox.getValue(),
                     plannedDatePicker.getValue(),
                     customerInstructionsArea.getText(),
-                    commentsArea.getText()
+                    commentsArea.getText(),
+                    flags
             );
         });
 
@@ -93,7 +102,7 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
 
         if (workOrder.getMechanicId() != null) {
             mechanicComboBox.getItems().stream()
-                    .filter(m -> m.getId() == workOrder.getMechanicId())
+                    .filter(m -> Objects.equals(m.getId(), workOrder.getMechanicId()))
                     .findFirst()
                     .ifPresent(mechanicComboBox::setValue);
         }
@@ -133,6 +142,11 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
                 serviceSelectorBox
         );
 
+        if (!chargeBoxes.isEmpty()) {
+            content.getChildren().add(new Label(lang.get("workOrder.chargeCustomer")));
+            content.getChildren().addAll(chargeBoxes.values());
+        }
+
         content.setPadding(new Insets(12));
         content.setPrefWidth(560);
 
@@ -148,14 +162,18 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
         private final String customerInstructions;
         private final String comments;
 
+        private final Map<Integer, Boolean> chargeFlags;
+
         public Result(List<Integer> serviceItemIds, Mechanic mechanic,
                       LocalDate plannedDate,
-                      String customerInstructions, String comments) {
+                      String customerInstructions, String comments,
+                      Map<Integer, Boolean> chargeFlags) {
             this.serviceItemIds = serviceItemIds;
             this.mechanic = mechanic;
             this.plannedDate = plannedDate;
             this.customerInstructions = customerInstructions;
             this.comments = comments;
+            this.chargeFlags = chargeFlags;
         }
 
         public List<Integer> getServiceItemIds() { return serviceItemIds; }
@@ -163,6 +181,7 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
         public LocalDate getPlannedDate() { return plannedDate; }
         public String getCustomerInstructions() { return customerInstructions; }
         public String getComments() { return comments; }
+        public Map<Integer, Boolean> getChargeFlags() { return chargeFlags; }
     }
 
 }

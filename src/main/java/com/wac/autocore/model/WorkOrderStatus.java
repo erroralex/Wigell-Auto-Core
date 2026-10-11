@@ -27,4 +27,8 @@ public enum WorkOrderStatus {
     public boolean canChangeTo(WorkOrderStatus target) {
         return ALLOWED.getOrDefault(this, Collections.emptySet()).contains(target);
     }
+
+    public boolean isEditable() {
+        return this == DRAFT || this == CONFIRMED;
+    }
 }

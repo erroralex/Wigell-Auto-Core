@@ -249,9 +249,14 @@ public class WorkOrderView extends BaseView {
             return;
         }
 
+        double chargeableTotal = selected.getItems().stream()
+                        .filter(WorkOrderItem::isChargeable)
+                                .mapToDouble(WorkOrderItem::getAgreedPrice)
+                                        .sum();
+
         jobData.setAll(selected.getItems());
         jobSummaryLabel.setText(
-                lang.get("workOrder.total", selected.getTotalPrice())
+                lang.get("workOrder.total", chargeableTotal)
                         + "  |  "
                         + lang.get("workOrder.totalDuration", selected.getTotalDurationMinutes())
         );
@@ -316,17 +321,16 @@ public class WorkOrderView extends BaseView {
         btnEdit.getStyleClass().addAll("btn", btnPrimary);
         btnEdit.setOnAction(event -> openEditWorkOrderDialog());
 
-        HBox box = new HBox(15, btnQuickDraft, btnStart, btnComplete, btnCreate, btnEdit);
         btnConfirm.getStyleClass().addAll("btn", btnPrimary);
-        btnConfirm.setOnAction(event -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
+        btnConfirm.setOnAction(e -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
 
-        btnCancel.getStyleClass().addAll("btn", "btn-secondary");
-        btnCancel.setOnAction(event -> cancelSelectedWorkOrder());
+        btnCancel.getStyleClass().addAll("btn", btnPrimary);
+        btnCancel.setOnAction(e -> cancelSelectedWorkOrder());
 
-        btnReopen.getStyleClass().addAll("btn", "btn-secondary");
-        btnReopen.setOnAction(event -> runAction(workOrderService::reopenWorkOrder, "workOrder.reopened", "workOrder.reopenedMsg"));
+        btnReopen.getStyleClass().addAll("btn", btnPrimary);
+        btnReopen.setOnAction(e -> runAction(workOrderService::reopenWorkOrder, "workOrder.reopened", "workOrder.reopenedMsg"));
 
-        HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate);
+        HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
@@ -358,6 +362,7 @@ public class WorkOrderView extends BaseView {
         enableIfAllowed(btnComplete, selected, WorkOrderStatus.COMPLETED);
         enableIfAllowed(btnCancel, selected, WorkOrderStatus.CANCELLED);
         enableIfAllowed(btnReopen, selected, WorkOrderStatus.DRAFT);
+        btnEdit.setDisable(selected == null || !selected.getStatus().isEditable());
     }
 
     private void enableIfAllowed(Button button, WorkOrder selected, WorkOrderStatus target) {
@@ -387,7 +392,9 @@ public class WorkOrderView extends BaseView {
     private void refreshAfterAction(int workOrderId) {
         refreshData();
         selectWorkOrder(workOrderId);
+        WorkOrder current = workOrderTable.getSelectionModel().getSelectedItem();
         updateButtonStates(workOrderTable.getSelectionModel().getSelectedItem());
+        showJobs(current);
     }
 
     private void cancelSelectedWorkOrder() {
@@ -412,7 +419,22 @@ public class WorkOrderView extends BaseView {
         EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, workOrderService);
 
         dialog.showAndWait().ifPresent(result -> {
-
+            try {
+                workOrderService.updateWorkOrder(
+                        selected,
+                        result.getServiceItemIds(),
+                        result.getMechanic() == null ? null : result.getMechanic().getId(),
+                        result.getPlannedDate(),
+                        result.getCustomerInstructions(),
+                        result.getComments(),
+                        result.getChargeFlags()
+                );
+                refreshAfterAction(selected.getId());
+                AlertHelper.showInfo(lang.get("workOrder.updated"), lang.get("workOrder.updatedMsg"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+                refreshAfterAction(selected.getId());
+            }
         });
     }
 }

@@ -11,7 +11,8 @@ import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -220,6 +221,51 @@ public class WorkOrderService {
     public void cancelWorkOrder(WorkOrder workOrder) {
         workOrder.cancel();
         setBookingStatus(workOrder, Booking.STATUS_BOOKED);
+        workOrderRepository.save(workOrder);
+    }
+
+    public void updateWorkOrder(WorkOrder workOrder, List<Integer> serviceItemIds,
+                                Integer mechanicId, LocalDate plannedDate,
+                                String customerInstructions, String comments,
+                                Map<Integer, Boolean> chargeFlags) {
+        if (!workOrder.getStatus().isEditable()) {
+            throw new ValidationException("error.workOrder.notEditable", String.valueOf(workOrder.getId()));
+        }
+        if (mechanicId != null && !mechanicRepository.existsById(mechanicId)) {
+            throw new EntityNotFoundException("Mechanic", mechanicId);
+        }
+
+        Set<Integer> wanted = new HashSet<>(serviceItemIds);
+        Set<Integer> existing = workOrder.getItems().stream()
+                .map(WorkOrderItem::getServiceItemId)
+                .collect(Collectors.toSet());
+
+        for (int id : serviceItemIds) {
+            if (!existing.contains(id)) {
+                ServiceItem service = serviceItemRepository.findById(id)
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "ServiceItem", id, "error.serviceNotFound"));
+                workOrder.addItem(service);
+            }
+        }
+        for (int id : existing) {
+            if (!wanted.contains(id)) {
+                workOrder.removeItem(id);
+            }
+        }
+
+        if (workOrder instanceof WarrantyWorkOrder) {
+            for (WorkOrderItem item : workOrder.getItems()) {
+                int id = item.getServiceItemId();
+                workOrder.setItemChargeable(id, chargeFlags.getOrDefault(id, false));
+            }
+        }
+
+        workOrder.setMechanicId(mechanicId);
+        workOrder.setPlannedDate(plannedDate);
+        workOrder.setCustomerInstructions(customerInstructions);
+        workOrder.setComments(comments);
+
         workOrderRepository.save(workOrder);
     }
 
