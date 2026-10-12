@@ -38,9 +38,17 @@ public class CreateVehicleDialog {
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
 
+    private final Customer preselectedCustomer;
+
     public CreateVehicleDialog(CustomerService customerService, VehicleService vehicleService) {
+        this(customerService, vehicleService, null);
+    }
+
+    // Med förvald kund, t.ex. när fordonet skapas från en annan dialog.
+    public CreateVehicleDialog(CustomerService customerService, VehicleService vehicleService, Customer preselectedCustomer) {
         this.customerService = customerService;
         this.vehicleService = vehicleService;
+        this.preselectedCustomer = preselectedCustomer;
         dialog.setTitle(lang.get("vehicle.new"));
         dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
         DialogUtil.applyTheme(dialog);
@@ -82,6 +90,13 @@ public class CreateVehicleDialog {
                 return null;
             }
         });
+
+        if (preselectedCustomer != null) {
+            customerComboBox.getItems().stream()
+                    .filter(customer -> customer.getId() == preselectedCustomer.getId())
+                    .findFirst()
+                    .ifPresent(customerComboBox::setValue);
+        }
     }
 
     private void configureButtons() {

@@ -1,9 +1,11 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.*;
+import com.wac.autocore.service.BookingPriceChange;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.view.component.ServicePackageSelectorBox;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
@@ -15,6 +17,7 @@ import javafx.util.StringConverter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -27,6 +30,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final BookingService bookingService;
+    private final ServicePackageSelectorBox servicePackageSelector;
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
@@ -39,8 +43,20 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ServiceSelectorBox serviceSelector;
 
-    public CreateBookingDialog(BookingService bookingService) {
+    private VBox contentBox;
+
+    public CreateBookingDialog(BookingService bookingService, ServicePackageService servicePackageService) {
+        this(bookingService, servicePackageService, null);
+    }
+
+    public CreateBookingDialog(BookingService bookingService,
+                               ServicePackageService servicePackageService,
+                               Booking previous) {
         this.bookingService = bookingService;
+
+        this.servicePackageSelector = new ServicePackageSelectorBox(
+                servicePackageService.findAll());
+
         this.serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
 
         errorLabel.getStyleClass().add("text-error");
@@ -57,6 +73,10 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         populateStartTimes();
 
         setContent();
+
+        if (previous != null) {
+            prefillFrom(previous);
+        }
     }
 
     private void populateStartTimes() {
@@ -69,19 +89,56 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         }
     }
 
+    private void prefillFrom(Booking previous) {
+        vehicleComboBox.getItems().stream()
+                .filter(v -> v.getId() == previous.getVehicleId())
+                .findFirst()
+                .ifPresent(vehicleComboBox::setValue);
+
+        mechanicComboBox.getItems().stream()
+                .filter(m -> m.getId() == previous.getMechanicId())
+                .findFirst()
+                .ifPresent(mechanicComboBox::setValue);
+
+        descriptionTextField.setText(previous.getDescription());
+
+        serviceSelector.selectServiceIds(
+                bookingService.listServiceItemIds(previous.getId()));
+
+        showPriceChangeNotice(bookingService.findPriceChanges(previous.getId()));
+    }
+
+    private void showPriceChangeNotice(List<BookingPriceChange> changes) {
+        if (changes.isEmpty()) return;
+
+        StringBuilder sb = new StringBuilder(lang.get("booking.priceChangedNotice"));
+        for (BookingPriceChange c : changes) {
+            sb.append("\n• ").append(c.getServiceName())
+                    .append(": ").append(c.getPreviousPrice())
+                    .append(" → ").append(c.getCurrentPrice());
+        }
+
+        Label notice = new Label(sb.toString());
+        notice.setWrapText(true);
+        notice.getStyleClass().add("text-warning");
+
+        contentBox.getChildren().add(1, notice);
+    }
+
     private void setContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
-        content.getChildren().addAll(
+        contentBox = new VBox(12);
+        contentBox.setPadding(new Insets(16));
+        contentBox.getChildren().addAll(
                 errorLabel,
                 new Label(lang.get("table.vehicle")), vehicleComboBox,
                 new Label(lang.get("table.date")), datePicker,
                 new Label(lang.get("table.startTime")), startTimeComboBox,
                 new Label(lang.get("table.desc")), descriptionTextField,
                 new Label(lang.get("table.mechanic")), mechanicComboBox,
+                new Label(lang.get("servicePackage.label")), servicePackageSelector,
                 new Label(lang.get("table.serviceItem")), serviceSelector
         );
-        getDialogPane().setContent(content);
+        getDialogPane().setContent(contentBox);
 
         handleInput();
     }
@@ -90,6 +147,16 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         setConverters();
         inputEventListeners();
+
+        servicePackageSelector.selectedPackageProperty().addListener((observable, oldPackage, newPackage) -> {
+            if (newPackage != null) {
+                List<Integer> ids = new ArrayList<>();
+                for (ServiceItem service : newPackage.getServices()) {
+                    ids.add(service.getId());
+                }
+                serviceSelector.selectServiceIds(ids);
+            }
+        });
 
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
         saveButton.getStyleClass().addAll("btn", "btn-primary");
@@ -149,7 +216,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             }
 
             if (serviceSelector.isEmpty()) {
-                //getSelectedItems().isEmpty()
                 errorLabel.setText(lang.get("error.serviceSelect"));
                 serviceSelector.setError(true);
                 event.consume();
@@ -283,6 +349,5 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         public List<Integer> getServiceItemIds() {
             return serviceItemIds;
         }
-
     }
 }

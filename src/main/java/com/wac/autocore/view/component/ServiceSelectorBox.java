@@ -2,6 +2,7 @@ package com.wac.autocore.view.component;
 
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.service.ServicePackageService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;

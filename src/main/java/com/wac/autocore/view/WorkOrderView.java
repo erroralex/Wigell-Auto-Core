@@ -1,11 +1,12 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.model.WorkOrderItem;
+import com.wac.autocore.model.*;
+import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
+import com.wac.autocore.view.dialog.EditWorkOrderDialog;
+import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleStringProperty;
@@ -23,6 +24,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * <b>WorkOrderView</b>
@@ -30,6 +32,8 @@ import java.util.Map;
  * jobben för vald arbetsorder med namn, tid och avtalat pris.</p>
  */
 public class WorkOrderView extends BaseView {
+
+    private static final String NO_VALUE = "-";
 
     private final TableView<WorkOrder> workOrderTable = new TableView<>();
     private final ObservableList<WorkOrder> masterData = FXCollections.observableArrayList();
@@ -40,15 +44,27 @@ public class WorkOrderView extends BaseView {
 
     private final Map<Integer, Booking> bookingsById = new HashMap<>();
     private final Map<Integer, Mechanic> mechanicsById = new HashMap<>();
+    private final Map<Integer, Vehicle> vehiclesById = new HashMap<>();
 
     private final WorkOrderService workOrderService;
+    private final CustomerService customerService;
+    private final VehicleService vehicleService;
 
     private final Button btnStart = new Button(lang.get("btn.start"));
     private final Button btnComplete = new Button(lang.get("btn.complete"));
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
+    private final Button btnQuickDraft = new Button(lang.get("btn.quickDraft"));
+    private final Button btnConfirm = new Button(lang.get("btn.confirm"));
+    private final Button btnCancel = new Button(lang.get("btn.cancel"));
+    private final Button btnReopen = new Button(lang.get("btn.reopen"));
+    private final Button btnEdit = new Button(lang.get("btn.edit"));
 
-    public WorkOrderView(WorkOrderService workOrderService) {
+    public WorkOrderView(WorkOrderService workOrderService,
+                         CustomerService customerService,
+                         VehicleService vehicleService) {
         this.workOrderService = workOrderService;
+        this.customerService = customerService;
+        this.vehicleService = vehicleService;
         refreshData();
         initializeTable();
         initializeJobTable();
@@ -89,6 +105,11 @@ public class WorkOrderView extends BaseView {
             mechanicsById.put(mechanic.getId(), mechanic);
         }
 
+        vehiclesById.clear();
+        for (Vehicle vehicle : vehicleService.findAll()) {
+            vehiclesById.put(vehicle.getId(), vehicle);
+        }
+
         masterData.setAll(workOrderService.findAll());
     }
 
@@ -99,22 +120,54 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getId()))
         );
 
+        // Regnummer räcker för att känna igen bilen vid disken
+        TableColumn<WorkOrder, String> vehicleCol = new TableColumn<>(lang.get("table.vehicle"));
+        vehicleCol.setCellValueFactory(c -> {
+            Integer vehicleId = c.getValue().getVehicleId();
+            if (vehicleId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Vehicle vehicle = vehiclesById.get(vehicleId);
+            String display = vehicle != null
+                    ? vehicle.getRegistrationNumber()
+                    : lang.get("common.unknownId", vehicleId);
+            return new SimpleStringProperty(display);
+        });
+
         TableColumn<WorkOrder, String> bookingCol = new TableColumn<>(lang.get("table.bookingTask"));
         bookingCol.setCellValueFactory(c -> {
-            Booking booking = bookingsById.get(c.getValue().getBookingId());
+            Integer bookingId = c.getValue().getBookingId();
+            if (bookingId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Booking booking = bookingsById.get(bookingId);
             String display = booking != null
                     ? booking.getDescription()
-                    : lang.get("common.unknownId", c.getValue().getBookingId());
+                    : lang.get("common.unknownId", bookingId);
             return new SimpleStringProperty(display);
         });
 
         TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>(lang.get("table.mechanic"));
         mechanicCol.setCellValueFactory(c -> {
-            Mechanic mechanic = mechanicsById.get(c.getValue().getMechanicId());
+            Integer mechanicId = c.getValue().getMechanicId();
+            if (mechanicId == null) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            Mechanic mechanic = mechanicsById.get(mechanicId);
             String display = mechanic != null
                     ? mechanic.getName()
-                    : lang.get("common.unknownId", c.getValue().getMechanicId());
+                    : lang.get("common.unknownId", mechanicId);
             return new SimpleStringProperty(display);
+        });
+
+        // Planerade ordrar saknar beskrivning; radbrytningar visas som mellanslag i tabellen
+        TableColumn<WorkOrder, String> problemCol = new TableColumn<>(lang.get("table.problemDescription"));
+        problemCol.setCellValueFactory(c -> {
+            String description = c.getValue().getProblemDescription();
+            if (description == null || description.trim().isEmpty()) {
+                return new SimpleStringProperty(NO_VALUE);
+            }
+            return new SimpleStringProperty(description.trim().replaceAll("\\s*\\R\\s*", " "));
         });
 
         TableColumn<WorkOrder, String> itemCountCol = new TableColumn<>(lang.get("table.itemCount"));
@@ -122,13 +175,32 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getItems().size()))
         );
 
-        // Statusen sparas som CREATED/IN_PROGRESS/COMPLETED, bara visningen översätts
+        // Reklamationer visar vilken order de gäller, t.ex. "Reklamation för #12"
+        TableColumn<WorkOrder, String> typeCol = new TableColumn<>(lang.get("table.type"));
+        typeCol.setCellValueFactory(c -> {
+            WorkOrder order = c.getValue();
+            if (order instanceof WarrantyWorkOrder) {
+                Integer originalId = ((WarrantyWorkOrder) order).getOriginalWorkOrderId();
+                if (originalId != null) {
+                    return new SimpleStringProperty(lang.get("workOrder.warrantyFor", originalId));
+                }
+            }
+            return new SimpleStringProperty(lang.get(order.getType().getMessageKey()));
+        });
+
+        // Statusen sparas som CONFIRMED/IN_PROGRESS/COMPLETED/DRAFT, bara visningen översätts
         TableColumn<WorkOrder, String> statusCol = new TableColumn<>(lang.get("table.status"));
         statusCol.setCellValueFactory(c ->
                 new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
         );
 
-        workOrderTable.getColumns().addAll(idCol, bookingCol, mechanicCol, itemCountCol, statusCol);
+        idCol.setMaxWidth(80);
+        problemCol.setPrefWidth(300);
+
+        workOrderTable.getColumns().addAll(
+                idCol, typeCol, vehicleCol, bookingCol, mechanicCol, problemCol, itemCountCol, statusCol
+        );
+
         workOrderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         workOrderTable.setPlaceholder(new Label(lang.get("table.empty")));
         workOrderTable.setItems(masterData);
@@ -177,21 +249,52 @@ public class WorkOrderView extends BaseView {
             return;
         }
 
+        double chargeableTotal = selected.getItems().stream()
+                        .filter(WorkOrderItem::isChargeable)
+                                .mapToDouble(WorkOrderItem::getAgreedPrice)
+                                        .sum();
+
         jobData.setAll(selected.getItems());
         jobSummaryLabel.setText(
-                lang.get("workOrder.total", selected.getTotalPrice())
+                lang.get("workOrder.total", chargeableTotal)
                         + "  |  "
                         + lang.get("workOrder.totalDuration", selected.getTotalDurationMinutes())
         );
     }
 
-    // Mekaniker och tjänster ärvs från bokningen, så dialogen väljer bara bokning
+    // Dialogen låter användaren välja typ (planerad, drop-in eller reklamation) och skapa arbetsordern
     private void openCreateWorkOrderDialog() {
-        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(workOrderService.findBookableBookings());
+        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
+                workOrderService.findBookableBookings(),
+                workOrderService.findAllBookings(),
+                workOrderService.findCompletedWorkOrders(),
+                workOrderService.findAllServiceItems(),
+                customerService,
+                vehicleService
+        );
 
-        dialog.showAndWait().ifPresent(booking -> {
+        dialog.showAndWait().ifPresent(result -> {
             try {
-                workOrderService.createWorkOrder(booking.getId());
+                switch (result.getType()) {
+                    case PLANNED:
+                        workOrderService.createWorkOrder(result.getBooking().getId());
+                        break;
+                    case DROP_IN:
+                        workOrderService.createDropIn(
+                                result.getVehicle().getId(),
+                                result.getProblemDescription(),
+                                result.getServiceItemIds()
+                        );
+                        break;
+                    case WARRANTY:
+                        workOrderService.createWarranty(
+                                result.getOriginalWorkOrder().getId(),
+                                result.getProblemDescription()
+                        );
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown work order type: " + result.getType());
+                }
                 refreshData();
                 AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
             } catch (RuntimeException e) {
@@ -204,64 +307,134 @@ public class WorkOrderView extends BaseView {
         String btnPrimary = "btn-primary";
 
         btnStart.getStyleClass().addAll("btn", btnPrimary);
-        btnStart.setOnAction(event -> startSelectedWorkOrder());
+        btnStart.setOnAction(event -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
 
         btnComplete.getStyleClass().addAll("btn", btnPrimary);
-        btnComplete.setOnAction(event -> completeSelectedWorkOrder());
+        btnComplete.setOnAction(event -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
 
         btnCreate.getStyleClass().addAll("btn", btnPrimary);
         btnCreate.setOnAction(event -> openCreateWorkOrderDialog());
 
-        HBox box = new HBox(15, btnStart, btnComplete, btnCreate);
+        btnQuickDraft.getStyleClass().addAll("btn", btnPrimary);
+        btnQuickDraft.setOnAction(event -> openQuickDraftDialog());
+
+        btnEdit.getStyleClass().addAll("btn", btnPrimary);
+        btnEdit.setOnAction(event -> openEditWorkOrderDialog());
+
+        btnConfirm.getStyleClass().addAll("btn", btnPrimary);
+        btnConfirm.setOnAction(e -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
+
+        btnCancel.getStyleClass().addAll("btn", btnPrimary);
+        btnCancel.setOnAction(e -> cancelSelectedWorkOrder());
+
+        btnReopen.getStyleClass().addAll("btn", btnPrimary);
+        btnReopen.setOnAction(e -> runAction(workOrderService::reopenWorkOrder, "workOrder.reopened", "workOrder.reopenedMsg"));
+
+        HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
         box.setPadding(new Insets(15, 0, 0, 0));
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
     }
 
+    private void openQuickDraftDialog() {
+        QuickDraftWorkOrderDialog dialog =
+                new QuickDraftWorkOrderDialog(workOrderService, customerService, vehicleService);
+
+        dialog.showAndWait().ifPresent(draft -> {
+            refreshData();
+            selectWorkOrder(draft.getId());
+        });
+    }
+
+    private void selectWorkOrder(int id) {
+        masterData.stream()
+                .filter(workOrder -> workOrder.getId() == id)
+                .findFirst()
+                .ifPresent(workOrder -> {
+                    workOrderTable.getSelectionModel().select(workOrder);
+                    workOrderTable.scrollTo(workOrder);
+                });
+    }
+
     private void updateButtonStates(WorkOrder selected) {
-        if (selected == null) {
-            btnStart.setDisable(true);
-            btnComplete.setDisable(true);
-            return;
-        }
-        String status = selected.getStatus();
-        btnStart.setDisable(!WorkOrderService.STATUS_CREATED.equals(status));
-        btnComplete.setDisable(!WorkOrderService.STATUS_IN_PROGRESS.equals(status));
+        enableIfAllowed(btnConfirm, selected, WorkOrderStatus.CONFIRMED);
+        enableIfAllowed(btnStart, selected, WorkOrderStatus.IN_PROGRESS);
+        enableIfAllowed(btnComplete, selected, WorkOrderStatus.COMPLETED);
+        enableIfAllowed(btnCancel, selected, WorkOrderStatus.CANCELLED);
+        enableIfAllowed(btnReopen, selected, WorkOrderStatus.DRAFT);
+        btnEdit.setDisable(selected == null || !selected.getStatus().isEditable());
     }
 
-    private void startSelectedWorkOrder() {
+    private void enableIfAllowed(Button button, WorkOrder selected, WorkOrderStatus target) {
+        button.setDisable(selected == null || !selected.getStatus().canChangeTo(target));
+    }
+
+    // Gemensam hantering för alla åtgärder: kör servicen, laddar om tabellen och visar resultatet.
+    // Fel (t.ex. valideringsfel vid Confirm) visas via ErrorFacade.
+    private void runAction(Consumer<WorkOrder> action, String titleKey, String messageKey) {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             return;
         }
 
-        if (workOrderService.startWorkOrder(selected.getId())) {
-            refreshData();
-            AlertHelper.showInfo(
-                    lang.get("workOrder.started"),
-                    lang.get("workOrder.startedMsg"));
-        } else {
-            AlertHelper.showError(
-                    lang.get("error.workOrderStart"),
-                    lang.get("error.workOrderStartMsg"));
+        try {
+            action.accept(selected);
+            refreshAfterAction(selected.getId());
+            AlertHelper.showInfo(lang.get(titleKey), lang.get(messageKey));
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+            refreshAfterAction(selected.getId());
         }
     }
 
-    private void completeSelectedWorkOrder() {
+    // Tabellen byter ut alla rader vid refresh och markeringen försvinner. Vi markerar samma order igen
+    // så att knapparna återspeglar den nya statusen.
+    private void refreshAfterAction(int workOrderId) {
+        refreshData();
+        selectWorkOrder(workOrderId);
+        WorkOrder current = workOrderTable.getSelectionModel().getSelectedItem();
+        updateButtonStates(workOrderTable.getSelectionModel().getSelectedItem());
+        showJobs(current);
+    }
+
+    private void cancelSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             return;
         }
 
-        if (workOrderService.completeWorkOrder(selected.getId())) {
-            refreshData();
-            AlertHelper.showInfo(
-                    lang.get("workOrder.completed"),
-                    lang.get("workOrder.completedMsg"));
-        } else {
-            AlertHelper.showError(
-                    lang.get("error.workOrderComplete"),
-                    lang.get("error.workOrderCompleteMsg"));
+        boolean confirmed = AlertHelper.showConfirmation(
+                lang.get("workOrder.cancelConfirmTitle"),
+                lang.get("workOrder.cancelConfirmMsg", selected.getId()));
+        if (confirmed) {
+            runAction(workOrderService::cancelWorkOrder, "workOrder.cancelled", "workOrder.cancelledMsg");
         }
+    }
+
+    private void openEditWorkOrderDialog() {
+        WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) return;
+
+        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, workOrderService);
+
+        dialog.showAndWait().ifPresent(result -> {
+            try {
+                workOrderService.updateWorkOrder(
+                        selected,
+                        result.getServiceItemIds(),
+                        result.getMechanic() == null ? null : result.getMechanic().getId(),
+                        result.getPlannedDate(),
+                        result.getCustomerInstructions(),
+                        result.getComments(),
+                        result.getChargeFlags()
+                );
+                refreshAfterAction(selected.getId());
+                AlertHelper.showInfo(lang.get("workOrder.updated"), lang.get("workOrder.updatedMsg"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+                refreshAfterAction(selected.getId());
+            }
+        });
     }
 }

@@ -4,6 +4,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 public class BookingView extends BaseView {
 
     private final BookingService bookingService;
+    private final ServicePackageService servicePackageService;
 
     private final ObservableList<Booking> bookingObservableList;
 
@@ -46,9 +48,11 @@ public class BookingView extends BaseView {
 
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
     private final Button btnEditServices = new Button(lang.get("btn.edit"));
+    private final Button btnCopyBooking = new Button(lang.get("btn.newBookingFromThis"));
 
-    public BookingView(BookingService bookingService) {
+    public BookingView(BookingService bookingService, ServicePackageService servicePackageService) {
         this.bookingService = bookingService;
+        this.servicePackageService = servicePackageService;
         this.bookingObservableList = FXCollections.observableArrayList(bookingService.listAll());
 
         vehicleMap = bookingService.listAllVehicles()
@@ -61,6 +65,8 @@ public class BookingView extends BaseView {
         initializeTable();
 
         initView();
+
+
     }
 
     @Override
@@ -73,12 +79,6 @@ public class BookingView extends BaseView {
         VBox.setVgrow(bookingTableView, Priority.ALWAYS);
         getChildren().addAll(createButtonBar(), bookingTableView);
     }
-
-   /* private void renderDescText() {
-        Label description = new Label(lang.get("booking.sortInfo"));
-        description.getStyleClass().add("text-secondary");
-        getChildren().add(description);
-    }*/
 
     private void initializeTable() {
         bookingTableView = new TableView<>();
@@ -134,7 +134,11 @@ public class BookingView extends BaseView {
         bookingTableView.getSortOrder().add(dateColumn);
 
         bookingTableView.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> btnEditServices.setDisable(newValue == null)
+                (obs, oldVal, newVal) -> {
+            boolean none = newVal == null;
+            btnEditServices.setDisable(none);
+            btnCopyBooking.setDisable(none);
+                }
         );
     }
 
@@ -169,14 +173,18 @@ public class BookingView extends BaseView {
         btnEditServices.setOnAction(event -> openEditServicesDialog());
         btnEditServices.setDisable(true);
 
-        HBox hBox = new HBox(15, btnCreate, btnEditServices);
+        btnCopyBooking.getStyleClass().addAll("btn", btnPrimary);
+        btnCopyBooking.setOnAction(e -> openCopyBookingDialog());
+        btnCopyBooking.setDisable(true);
+
+        HBox hBox = new HBox(15, btnCreate, btnEditServices, btnCopyBooking);
         hBox.setPadding(new Insets(15, 0, 0, 0));
         hBox.setAlignment(Pos.CENTER_LEFT);
         return hBox;
     }
 
     private void openCreateBookingDialog() {
-        CreateBookingDialog dialog = new CreateBookingDialog(bookingService);
+        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService);
 
         dialog.showAndWait().ifPresent(result -> {
             try {
@@ -192,6 +200,35 @@ public class BookingView extends BaseView {
                 bookingObservableList.setAll(bookingService.listAll());
                 AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
             } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+            }
+        });
+    }
+
+    private void openCopyBookingDialog() {
+        Booking selected = bookingTableView.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService, selected);
+
+        dialog.showAndWait().ifPresent(result -> {
+            try {
+                bookingService.createFromPrevious(
+                        selected.getId(),
+                        result.getDate(),
+                        result.getStartTime(),
+                        result.getMechanicId(),
+                        result.getVehicleId(),
+                        result.getDescription(),
+                        result.getServiceItemIds()
+                );
+
+                bookingObservableList.setAll(bookingService.listAll());
+                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
+            } catch(RuntimeException e) {
                 ErrorFacade.handle(e);
             }
         });

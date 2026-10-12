@@ -5,12 +5,14 @@ import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
-import com.wac.autocore.repository.ServiceItemRepository;
+import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
+import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -18,29 +20,31 @@ import java.util.stream.Collectors;
  * <p>Ansvar: Affärslogik för arbetsordrar: Skapa, starta och avsluta, samt hämtning för vyerna.</p>
  * <p>{@link #createWorkOrder(int)} kastar ett {@code DomainException} med språknyckel när
  * ordern inte kan skapas, så att vyn kan visa rätt orsak via {@code ErrorFacade}.
- * {@link #startWorkOrder(int)} och {@link #completeWorkOrder(int)} returnerar {@code false}
+ * {@link #startWorkOrder(WorkOrder)} och {@link #completeWorkOrder(WorkOrder)} kastar {@code IllegalStatusTransitionException}
  * när övergången inte är tillåten.</p>
  */
 @Service
 @Transactional
 public class WorkOrderService {
 
-    public static final String STATUS_CREATED = "CREATED";
-    public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
-    public static final String STATUS_COMPLETED = "COMPLETED";
-
     private static final String BOOKING_STATUS_WORK_ORDER_CREATED = "WORK_ORDER_CREATED";
 
     private final WorkOrderRepository workOrderRepository;
     private final BookingRepository bookingRepository;
     private final MechanicRepository mechanicRepository;
+    private final VehicleRepo vehicleRepo;
+    private final ServiceItemRepository serviceItemRepository;
 
     public WorkOrderService(WorkOrderRepository workOrderRepository,
                             BookingRepository bookingRepository,
-                            MechanicRepository mechanicRepository) {
+                            MechanicRepository mechanicRepository,
+                            VehicleRepo vehicleRepo,
+                            ServiceItemRepository serviceItemRepository) {
         this.workOrderRepository = workOrderRepository;
         this.bookingRepository = bookingRepository;
         this.mechanicRepository = mechanicRepository;
+        this.vehicleRepo = vehicleRepo;
+        this.serviceItemRepository = serviceItemRepository;
     }
 
     @Transactional(readOnly = true)
@@ -63,11 +67,17 @@ public class WorkOrderService {
         return workOrderRepository.findCompletedNotInvoiced();
     }
 
+    // Hämtar alla arbetsordrar med status "COMPLETED" för att kunna skapa en garantiorder.
+    @Transactional(readOnly = true)
+    public List<WorkOrder> findCompletedWorkOrders() {
+        return workOrderRepository.findByStatus(WorkOrderStatus.COMPLETED);
+    }
+
     @Transactional(readOnly = true)
     public List<Booking> findBookableBookings() {
         return bookingRepository.findAll().stream()
                 .filter(booking -> Booking.STATUS_BOOKED.equals(booking.getStatus()))
-                .filter(booking -> !workOrderRepository.existsByBookingId(booking.getId()))
+                .filter(booking -> !workOrderRepository.existsByBookingIdAndStatusNot(booking.getId(), WorkOrderStatus.CANCELLED))
                 .collect(Collectors.toList());
     }
 
@@ -81,12 +91,18 @@ public class WorkOrderService {
         return mechanicRepository.findAll();
     }
 
-    // Skapar en arbetsorder för en bokning. Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
+    @Transactional(readOnly = true)
+    public List<ServiceItem> findAllServiceItems() {
+        return serviceItemRepository.findAll();
+    }
+
+    // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
+    // Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
     public WorkOrder createWorkOrder(int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
 
-        if (workOrderRepository.existsByBookingId(bookingId)) {
+        if (workOrderRepository.existsByBookingIdAndStatusNot(bookingId, WorkOrderStatus.CANCELLED)) {
             throw new ValidationException("error.workOrderExists", String.valueOf(bookingId));
         }
 
@@ -99,46 +115,158 @@ public class WorkOrderService {
             throw new EntityNotFoundException("Mechanic", booking.getMechanicId());
         }
 
-        WorkOrder workOrder = WorkOrder.createFrom(booking);
+        WorkOrder workOrder = PlannedWorkOrder.createFrom(booking);
 
         booking.setStatus(BOOKING_STATUS_WORK_ORDER_CREATED);
         bookingRepository.save(booking);
         return workOrderRepository.save(workOrder);
     }
 
-    // Startar en arbetsorder. Tillåts bara från status CREATED.
-    public boolean startWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findById(workOrderId);
-        if (workOrder == null || !STATUS_CREATED.equals(workOrder.getStatus())) {
-            return false;
-        }
+    // Skapar en garantiorder från en tidigare arbetsorder och sparar den som utkast.
+    public WarrantyWorkOrder createWarranty(int originalWorkOrderId,
+                                            String problemDescription) {
+        WorkOrder original = workOrderRepository.findById(originalWorkOrderId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "WorkOrder", originalWorkOrderId
+                ));
 
-        workOrder.setStatus(STATUS_IN_PROGRESS);
+        WarrantyWorkOrder warranty =
+                WarrantyWorkOrder.draft(original, problemDescription);
 
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(STATUS_IN_PROGRESS);
-            bookingRepository.save(booking);
-        });
-
-        workOrderRepository.save(workOrder);
-        return true;
+        return workOrderRepository.save(warranty);
     }
 
-    // Avslutar en arbetsorder. Tillåts bara från status IN_PROGRESS.
-    public boolean completeWorkOrder(int workOrderId) {
-        WorkOrder workOrder = findById(workOrderId);
-        if (workOrder == null || !STATUS_IN_PROGRESS.equals(workOrder.getStatus())) {
-            return false;
+    // Skapar en drop-in-order (bil utan bokning) och sparar den som utkast.
+    // Servicen kontrollerar att fordonet finns, modellen validerar resten.
+    public DropInWorkOrder createDropIn(int vehicleId,
+                                        String problemDescription,
+                                        List<Integer> serviceItemIds) {
+        if (!vehicleRepo.existsById(vehicleId)) {
+            throw new EntityNotFoundException("Vehicle", vehicleId);
         }
 
-        workOrder.setStatus(STATUS_COMPLETED);
+        // Tjänsterna kopieras som snapshots så senare prisändringar inte påverkar ordern.
+        DropInWorkOrder dropIn = DropInWorkOrder.draft(vehicleId, problemDescription);
+        for (int serviceItemId : serviceItemIds) {
+            ServiceItem service = serviceItemRepository.findById(serviceItemId)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ServiceItem", serviceItemId, "error.serviceNotFound"));
+            dropIn.addService(service);
+        }
+        return workOrderRepository.save(dropIn);
+    }
 
-        bookingRepository.findById(workOrder.getBookingId()).ifPresent(booking -> {
-            booking.setStatus(STATUS_COMPLETED);
+    public void startWorkOrder(WorkOrder workOrder) {
+        workOrder.start();
+        syncBookingStatus(workOrder, WorkOrderStatus.IN_PROGRESS);
+        workOrderRepository.save(workOrder);
+    }
+
+    public void completeWorkOrder(WorkOrder workOrder) {
+        workOrder.complete();
+        syncBookingStatus(workOrder, WorkOrderStatus.COMPLETED);
+        workOrderRepository.save(workOrder);
+    }
+
+
+
+    // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
+    private void syncBookingStatus(WorkOrder workOrder, WorkOrderStatus status) {
+        Integer bookingId = workOrder.getBookingId();
+        if (bookingId == null) {
+            return;
+        }
+
+        bookingRepository.findById(bookingId).ifPresent(booking -> {
+            booking.setStatus(status.name());
             bookingRepository.save(booking);
         });
+    }
+
+    // Sätter bokningens status direkt. Används när ordern släpper bokningen eller återöppnas.
+    private void setBookingStatus(WorkOrder workOrder, String bookingStatus) {
+        Integer bookingId = workOrder.getBookingId();
+        if (bookingId == null) {
+            return; // drop-in och reklamation saknar bokning
+        }
+        bookingRepository.findById(bookingId).ifPresent(booking -> {
+            booking.setStatus(bookingStatus);
+            bookingRepository.save(booking);
+        });
+    }
+
+    public void confirmWorkOrder(WorkOrder workOrder) {
+        workOrder.confirm();
+        syncBookingStatus(workOrder, WorkOrderStatus.CONFIRMED);
+        workOrderRepository.save(workOrder);
+    }
+
+    // Återöppnar ordern som utkast och sätter bokningen till BOOKED så att den går att ändra.
+    // Om ordern är avbruten måste bokningen först ha blivit ledig: har bokningen redan fått en ny order
+    // som inte är avbruten (t.ex efter att den avbrutna ordern ersatts) blockeras återöppningen,
+    // annars skulle bokningen få två pågående ordrar.
+    // Kontrollen sker före reopen(), annars skulle ordern räknas som aktiv.
+    public void reopenWorkOrder(WorkOrder workOrder) {
+        Integer bookingId = workOrder.getBookingId();
+        if (bookingId != null && workOrder.getStatus() == WorkOrderStatus.CANCELLED
+                && workOrderRepository.existsByBookingIdAndStatusNot(bookingId, WorkOrderStatus.CANCELLED)) {
+            throw new ValidationException("error.workOrder.bookingHasActiveOrder", String.valueOf(bookingId));
+        }
+        workOrder.reopen();
+        setBookingStatus(workOrder, Booking.STATUS_BOOKED);
+        workOrderRepository.save(workOrder);
+    }
+
+    // Avbryter ordern och släpper bokningen (BOOKED), så den kan få en ny order, t.ex med annan mekaniker.
+    public void cancelWorkOrder(WorkOrder workOrder) {
+        workOrder.cancel();
+        setBookingStatus(workOrder, Booking.STATUS_BOOKED);
+        workOrderRepository.save(workOrder);
+    }
+
+    public void updateWorkOrder(WorkOrder workOrder, List<Integer> serviceItemIds,
+                                Integer mechanicId, LocalDate plannedDate,
+                                String customerInstructions, String comments,
+                                Map<Integer, Boolean> chargeFlags) {
+        if (!workOrder.getStatus().isEditable()) {
+            throw new ValidationException("error.workOrder.notEditable", String.valueOf(workOrder.getId()));
+        }
+        if (mechanicId != null && !mechanicRepository.existsById(mechanicId)) {
+            throw new EntityNotFoundException("Mechanic", mechanicId);
+        }
+
+        Set<Integer> wanted = new HashSet<>(serviceItemIds);
+        Set<Integer> existing = workOrder.getItems().stream()
+                .map(WorkOrderItem::getServiceItemId)
+                .collect(Collectors.toSet());
+
+        for (int id : serviceItemIds) {
+            if (!existing.contains(id)) {
+                ServiceItem service = serviceItemRepository.findById(id)
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "ServiceItem", id, "error.serviceNotFound"));
+                workOrder.addItem(service);
+            }
+        }
+        for (int id : existing) {
+            if (!wanted.contains(id)) {
+                workOrder.removeItem(id);
+            }
+        }
+
+        if (workOrder instanceof WarrantyWorkOrder) {
+            for (WorkOrderItem item : workOrder.getItems()) {
+                int id = item.getServiceItemId();
+                workOrder.setItemChargeable(id, chargeFlags.getOrDefault(id, false));
+            }
+        }
+
+        workOrder.setMechanicId(mechanicId);
+        workOrder.setPlannedDate(plannedDate);
+        workOrder.setCustomerInstructions(customerInstructions);
+        workOrder.setComments(comments);
 
         workOrderRepository.save(workOrder);
-        return true;
     }
+
 }

@@ -45,6 +45,8 @@ public class AutoCoreApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         GlobalExceptionHandler.install();
+
+
         try {
             AutoCoreApp.primaryStage = primaryStage;
 
@@ -56,6 +58,7 @@ public class AutoCoreApp extends Application {
             WorkOrderService workOrderService = springContext.getBean(WorkOrderService.class);
             ServiceItemService serviceItemService = springContext.getBean(ServiceItemService.class);
             MechanicService mechanicService = springContext.getBean(MechanicService.class);
+            ServicePackageService servicePackageService = springContext.getBean(ServicePackageService.class);
 
             MainLayout layout = new MainLayout(
                     invoiceService,
@@ -65,7 +68,8 @@ public class AutoCoreApp extends Application {
                     vehicleService,
                     workOrderService,
                     serviceItemService,
-                    mechanicService
+                    mechanicService,
+                    servicePackageService
             );
 
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
