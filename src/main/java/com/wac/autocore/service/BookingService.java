@@ -84,15 +84,7 @@ public class BookingService {
 
         return bookingRepository.save(booking);
     }
-
-    @Transactional
-    public BookingCopyResult createFromPrevious(int previousBookingId,
-                                                LocalDate date,
-                                                LocalTime startTime,
-                                                Integer mechanicId) {
-        return createFromPrevious(previousBookingId, date, startTime,
-                mechanicId, null, null, null);
-    }
+    
 
     // Skapar en ny bokning från en tidigare med dagens tjänstepriser, utan att ändra originalet.
     // Återanvänder originalets mekaniker om mechanicId är null och kontrollerar dubbelbokning före sparandet.
