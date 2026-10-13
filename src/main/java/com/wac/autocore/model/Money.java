@@ -17,37 +17,103 @@ public final class Money implements Comparable<Money> {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-    public static Money of(BigDecimal value) { return new Money(value); }
-    public static Money of(double value) { return new Money(BigDecimal.valueOf(value)); }
+    public static Money of(BigDecimal value) {
+        return new Money(value);
+    }
+
+    public static Money of(double value) {
+        return new Money(BigDecimal.valueOf(value));
+    }
+
     public static Money of(String text) {
         Objects.requireNonNull(text, "Money text must not be null");
         return new Money(new BigDecimal(text.trim().replace(',', '.')));
     }
 
     public static Money sum(Collection<Money> values) {
+        Objects.requireNonNull(values, "Money collection must not be null");
+
         Money total = ZERO;
-        for (Money m : values) total = total.add(m);
+
+        for (Money value : values) {
+            total = total.add(
+                    Objects.requireNonNull(
+                            value, "Money collection must not contain null values"
+                    )
+            );
+        }
+
         return total;
     }
 
-    public Money add(Money o) { return new Money(amount.add(o.amount)); }
-    public Money subtract(Money o) { return new Money(amount.subtract(o.amount)); }
-    public Money multiply(BigDecimal factor) { return new Money(amount.multiply(factor)); }
-    public Money min(Money o) { return compareTo(o) <= 0 ? this : o; }
-
-    public boolean isNegative() { return amount.signum() < 0; }
-    public boolean isZero() { return amount.signum() == 0; }
-    public boolean isPositive() { return amount.signum() > 0; }
-    public BigDecimal toBigDecimal() { return amount; }
-    public double toDouble() { return amount.doubleValue(); } // bara för konvertern
-
-    @Override public int compareTo(Money o) { return amount.compareTo(o.amount); }
-
-    @Override public boolean equals(Object o) {
-        return this == o || (o instanceof Money && amount.equals(((Money) o).amount));
+    public Money add(Money other) {
+        Objects.requireNonNull(other, "Money to add must not be null");
+        return new Money(amount.add(other.amount));
     }
 
-    @Override public int hashCode() { return amount.hashCode(); }
-    @Override public String toString() { return amount.toPlainString(); }
+    public Money subtract(Money other) {
+        Objects.requireNonNull(other, "Money to subtract must not be null");
+        return new Money(amount.subtract(other.amount));
+    }
+
+    public Money multiply(BigDecimal factor) {
+        Objects.requireNonNull(factor, "Multiplication factor must not be null");
+        return new Money(amount.multiply(factor));
+    }
+
+    public Money min(Money other) {
+        Objects.requireNonNull(other, "Money to compare must not be null");
+        return compareTo(other) <= 0 ? this : other;
+    }
+
+    public boolean isNegative() {
+        return amount.signum() < 0;
+    }
+
+    public boolean isZero() {
+        return amount.signum() == 0;
+    }
+
+    public boolean isPositive() {
+        return amount.signum() > 0;
+    }
+
+    public BigDecimal toBigDecimal() {
+        return amount;
+    }
+
+    public double toDouble() { // Bara för konvertern så att den kan sparas i databasen som en double. Använd inte i affärslogik.
+        return amount.doubleValue();
+    }
+
+    @Override
+    public int compareTo(Money other) {
+        Objects.requireNonNull(other, "Money to compare must not be null");
+        return amount.compareTo(other.amount);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof Money)) {
+            return false;
+        }
+
+        Money other = (Money) obj;
+        return amount.equals(other.amount);
+    }
+
+    @Override
+    public int hashCode() {
+        return amount.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return amount.toPlainString();
+    }
 
 }
