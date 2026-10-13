@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +24,8 @@ public class ServiceItemService {
     }
 
     @Transactional
-    public ServiceItem updatePrice(int id, double newPrice) {
-        if (newPrice <= 0) {
+    public ServiceItem updatePrice(int id, Money newPrice) {
+        if (newPrice == null || !newPrice.isPositive()) {
             throw new ValidationException("error.serviceItem.invalidPrice");
         }
         ServiceItem item = serviceItemRepo.findById(id)

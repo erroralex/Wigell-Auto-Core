@@ -1,9 +1,12 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.data.MoneyConverter;
 import com.wac.autocore.exception.PricingIntegrityException;
 import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.model.value.Money;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Embeddable;
 import java.util.Objects;
 
@@ -24,7 +27,8 @@ public class WorkOrderItem {
     private String serviceName;
 
     @Column(name = "agreed_price", nullable = false)
-    private double agreedPrice;
+    @Convert(converter = MoneyConverter.class)
+    private Money agreedPrice;
 
 
     @Column(name = "chargeable", columnDefinition = "INTEGER")
@@ -39,7 +43,7 @@ public class WorkOrderItem {
 
     private WorkOrderItem(int serviceItemId,
                           String serviceName,
-                          double agreedPrice,
+                          Money agreedPrice,
                           int durationMinutes) {
         this.serviceItemId = serviceItemId;
         this.serviceName = serviceName;
@@ -54,7 +58,7 @@ public class WorkOrderItem {
             throw new PricingIntegrityException("Booking line is missing");
         }
         if (bookingLine.getServiceName() == null || bookingLine.getServiceName().trim().isEmpty()
-                || bookingLine.getPriceAtBooking() < 0
+                || bookingLine.getPriceAtBooking() == null || bookingLine.getPriceAtBooking().isNegative()
                 || bookingLine.getDurationMinutes() < 0) {
             throw new PricingIntegrityException(
                     "Booking line " + bookingLine.getId() + " has an invalid snapshot");
@@ -79,7 +83,7 @@ public class WorkOrderItem {
 
         if (service.getName() == null
                 || service.getName().trim().isEmpty()
-                || service.getPrice() < 0
+                || service.getPrice() == null || service.getPrice().isNegative()
                 || service.getEstimatedMinutes() < 0) {
             throw new PricingIntegrityException("Service item " + service.getId()
                     + " has invalid catalog data");
@@ -102,7 +106,7 @@ public class WorkOrderItem {
     }
 
     /* Pris som frystes när raden skapades. */
-    public double getAgreedPrice() {
+    public Money getAgreedPrice() {
         return agreedPrice;
     }
 
@@ -125,7 +129,7 @@ public class WorkOrderItem {
         if (o == null || getClass() != o.getClass()) return false;
         WorkOrderItem that = (WorkOrderItem) o;
         return serviceItemId == that.serviceItemId
-                && Double.compare(that.agreedPrice, agreedPrice) == 0
+                && Objects.equals(agreedPrice, that.agreedPrice)
                 && durationMinutes == that.durationMinutes
                 && Objects.equals(serviceName, that.serviceName);
     }
