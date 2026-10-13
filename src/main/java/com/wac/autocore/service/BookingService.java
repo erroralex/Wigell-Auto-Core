@@ -9,6 +9,7 @@ import com.wac.autocore.model.BookingServiceItem;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -124,7 +125,7 @@ public class BookingService {
                 .map(BookingServiceItem::getServiceItemId)
                 .collect(Collectors.toList()) : serviceItemIds.stream().distinct().collect(Collectors.toList());
 
-        Map<Integer, Double> oldPrices = previous.getItems().stream()
+        Map<Integer, Money> oldPrices = previous.getItems().stream()
                 .collect(Collectors.toMap(
                         BookingServiceItem::getServiceItemId,
                         BookingServiceItem::getPriceAtBooking,
@@ -138,8 +139,8 @@ public class BookingService {
                     .orElseThrow(() -> new EntityNotFoundException(
                             "ServiceItem", serviceId, "error.serviceNotFound"));
 
-            Double oldPrice = oldPrices.get(serviceId);
-            if (oldPrice != null && Double.compare(oldPrice, currentService.getPrice()) != 0) {
+            Money oldPrice = oldPrices.get(serviceId);
+            if (oldPrice != null && !oldPrice.equals(currentService.getPrice())) {
                 priceChanges.add(new BookingPriceChange(
                         serviceId, currentService.getName(),
                         oldPrice, currentService.getPrice()));
@@ -283,7 +284,7 @@ public class BookingService {
                     ));
 
 
-            if (Double.compare(item.getPriceAtBooking(), current.getPrice()) != 0) {
+            if (item.getPriceAtBooking().compareTo(current.getPrice()) != 0) {
                 changes.add(new BookingPriceChange(
                         serviceId,
                         current.getName(),
