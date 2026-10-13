@@ -140,7 +140,7 @@ public class BookingService {
                             "ServiceItem", serviceId, "error.serviceNotFound"));
 
             Money oldPrice = oldPrices.get(serviceId);
-            if (oldPrice != null && !oldPrice.equals(currentService.getPrice())) {
+            if (oldPrice != null && oldPrice.compareTo(currentService.getPrice()) != 0) {
                 priceChanges.add(new BookingPriceChange(
                         serviceId, currentService.getName(),
                         oldPrice, currentService.getPrice()));
