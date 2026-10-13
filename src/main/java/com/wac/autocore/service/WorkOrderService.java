@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * <p>Ansvar: Affärslogik för arbetsordrar: Skapa, starta och avsluta, samt hämtning för vyerna.</p>
  * <p>{@link #createWorkOrder(int)} kastar ett {@code DomainException} med språknyckel när
  * ordern inte kan skapas, så att vyn kan visa rätt orsak via {@code ErrorFacade}.
- * {@link #startWorkOrder(WorkOrder)} och {@link #completeWorkOrder(WorkOrder)} kastar {@code IllegalStatusTransitionException}
+ * {@link #startWorkOrder(int)} och {@link #completeWorkOrder(int)} kastar {@code IllegalStatusTransitionException}
  * när övergången inte är tillåten.</p>
  */
 @Service
@@ -53,8 +53,13 @@ public class WorkOrderService {
     }
 
     @Transactional(readOnly = true)
-    public WorkOrder findById(int id) {
-        return workOrderRepository.findById(id).orElse(null);
+    public Optional<WorkOrder> findById(int id) {
+        return workOrderRepository.findById(id);
+    }
+
+    private WorkOrder require(int id) {
+        return workOrderRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("WorkOrder", id));
     }
 
     @Transactional(readOnly = true)
@@ -103,11 +108,11 @@ public class WorkOrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
 
         if (workOrderRepository.existsByBookingIdAndStatusNot(bookingId, WorkOrderStatus.CANCELLED)) {
-            throw new ValidationException("error.workOrderExists", String.valueOf(bookingId));
+            throw new ValidationException("error.workOrder.alreadyExists", String.valueOf(bookingId));
         }
 
         if (!Booking.STATUS_BOOKED.equals(booking.getStatus())) {
-            throw new ValidationException("error.workOrderBookingStatus", String.valueOf(bookingId));
+            throw new ValidationException("error.workOrder.bookingNotBookable", String.valueOf(bookingId));
         }
 
         // Mekanikern reserverades redan när bokningen skapades
@@ -125,10 +130,7 @@ public class WorkOrderService {
     // Skapar en garantiorder från en tidigare arbetsorder och sparar den som utkast.
     public WarrantyWorkOrder createWarranty(int originalWorkOrderId,
                                             String problemDescription) {
-        WorkOrder original = workOrderRepository.findById(originalWorkOrderId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "WorkOrder", originalWorkOrderId
-                ));
+        WorkOrder original = require(originalWorkOrderId);
 
         WarrantyWorkOrder warranty =
                 WarrantyWorkOrder.draft(original, problemDescription);
@@ -138,6 +140,7 @@ public class WorkOrderService {
 
     // Skapar en drop-in-order (bil utan bokning) och sparar den som utkast.
     // Servicen kontrollerar att fordonet finns, modellen validerar resten.
+    // Tjänster är valfria för ett utkast; null behandlas som "inga tjänster".
     public DropInWorkOrder createDropIn(int vehicleId,
                                         String problemDescription,
                                         List<Integer> serviceItemIds) {
@@ -145,9 +148,13 @@ public class WorkOrderService {
             throw new EntityNotFoundException("Vehicle", vehicleId);
         }
 
+        List<Integer> ids = serviceItemIds == null
+                ? Collections.<Integer>emptyList()
+                : serviceItemIds;
+
         // Tjänsterna kopieras som snapshots så senare prisändringar inte påverkar ordern.
         DropInWorkOrder dropIn = DropInWorkOrder.draft(vehicleId, problemDescription);
-        for (int serviceItemId : serviceItemIds) {
+        for (int serviceItemId : ids) {
             ServiceItem service = serviceItemRepository.findById(serviceItemId)
                     .orElseThrow(() -> new EntityNotFoundException(
                             "ServiceItem", serviceItemId, "error.serviceNotFound"));
@@ -156,19 +163,19 @@ public class WorkOrderService {
         return workOrderRepository.save(dropIn);
     }
 
-    public void startWorkOrder(WorkOrder workOrder) {
+    public void startWorkOrder(int id) {
+        WorkOrder workOrder = require(id);
         workOrder.start();
         syncBookingStatus(workOrder, WorkOrderStatus.IN_PROGRESS);
         workOrderRepository.save(workOrder);
     }
 
-    public void completeWorkOrder(WorkOrder workOrder) {
+    public void completeWorkOrder(int id) {
+        WorkOrder workOrder = require(id);
         workOrder.complete();
         syncBookingStatus(workOrder, WorkOrderStatus.COMPLETED);
         workOrderRepository.save(workOrder);
     }
-
-
 
     // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
     private void syncBookingStatus(WorkOrder workOrder, WorkOrderStatus status) {
@@ -195,7 +202,8 @@ public class WorkOrderService {
         });
     }
 
-    public void confirmWorkOrder(WorkOrder workOrder) {
+    public void confirmWorkOrder(int id) {
+        WorkOrder workOrder = require(id);
         workOrder.confirm();
         syncBookingStatus(workOrder, WorkOrderStatus.CONFIRMED);
         workOrderRepository.save(workOrder);
@@ -206,7 +214,8 @@ public class WorkOrderService {
     // som inte är avbruten (t.ex efter att den avbrutna ordern ersatts) blockeras återöppningen,
     // annars skulle bokningen få två pågående ordrar.
     // Kontrollen sker före reopen(), annars skulle ordern räknas som aktiv.
-    public void reopenWorkOrder(WorkOrder workOrder) {
+    public void reopenWorkOrder(int id) {
+        WorkOrder workOrder = require(id);
         Integer bookingId = workOrder.getBookingId();
         if (bookingId != null && workOrder.getStatus() == WorkOrderStatus.CANCELLED
                 && workOrderRepository.existsByBookingIdAndStatusNot(bookingId, WorkOrderStatus.CANCELLED)) {
@@ -218,18 +227,21 @@ public class WorkOrderService {
     }
 
     // Avbryter ordern och släpper bokningen (BOOKED), så den kan få en ny order, t.ex med annan mekaniker.
-    public void cancelWorkOrder(WorkOrder workOrder) {
+    public void cancelWorkOrder(int id) {
+        WorkOrder workOrder = require(id);
         workOrder.cancel();
         setBookingStatus(workOrder, Booking.STATUS_BOOKED);
         workOrderRepository.save(workOrder);
     }
 
-    public void updateWorkOrder(WorkOrder workOrder, List<Integer> serviceItemIds,
+    public void updateWorkOrder(int id, List<Integer> serviceItemIds,
                                 Integer mechanicId, LocalDate plannedDate,
                                 String customerInstructions, String comments,
                                 Map<Integer, Boolean> chargeFlags) {
+        WorkOrder workOrder = require(id);
+
         if (!workOrder.getStatus().isEditable()) {
-            throw new ValidationException("error.workOrder.notEditable", String.valueOf(workOrder.getId()));
+            throw new ValidationException("error.workOrder.notEditable", String.valueOf(id));
         }
         if (mechanicId != null && !mechanicRepository.existsById(mechanicId)) {
             throw new EntityNotFoundException("Mechanic", mechanicId);
@@ -240,24 +252,24 @@ public class WorkOrderService {
                 .map(WorkOrderItem::getServiceItemId)
                 .collect(Collectors.toSet());
 
-        for (int id : serviceItemIds) {
-            if (!existing.contains(id)) {
-                ServiceItem service = serviceItemRepository.findById(id)
+        for (int serviceItemId : serviceItemIds) {
+            if (!existing.contains(serviceItemId)) {
+                ServiceItem service = serviceItemRepository.findById(serviceItemId)
                         .orElseThrow(() -> new EntityNotFoundException(
-                                "ServiceItem", id, "error.serviceNotFound"));
+                                "ServiceItem", serviceItemId, "error.serviceNotFound"));
                 workOrder.addItem(service);
             }
         }
-        for (int id : existing) {
-            if (!wanted.contains(id)) {
-                workOrder.removeItem(id);
+        for (int serviceItemId : existing) {
+            if (!wanted.contains(serviceItemId)) {
+                workOrder.removeItem(serviceItemId);
             }
         }
 
         if (workOrder instanceof WarrantyWorkOrder) {
             for (WorkOrderItem item : workOrder.getItems()) {
-                int id = item.getServiceItemId();
-                workOrder.setItemChargeable(id, chargeFlags.getOrDefault(id, false));
+                int serviceItemId = item.getServiceItemId();
+                workOrder.setItemChargeable(serviceItemId, chargeFlags.getOrDefault(serviceItemId, false));
             }
         }
 
