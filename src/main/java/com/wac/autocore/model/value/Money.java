@@ -1,4 +1,4 @@
-package com.wac.autocore.model;
+package com.wac.autocore.model.value;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

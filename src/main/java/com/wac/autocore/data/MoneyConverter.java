@@ -1,6 +1,6 @@
 package com.wac.autocore.data;
 
-import com.wac.autocore.model.Money;
+import com.wac.autocore.model.value.Money;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
