@@ -53,8 +53,13 @@ public class WorkOrderService {
     }
 
     @Transactional(readOnly = true)
-    public WorkOrder findById(int id) {
-        return workOrderRepository.findById(id).orElse(null);
+    public Optional<WorkOrder> findById(int id) {
+        return workOrderRepository.findById(id);
+    }
+
+    private WorkOrder require(int id) {
+        return workOrderRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("WorkOrder", id));
     }
 
     @Transactional(readOnly = true)
@@ -167,7 +172,6 @@ public class WorkOrderService {
         syncBookingStatus(workOrder, WorkOrderStatus.COMPLETED);
         workOrderRepository.save(workOrder);
     }
-
 
 
     // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
