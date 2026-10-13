@@ -24,7 +24,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * <b>WorkOrderView</b>
@@ -371,14 +371,14 @@ public class WorkOrderView extends BaseView {
 
     // Gemensam hantering för alla åtgärder: kör servicen, laddar om tabellen och visar resultatet.
     // Fel (t.ex. valideringsfel vid Confirm) visas via ErrorFacade.
-    private void runAction(Consumer<WorkOrder> action, String titleKey, String messageKey) {
+    private void runAction(IntConsumer action, String titleKey, String messageKey) {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             return;
         }
 
         try {
-            action.accept(selected);
+            action.accept(selected.getId());
             refreshAfterAction(selected.getId());
             AlertHelper.showInfo(lang.get(titleKey), lang.get(messageKey));
         } catch (RuntimeException e) {
@@ -421,7 +421,7 @@ public class WorkOrderView extends BaseView {
         dialog.showAndWait().ifPresent(result -> {
             try {
                 workOrderService.updateWorkOrder(
-                        selected,
+                        selected.getId(),
                         result.getServiceItemIds(),
                         result.getMechanic() == null ? null : result.getMechanic().getId(),
                         result.getPlannedDate(),

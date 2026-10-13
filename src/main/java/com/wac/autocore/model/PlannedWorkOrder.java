@@ -30,7 +30,7 @@ public class PlannedWorkOrder extends WorkOrder {
      * Ordern bekräftas direkt, så att den alltid lämnar fabriken validerad och i status CONFIRMED. */
     public static PlannedWorkOrder createFrom(Booking booking) {
         if (booking == null || booking.getItems().isEmpty()) {
-            throw new ValidationException("error.workOrderNoServices");
+            throw new ValidationException("error.workOrder.bookingHasNoServices");
         }
 
         List<WorkOrderItem> copiedItems = new ArrayList<>();
@@ -52,7 +52,7 @@ public class PlannedWorkOrder extends WorkOrder {
     @Override
     protected void validateTypeSpecific() {
         if (getBookingId() == null) {
-            throw new ValidationException("error.workOrderMissingBooking");
+            throw new ValidationException("error.workOrder.missingBooking");
         }
     }
 }

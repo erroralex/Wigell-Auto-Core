@@ -1,5 +1,6 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
@@ -89,24 +90,41 @@ public class WorkOrderServiceTest {
     }
 
     @Test
-    void findById_shouldReturnNullWhenWorkOrderDoesNotExist() {
+    void findById_shouldReturnEmptyWhenWorkOrderDoesNotExist() {
         when(workOrderRepository.findById(1))
                 .thenReturn(Optional.empty());
 
-        WorkOrder result = workOrderService.findById(1);
+        Optional<WorkOrder> result = workOrderService.findById(1);
 
-        assertNull(result);
+        assertFalse(result.isPresent());
     }
 
     @Test
     void startWorkOrder_shouldStartAndSaveWorkOrder() {
+        // Arrange
         WorkOrder workOrder = mock(WorkOrder.class);
-
         when(workOrder.getBookingId()).thenReturn(null);
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(workOrder));
 
-        workOrderService.startWorkOrder(workOrder);
+        // Act
+        workOrderService.startWorkOrder(1);
 
+        // Assert
         verify(workOrder).start();
         verify(workOrderRepository).save(workOrder);
+    }
+
+    @Test
+    void startWorkOrder_shouldThrowWhenWorkOrderDoesNotExist() {
+        // Arrange
+        when(workOrderRepository.findById(99)).thenReturn(Optional.empty());
+
+        // Act
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> workOrderService.startWorkOrder(99));
+
+        // Assert
+        assertEquals("error.notFound", exception.getMessageKey());
+        verify(workOrderRepository, never()).save(any());
     }
 }
