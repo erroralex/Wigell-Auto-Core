@@ -1,5 +1,7 @@
 package com.wac.autocore.service.discount;
 
+import com.wac.autocore.model.value.Money;
+
 public interface DiscountStrategy {
-    double calculateDiscount(double amount);
+    Money calculateDiscount(Money amount);
 }
