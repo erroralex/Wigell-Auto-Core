@@ -4,6 +4,7 @@ import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.WorkOrderLockedException;
+import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -207,10 +208,10 @@ public abstract class WorkOrder {
     }
 
     // Summan av de avtalade priserna, underlag för fakturan
-    public double getTotalPrice() {
+    public Money getTotalPrice() {
         return items.stream()
-                .mapToDouble(WorkOrderItem::getAgreedPrice)
-                .sum();
+                .map(WorkOrderItem::getAgreedPrice)
+                .reduce(Money.ZERO, Money::add);
     }
 
     public int getTotalDurationMinutes() {
