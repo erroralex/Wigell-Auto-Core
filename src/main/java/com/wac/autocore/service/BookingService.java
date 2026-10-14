@@ -73,6 +73,7 @@ public class BookingService {
                 .sum();
         LocalTime endTime = startTime.plusMinutes(totalDuration);
 
+        checkVehicleAvailable(vehicleId, date, null); //null bookingId eftersom bokningen inte är skapad.
         // Använder den nya metoden för att kontrollera överlappning av mekanikerbokningar
         checkMechanicOverlap(mechanicId, date, startTime, endTime, null);
 
@@ -149,6 +150,8 @@ public class BookingService {
         }
 
         copy.setEndTime(startTime.plusMinutes(copy.getTotalDurationMinutes()));
+
+        checkVehicleAvailable(copy.getVehicleId(), date, null);
         checkMechanicOverlap(
                 selectedMechanicId, date, startTime, copy.getEndTime(), null
         );
@@ -179,6 +182,8 @@ public class BookingService {
                 .mapToInt(ServiceItem::getEstimatedMinutes)
                 .sum();
         LocalTime endTime = startTime.plusMinutes(totalDuration);
+
+        checkVehicleAvailable(vehicleId, date, bookingId);
 
         // Använder den nya metoden för att kontrollera överlappning av mekanikerbokningar,
         // exkluderar den aktuella bokningen från kontrollen med excludedBookingId
@@ -232,8 +237,35 @@ public class BookingService {
             );
 
         }
+    }
 
-}
+    /**
+     * Checks whether the vehicle isn't already booked on the given date.
+     * <p>
+     * If excludedBookingId is null (creating a new booking), any booking for the
+     * vehicle on that date counts as a conflict.
+     * If it is set (updating an existing booking), that booking is ignored, so only
+     * other bookings for the vehicle on that date count as conflicts.
+     *
+     * @param vehicleId         the vehicle to check
+     * @param date              the date to check
+     * @param excludedBookingId the ID of the booking to ignore, or null if there is none
+     * @throws ValidationException with {@code error.vehicleBooked} and the vehicle's
+     *                             registration number if the vehicle is already booked
+     */
+    private void checkVehicleAvailable(int vehicleId, LocalDate date, Integer excludedBookingId) {
+        boolean booked = excludedBookingId == null
+                ? bookingRepository.existsByVehicleIdAndDate(vehicleId, date)
+                : bookingRepository.existsByVehicleIdAndDateAndIdNot(vehicleId, date, excludedBookingId);
+
+        if (booked) {
+            String registration = vehicleRepo.findById(vehicleId)
+                    .map(Vehicle::getRegistrationNumber)
+                    .orElse("Unknown");
+            throw new ValidationException("error.vehicleBooked", registration);
+        }
+    }
+
 
     public boolean isVehicleBooked(int vehicleId, LocalDate date) {
         return bookingRepository.existsByVehicleIdAndDate(vehicleId, date);
