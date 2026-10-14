@@ -1,5 +1,6 @@
 package com.wac.autocore.view.dialog;
 
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.LanguageManager;
@@ -72,7 +73,7 @@ public class AdminServiceItemDialog extends Dialog<Money> {
                 if (!newPrice.isPositive()) {
                     rejectPrice(event);
                 }
-            } catch (NumberFormatException e) {
+            } catch (ValidationException e) {
                rejectPrice(event);
             }
         });
