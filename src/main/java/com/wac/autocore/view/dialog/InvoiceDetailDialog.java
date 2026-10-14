@@ -9,7 +9,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -127,10 +126,10 @@ public class InvoiceDetailDialog extends Dialog<Void> {
                 new SimpleObjectProperty<>(c.getValue().getTotal())
         );
 
-        // Konfigurera kolumnerna som visar pengar
-        configureMoneyColumn(amountCol);
-        configureMoneyColumn(discountCol);
-        configureMoneyColumn(totalCol);
+        // Konfigurera kolumnerna som visar pengar, med valuta
+        DialogUtil.configureMoneyColumn(amountCol, true);
+        DialogUtil.configureMoneyColumn(discountCol, true);
+        DialogUtil.configureMoneyColumn(totalCol, true);
 
         table.getColumns().addAll(serviceCol, amountCol, discountCol, totalCol);
 
@@ -144,28 +143,6 @@ public class InvoiceDetailDialog extends Dialog<Void> {
         return table;
     }
 
-    // Kolumn som visar pengar, med högerjustering och formatering
-    private void configureMoneyColumn(TableColumn<InvoiceLine, Money> column) {
-        column.setCellFactory(col -> new TableCell<InvoiceLine, Money>() {
-            {
-                setAlignment(Pos.CENTER_RIGHT);
-            }
-
-            @Override
-            protected void updateItem(Money amount, boolean empty) {
-                super.updateItem(amount, empty);
-
-                textProperty().unbind();
-                setGraphic(null);
-
-                if (empty || amount == null) {
-                    setText(null);
-                } else {
-                    textProperty().bind(lang.bind("format.price", amount));
-                }
-            }
-        });
-    }
     // Skapar en label som visar en summering (t.ex. totalbelopp) med språkstöd
     private Label createSummaryLabel(    String key, Money amount) {
         Label label = new Label();
