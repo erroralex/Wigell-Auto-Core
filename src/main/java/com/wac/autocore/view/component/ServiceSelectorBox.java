@@ -200,14 +200,14 @@ public class ServiceSelectorBox extends VBox {
         }
 
         summaryLabel.setText(lang.get("serviceSelector.summary",
-                lang.get("format.price", totalPrice.toBigDecimal()),
+                lang.get("format.price", totalPrice),
                 lang.get("format.minutes", totalMinutes)));
     }
 
     // Returnerar en beskrivning av tjänsten som visas i ComboBox och summering
     private static String describe(ServiceItem service) {
         return service.getName()
-                + " – " + lang.get("format.price", service.getPrice().toBigDecimal())
+                + " – " + lang.get("format.price", service.getPrice())
                 + " · " + lang.get("format.minutes", service.getEstimatedMinutes());
 
     }
