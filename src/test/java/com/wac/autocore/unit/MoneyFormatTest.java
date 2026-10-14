@@ -64,16 +64,18 @@ class MoneyFormatTest {
             "'12', 12.00",
             "' 12,50 ', 12.50",
             "'1097,5', 1097.50",
-            "'0,125', 0.13",
-            "'0.124', 0.12",
-            "'-5,25', -5.25"
+            "'-5,25', -5.25",
+            "',5', 0.50",
+            "'.5', 0.50",
+            "'-,5', -0.50"
     })
     void parseAcceptsCommaAndPoint(String text, String expected) {
         assertMoney(Money.of(expected), MoneyFormat.parse(text));
     }
 
     @ParameterizedTest(name = "\"{0}\" is rejected")
-    @ValueSource(strings = {"", "   ", "abc", "12,5,3", "12.5.3", "1 000", "12 kr", ","})
+    @ValueSource(strings = {"", "   ", "abc", "12,5,3", "12.5.3", "1 000", "12 kr", ",",
+            "1,234", "12,345", "0.124", "1E3", "12,", ",123"})
     void parseThrowsValidationException_WhenTextIsNotAnAmount(String text) {
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> MoneyFormat.parse(text));
