@@ -8,6 +8,7 @@ import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.ServicePackageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -20,6 +21,7 @@ import java.util.Optional;
  * <p>Ansvar: skapa, ändra, ta bort och läsa servicepaket.</p>
  * <p>Regler som kräver databasen ligger här: att tjänsterna finns och att namnet är unikt. Regler om paketet i sig ligger i ServicePackage.</p>
  */
+@Validated
 @Service
 @Transactional
 public class ServicePackageService {

@@ -6,10 +6,12 @@ import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.repository.PaymentRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
+@Validated
 @Service
 public class PaymentService {
 

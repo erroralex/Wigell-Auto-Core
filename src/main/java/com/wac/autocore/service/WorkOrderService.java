@@ -6,7 +6,11 @@ import com.wac.autocore.model.*;
 import com.wac.autocore.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,6 +23,7 @@ import java.util.stream.Collectors;
  * {@link #startWorkOrder(int)} och {@link #completeWorkOrder(int)} kastar {@code IllegalStatusTransitionException}
  * när övergången inte är tillåten.</p>
  */
+@Validated
 @Service
 @Transactional
 public class WorkOrderService {
@@ -84,7 +89,7 @@ public class WorkOrderService {
 
     // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
     // Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
-    public WorkOrder createWorkOrder(int bookingId) {
+    public WorkOrder createWorkOrder(@NotNull(message="error.workOrder.bookingIdIsNull") int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
 
@@ -109,7 +114,7 @@ public class WorkOrderService {
     }
 
     // Skapar en garantiorder från en tidigare arbetsorder och sparar den som utkast.
-    public WarrantyWorkOrder createWarranty(int originalWorkOrderId,
+    public WarrantyWorkOrder createWarranty(@NotNull(message="error.workOrder.idIsNull") int originalWorkOrderId,
                                             String problemDescription) {
         WorkOrder original = require(originalWorkOrderId);
 
@@ -122,9 +127,9 @@ public class WorkOrderService {
     // Skapar en drop-in-order (bil utan bokning) och sparar den som utkast.
     // Servicen kontrollerar att fordonet finns, modellen validerar resten.
     // Tjänster är valfria för ett utkast; null behandlas som "inga tjänster".
-    public DropInWorkOrder createDropIn(int vehicleId,
-                                        String problemDescription,
-                                        List<Integer> serviceItemIds) {
+    public DropInWorkOrder createDropIn(@NotNull(message="error.workOrder.vehicleIdIsNull") int vehicleId,
+                                        @NotNull(message="error.desc") String problemDescription,
+                                        @NotEmpty(message="error.servicePackage.noServices") List<Integer> serviceItemIds) {
         if (!vehicleRepo.existsById(vehicleId)) {
             throw new EntityNotFoundException("Vehicle", vehicleId);
         }
@@ -215,9 +220,12 @@ public class WorkOrderService {
         workOrderRepository.save(workOrder);
     }
 
-    public void updateWorkOrder(int id, List<Integer> serviceItemIds,
-                                Integer mechanicId, LocalDate plannedDate,
-                                String customerInstructions, String comments,
+    public void updateWorkOrder(int id,
+                                @NotEmpty(message="error.servicePackage.noServices") List<Integer> serviceItemIds,
+                                @NotNull(message="error.mechanicIdIsNull") Integer mechanicId,
+                                LocalDate plannedDate,
+                                String customerInstructions,
+                                String comments,
                                 Map<Integer, Boolean> chargeFlags) {
         WorkOrder workOrder = require(id);
 

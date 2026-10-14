@@ -6,9 +6,11 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
+@Validated
 @Service
 public class ServiceItemService {
 

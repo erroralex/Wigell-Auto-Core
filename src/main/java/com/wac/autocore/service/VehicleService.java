@@ -6,12 +6,14 @@ import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.CustomerRepo;
 import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @Service
 public class VehicleService {
 
