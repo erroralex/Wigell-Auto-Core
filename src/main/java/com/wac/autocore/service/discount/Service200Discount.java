@@ -6,6 +6,6 @@ public class Service200Discount implements DiscountStrategy {
 
     @Override
     public Money calculateDiscount(Money amount) {
-        return Money.of(200.0);
+        return Money.of(200);
     }
 }
