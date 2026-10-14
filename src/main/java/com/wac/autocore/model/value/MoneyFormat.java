@@ -3,6 +3,7 @@ package com.wac.autocore.model.value;
 import com.wac.autocore.exception.ValidationException;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 // Används av Dialogerna för att formatera Money-värden. Vet inget om databasen eller Hibernate.
 // Formaterar och tolkar belopp för visning och inmatning utan JavaFX.
@@ -11,6 +12,8 @@ import java.util.Locale;
 public final class MoneyFormat {
 
     private MoneyFormat() {}
+
+    private static final Pattern INPUT = Pattern.compile("-?(\\d+([.,]\\d{1,2})?|[.,]\\d{1,2})");
 
     // PLAIN: 1097,50 (kan tolkas tillbaka av parse, t.ex. inmatningsfält).
     // GROUPED: 1 097,50 (med tusentalsavgränsare, för visning i tabeller).
@@ -33,15 +36,12 @@ public final class MoneyFormat {
         return format(money, locale, Style.PLAIN);
     }
 
-    // Accepterar både komma och punkt. Ogiltig eller tom text ger ett valideringsfel.
+    // Accepterar både komma och punkt, med högst två decimaler. Ogiltig eller tom text ger ett valideringsfel.
+    // Fler decimaler och exponentskrivning avvisas, så att t.ex. 1,234 inte tyst blir 1,23.
     public static Money parse(String text) {
-        if (text == null || text.trim().isEmpty()) {
+        if (text == null || !INPUT.matcher(text.trim()).matches()) {
             throw new ValidationException("error.invalidAmount");
         }
-        try {
-            return Money.of(text);
-        } catch (NumberFormatException e) {
-            throw new ValidationException("error.invalidAmount");
-        }
+        return Money.of(text);
     }
 }
