@@ -257,7 +257,7 @@ public abstract class WorkOrder {
     // Summan av de avtalade priserna, underlag för fakturan
     public Money getTotalPrice() {
         return items.stream()
-                .map(WorkOrderItem::getAgreedPrice)
+                .map(WorkOrderItem::getChargedAmount)
                 .reduce(Money.ZERO, Money::add);
     }
 
