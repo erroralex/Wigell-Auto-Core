@@ -1,5 +1,6 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.model.value.Money;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -95,7 +96,16 @@ public final class LanguageManager {
         } catch (MissingResourceException e) {
             return "!" + key + "!";
         }
-        return args.length == 0 ? pattern : new MessageFormat(pattern, getLocale()).format(args);
+        return args.length == 0 ? pattern : new MessageFormat(pattern, getLocale()).format(toFormatArgs(args));
+    }
+
+    // MessageFormat kan bara formatera Number med {0,number,...}, så Money skickas som BigDecimal
+    private static Object[] toFormatArgs(Object[] args) {
+        Object[] converted = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            converted[i] = args[i] instanceof Money ? ((Money) args[i]).toBigDecimal() : args[i];
+        }
+        return converted;
     }
 
     /** Ansvar: Ger en text som uppdateras automatiskt vid språkbyte. */
