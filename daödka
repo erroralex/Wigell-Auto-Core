@@ -1,0 +1,100 @@
+[33m6f66bf9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #87 from erroralex/dev
+[33m279a03e[m Merge pull request #86 from erroralex/fix/LanguageManager-and-ErrorFacade-final-pass
+[33m295ff7a[m Merge remote-tracking branch 'origin/dev' into fix/LanguageManager-and-ErrorFacade-final-pass
+[33m18d7498[m Merge pull request #85 from erroralex/feature/BaseviewTemplate
+[33m9acce60[m Merge remote-tracking branch 'origin/dev' into feature/BaseviewTemplate
+[33m8c79ab2[m Merge pull request #84 from erroralex/feature/historical-pricing-audit-tests
+[33m343fcdf[m Merge remote-tracking branch 'origin/dev' into feature/historical-pricing-audit-tests
+[33m461515f[m Merge pull request #83 from erroralex/Applied-DialogUtil-in-all-dialogs
+[33m516d1b3[m Merge pull request #82 from erroralex/feature/Itemized-invoice-table-view-and-preview-styling
+[33m0b6f3de[m Merge pull request #81 from erroralex/Wire-views-to-multi-select-component
+[33m069c314[m Merge pull request #80 from erroralex/feature/MultiLineInvoicingAndStrategyBasedDiscounts
+[33m50539b8[m Merge pull request #79 from erroralex/feature/BaseViewTemplate
+[33mf237c06[m Merge pull request #78 from erroralex/feature/multi-service-selection-component-and-responsive-styling
+[33m7fa9c67[m Merge remote-tracking branch 'origin/dev' into feature/historical-pricing-audit-tests
+[33mc946f73[m Merge pull request #77 from erroralex/feature/AddOrRemoveServicesOnPendingBookings
+[33m4297bf3[m[33m ([m[1;31morigin/Reusable-JavaFX-multi-service-selection-component-and-responsive-styling[m[33m)[m Merge pull request #76 from erroralex/feature/work-order-inherit-services
+[33me4e3aa3[m Merge pull request #75 from erroralex/feature/refactor-Booking-entity-and-Schema
+[33m69e21a5[m Merge branch 'dev' into feature/refactor-Booking-entity-and-Schema
+[33m2b49fae[m Merge pull request #73 from erroralex/feature/global-exception-handler
+[33m693c056[m Merge branch 'dev' into feature/global-exception-handler
+[33m6bf014e[m Merge pull request #74 from erroralex/feature/ServicePriceUpdates
+[33m1417c5f[m Merge branch 'dev' of https://github.com/erroralex/Wigell-Auto-Core into feature/ServicePriceUpdates
+[33meb6f75c[m Merge pull request #72 from erroralex/feature/flyway-migration
+[33m2a086e6[m Merge pull request #71 from erroralex/dev
+[33mffa6b9e[m Merge pull request #70 from erroralex/refactor/removeDatabaseAndUnusedCode
+[33me3796ba[m Merge pull request #69 from erroralex/fix/mechanic-flag-fix
+[33m0d76270[m[33m ([m[1;31morigin/feature/overlap-validation-for-mechanic-bookings-with-unit-tests[m[33m)[m Merge pull request #68 from erroralex/feature/fetchVehiclesFromDb
+[33m32aa907[m Merge pull request #67 from erroralex/feature/MechanicBookingsViewFixes
+[33m0ca2844[m Merge pull request #66 from erroralex/fix/AmountInInvoiceUsesServiceItemPriceViaWorkorder
+[33ma702010[m Merge pull request #65 from erroralex/feature/ServiceItemSaveInBookingFix
+[33m0843086[m Merge pull request #64 from erroralex/feature/CustomStartTime
+[33mee54e5c[m Merge pull request #63 from erroralex/feature/OverlappedBookings
+[33m3eace76[m Merge pull request #62 from erroralex/feature/seed-data-file
+[33m061c786[m Merge pull request #61 from erroralex/feature/CreateBookingDialogFixes
+[33m57e9fbd[m Merge pull request #60 from erroralex/feature/Repository-and-service-for-Customer-and-Vehicle
+[33mae733bc[m Merge branch 'dev' into feature/Repository-and-service-for-Customer-and-Vehicle
+[33mc3f9059[m Merge pull request #59 from erroralex/feature/workorder-from-booking
+[33m90b8761[m Merge pull request #58 from erroralex/feature/MechanicDAO
+[33mf1a6a81[m Merge pull request #57 from erroralex/feature/DatabaseReplacementBookingView
+[33mfc9d021[m Merge pull request #56 from erroralex/fix/LanguageManager-check
+[33mfebb93d[m Merge pull request #55 from erroralex/feature/ServiceItemDao
+[33m6860e0c[m Merge remote-tracking branch 'origin/dev' into feature/ServiceItemDao
+[33m1c6e50f[m Merge pull request #54 from erroralex/feature/repo-and-service-WorkOrder
+[33m0d413c7[m Merge remote-tracking branch 'origin/dev' into feature/repo-and-service-WorkOrder Conflicts
+[33mc358a32[m Merge pull request #52 from erroralex/feature/InvoiceAndPaymentPersistence
+[33m1a110a8[m Merge pull request #53 from erroralex/feature/Earthy-and-eco-friendly-tones-on-a-light-theme
+[33m75fa7d7[m Merge branch 'dev' into feature/InvoiceAndPaymentPersistence
+[33mef86cf8[m Merge pull request #48 from erroralex/feature/BookingServiceRepo
+[33m39f0af2[m Merge pull request #45 from erroralex/refactor/spring-boot-migration
+[33mfd70dbe[m Merge pull request #47 from erroralex/feature/NewColumnsBookingView
+[33m9644697[m Merge pull request #44 from erroralex/feature/SQLite
+[33m618785e[m Merge pull request #43 from erroralex/feature/CreateBookingDialog
+[33mb60d282[m Merge branch 'dev' into feature/CreateBookingDialog
+[33ma2d8c22[m Merge pull request #42 from erroralex/feature/SQLite
+[33m7ec0359[m Merge pull request #41 from erroralex/translation/views
+[33m0ccc906[m Merge pull request #40 from erroralex/feature/SQLite
+[33md2ca04e[m Merge pull request #38 from erroralex/translation/dialogs
+[33m82fab15[m Merge pull request #39 from erroralex/feature/MechanicsDetailsView
+[33m7ff1331[m Merge pull request #37 from erroralex/feature/i18n
+[33m68f55d1[m Merge pull request #36 from erroralex/feature/maven
+[33m825bb75[m Merge pull request #35 from erroralex/fix/ci-dev-branch
+[33mb2b1903[m Merge pull request #34 from erroralex/erroralex-patch-1
+[33m4152c3b[m[33m ([m[1;32mfix/UseDialogUtilInInvoiceAndPaymentDialogs[m[33m)[m Merge pull request #33 from erroralex/origin/feature/DialogWindowLock
+[33mb8b927f[m Merge branch 'main' into origin/feature/DialogWindowLock
+[33m2bcffed[m Merge pull request #32 from erroralex/fix/HomeView-fontsize
+[33mefef2eb[m Merge pull request #31 from erroralex/fix/UseDialogUtilInInvoiceAndPaymentDialogs
+[33madf6f3e[m Merge pull request #30 from erroralex/fix/CreateWorkOrderDialog-filter
+[33mc83cebf[m Merge pull request #28 from erroralex/feature/LargerHeaderFont
+[33mfb68719[m Merge pull request #29 from erroralex/feature/PlaceholderRemoval
+[33m3165db3[m Merge pull request #27 from erroralex/fix/MaxZoom
+[33m7df44ef[m Merge pull request #26 from erroralex/feature/PaymentView
+[33m18b954b[m Merge pull request #25 from erroralex/feature/InvoiceView
+[33m923c9f0[m Merge pull request #24 from erroralex/feature/CreateBooking
+[33m2feb219[m Merge pull request #18 from erroralex/origin/feature/VehicleView
+[33md672d33[m Merge pull request #20 from erroralex/tweak/WorkOrder
+[33m793a41e[m Merge pull request #21 from erroralex/fix/UI-zoom
+[33me11a298[m Merge pull request #19 from erroralex/feature/CustomerView
+[33m00093c3[m Merge pull request #22 from erroralex/feature/CreateBooking
+[33mf68581f[m Merge pull request #17 from erroralex/feature/BookingView
+[33med993a3[m Merge pull request #16 from erroralex/feature/BookingView
+[33m916110b[m Merge branch 'main' of https://github.com/erroralex/Wigell-Auto-Core into feature/BookingView
+[33md28ed9a[m Merge pull request #15 from erroralex/feature/HomeView
+[33m374f876[m Merge branch 'main' of https://github.com/erroralex/Wigell-Auto-Core into feature/BookingView
+[33m659f943[m Merge pull request #14 from erroralex/fix/AlertHelper-styling
+[33m9c926bc[m Merge pull request #12 from erroralex/feature/CreateWorkOrderDialog
+[33m4359fcf[m Merge branch 'main' into feature/CreateWorkOrderDialog
+[33m2ee3917[m Merge pull request #13 from erroralex/feature/MechanicView
+[33mb183f33[m Merge pull request #11 from erroralex/feature/ServiceItemViewCSS
+[33m2542657[m Merge pull request #10 from erroralex/feature/MechanicView
+[33m015eba1[m Merge remote-tracking branch 'origin/main' into feature/MechanicView
+[33m7978f9e[m Merge pull request #9 from erroralex/styleguide
+[33mbd129fb[m Merge branch 'main' into styleguide
+[33m1644dd3[m Merge pull request #8 from erroralex/feature/ServiceItemView2
+[33m1f8dfc1[m Merge pull request #7 from erroralex/feature/WorkOrderView
+[33mee6f56d[m Merge pull request #6 from erroralex/styleguide
+[33m44f27b6[m Merge pull request #5 from erroralex/feature/ServiceItemView
+[33m0bafaf6[m Merge pull request #4 from erroralex/feature/app-core
+[33m8d4f0cb[m Merge pull request #3 from erroralex/fix/readme-and-workflow-fixes
+[33m02e59d0[m Merge pull request #2 from erroralex/fix/readme-and-workflow-fixes
+[33me348825[m Merge pull request #1 from erroralex/test-workflow
