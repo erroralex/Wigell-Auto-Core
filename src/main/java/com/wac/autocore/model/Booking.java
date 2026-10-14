@@ -22,8 +22,6 @@ import java.util.List;
 // Implementerar BookingPrototype för att kunna skapa en kopia av bokningen med nya datum och starttid, enligt prototypmönstret.
 public class Booking implements BookingPrototype {
 
-    public static final String STATUS_BOOKED = "BOOKED";
-
     // Implementerar copyAsNew-metoden från BookingPrototype
     // för att skapa en ny instans av Booking med samma data, men med nytt datum och starttid.
     @Override
@@ -75,7 +73,8 @@ public class Booking implements BookingPrototype {
     private String description;
 
     @Column(nullable = false)
-    private String status = STATUS_BOOKED;
+    @Enumerated(EnumType.STRING)
+    private BookingStatus status = BookingStatus.BOOKED;
 
     @OneToMany(
             mappedBy = "booking",
@@ -155,7 +154,7 @@ public class Booking implements BookingPrototype {
      * Samma tjänst läggs inte till två gånger. Kastar BookingLockedException
      * om arbetet redan har påbörjats. */
     public void addServiceItem(ServiceItem serviceItem) {
-        if (!STATUS_BOOKED.equals(status)) {
+        if (!status.isEditable()) {
             throw new BookingLockedException(id, status);
         }
 
@@ -193,20 +192,20 @@ public class Booking implements BookingPrototype {
                 .sum();
     }
 
-    public String getStatus() {
+    public BookingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public void removeServiceItem(int serviceItemId) {
-        if (!STATUS_BOOKED.equals(status)) {
+        if (!status.isEditable()) {
             throw new BookingLockedException(id, status);
         }
 
         items.removeIf(item -> item.getServiceItemId() == serviceItemId);
+    }
+
+    public void followWorkOrder(WorkOrderStatus workOrderStatus) {
+        status = BookingStatus.forWorkOrder(workOrderStatus);
     }
 
     @Override
