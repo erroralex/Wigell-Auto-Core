@@ -75,10 +75,10 @@ class LanguageManagerTest {
 
     @Test
     void priceFollowsLanguage() {
-        assertEquals("1097,50 kr", lang.get("format.price", 1097.5));
+        assertEquals("1097,50 kr", lang.get("format.price", Money.of("1097.50")));
 
         lang.toggleLanguage();
-        assertEquals("1097.50 kr", lang.get("format.price", 1097.5));
+        assertEquals("1097.50 kr", lang.get("format.price", Money.of("1097.50")));
     }
 
     @Test
