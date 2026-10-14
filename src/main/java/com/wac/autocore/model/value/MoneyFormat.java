@@ -12,12 +12,25 @@ public final class MoneyFormat {
 
     private MoneyFormat() {}
 
+    // PLAIN: 1097,50 (kan tolkas tillbaka av parse, t.ex. inmatningsfält).
+    // GROUPED: 1 097,50 (med tusentalsavgränsare, för visning i tabeller).
+    public enum Style {
+        PLAIN,
+        GROUPED
+    }
+
     // Alltid två decimaler, med decimaltecken enligt locale (komma på svenska).
-    public static String format(Money money, Locale locale) {
+    // Det är den här metoden som avgör hur ett belopp ser ut.
+    public static String format(Money money, Locale locale, Style style) {
         if (money == null) {
             return "";
         }
-        return String.format(locale, "%.2f", money.toBigDecimal());
+        String pattern = style == Style.GROUPED ? "%,.2f" : "%.2f";
+        return String.format(locale, pattern, money.toBigDecimal());
+    }
+
+    public static String format(Money money, Locale locale) {
+        return format(money, locale, Style.PLAIN);
     }
 
     // Accepterar både komma och punkt. Ogiltig eller tom text ger ett valideringsfel.
