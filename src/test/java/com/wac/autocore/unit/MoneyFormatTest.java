@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
@@ -26,7 +27,7 @@ class MoneyFormatTest {
     @Test
     void formatUsesCommaInSwedish() {
         assertEquals("12,50", MoneyFormat.format(Money.of("12.5"), SV));
-        assertEquals("0,30", MoneyFormat.format(Money.of(0.1).add(Money.of(0.2)), SV));
+        assertEquals("0,30", MoneyFormat.format(Money.of("0.1").add(Money.of("0.2")), SV));
     }
 
     @Test
@@ -38,6 +39,22 @@ class MoneyFormatTest {
     @Test
     void formatIsEmpty_WhenMoneyIsNull() {
         assertEquals("", MoneyFormat.format(null, SV));
+    }
+
+    @Test
+    void plainStyleHasNoThousandsSeparator() {
+        assertEquals("1097,50", MoneyFormat.format(Money.of("1097.50"), SV, MoneyFormat.Style.PLAIN));
+        assertEquals("1097.50", MoneyFormat.format(Money.of("1097.50"), EN, MoneyFormat.Style.PLAIN));
+    }
+
+    @Test
+    void groupedStyleAddsThousandsSeparator() {
+        char swedishSeparator = DecimalFormatSymbols.getInstance(SV).getGroupingSeparator();
+
+        assertEquals("1" + swedishSeparator + "097,50",
+                MoneyFormat.format(Money.of("1097.50"), SV, MoneyFormat.Style.GROUPED));
+        assertEquals("1,097.50", MoneyFormat.format(Money.of("1097.50"), EN, MoneyFormat.Style.GROUPED));
+        assertEquals("899,00", MoneyFormat.format(Money.of(899), SV, MoneyFormat.Style.GROUPED));
     }
 
     @ParameterizedTest(name = "\"{0}\" is parsed as {1}")
