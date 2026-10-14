@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.ServicePackage;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.dialog.ServicePackageDialog;
@@ -75,7 +76,7 @@ public class ServicePackageView extends BaseView {
         countColumn.setCellValueFactory(cell ->
                 new SimpleObjectProperty<>(cell.getValue().getServices().size()));
 
-        TableColumn<ServicePackage, Double> priceColumn = new TableColumn<>(lang.get("table.totalPrice"));
+        TableColumn<ServicePackage, Money> priceColumn = new TableColumn<>(lang.get("table.totalPrice"));
         priceColumn.setCellValueFactory(cell ->
                 new SimpleObjectProperty<>(totalPrice(cell.getValue())));
 
@@ -90,24 +91,24 @@ public class ServicePackageView extends BaseView {
     }
 
     // Följer valt språk: 1 097,50 på svenska, 1,097.50 på engelska
-    private void setPriceFormat(TableColumn<ServicePackage, Double> priceColumn) {
+    private void setPriceFormat(TableColumn<ServicePackage, Money> priceColumn) {
         NumberFormat formatter = NumberFormat.getNumberInstance(lang.getLocale());
         formatter.setMinimumFractionDigits(2);
         formatter.setMaximumFractionDigits(2);
 
-        priceColumn.setCellFactory(column -> new TableCell<ServicePackage, Double>() {
+        priceColumn.setCellFactory(column -> new TableCell<ServicePackage, Money>() {
             @Override
-            protected void updateItem(Double price, boolean empty) {
+            protected void updateItem(Money price, boolean empty) {
                 super.updateItem(price, empty);
-                setText(empty || price == null ? null : formatter.format(price));
+                setText(empty || price == null ? null : formatter.format(price.toBigDecimal()));
             }
         });
     }
 
-    private static double totalPrice(ServicePackage servicePackage) {
-        double sum = 0;
+    private static Money totalPrice(ServicePackage servicePackage) {
+        Money sum = Money.ZERO;
         for (ServiceItem service : servicePackage.getServices()) {
-            sum += service.getPrice();
+            sum = sum.add(service.getPrice());
         }
         return sum;
     }
