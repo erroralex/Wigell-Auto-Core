@@ -137,16 +137,9 @@ public class WorkOrderItem {
         if (o == null || getClass() != o.getClass()) return false;
         WorkOrderItem that = (WorkOrderItem) o;
         return serviceItemId == that.serviceItemId
-                && sameAmount(agreedPrice, that.agreedPrice)
+                && Objects.equals(agreedPrice, that.agreedPrice)
                 && durationMinutes == that.durationMinutes
                 && Objects.equals(serviceName, that.serviceName);
-    }
-
-    private static boolean sameAmount(Money a, Money b) {
-        if (a == null || b == null) {
-            return a == b;
-        }
-        return a.compareTo(b) == 0;
     }
 
     @Override
