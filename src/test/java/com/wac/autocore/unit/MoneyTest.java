@@ -25,7 +25,7 @@ class MoneyTest {
     @Test
     @DisplayName("0.1 + 0.2 is exactly 0.30")
     void addingPointOneAndPointTwoGivesPointThirty() {
-        Money sum = Money.of(0.1).add(Money.of(0.2));
+        Money sum = Money.of("0.1").add(Money.of("0.2"));
 
         assertMoney(Money.of("0.30"), sum);
         assertEquals("0.30", sum.toString());
@@ -34,7 +34,7 @@ class MoneyTest {
     @Test
     @DisplayName("A double with floating-point error is rounded to the öre")
     void doubleWithFloatingPointErrorIsRoundedToTwoDecimals() {
-        assertEquals("0.30", Money.of(0.1 + 0.2).toString());
+        assertEquals("0.30", Money.of(BigDecimal.valueOf(0.1 + 0.2)).toString());
     }
 
     @ParameterizedTest(name = "{0} rounds to {1}")
@@ -139,7 +139,7 @@ class MoneyTest {
     @Test
     void compareToIgnoresHowTheAmountWasWritten() {
         assertEquals(0, Money.of("1.5").compareTo(Money.of("1.50")));
-        assertEquals(0, Money.of("1.50").compareTo(Money.of(1.5)));
+        assertEquals(0, Money.of("1.50").compareTo(Money.of("1.5")));
         assertTrue(Money.of("1.49").compareTo(Money.of("1.50")) < 0);
         assertTrue(Money.of("1.51").compareTo(Money.of("1.50")) > 0);
     }
@@ -147,10 +147,5 @@ class MoneyTest {
     @Test
     void equalAmountsHaveEqualHashCode() {
         assertEquals(Money.of("1.5").hashCode(), Money.of("1.50").hashCode());
-    }
-
-    @Test
-    void toDoubleGivesTheStoredValueForTheDatabase() {
-        assertEquals(1097.5, Money.of("1097.50").toDouble(), 0.0);
     }
 }
