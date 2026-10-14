@@ -161,7 +161,7 @@ public class InvoiceDetailDialog extends Dialog<Void> {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    textProperty().bind(lang.bind("format.price", amount.toBigDecimal()));
+                    textProperty().bind(lang.bind("format.price", amount));
                 }
             }
         });
@@ -170,7 +170,7 @@ public class InvoiceDetailDialog extends Dialog<Void> {
     private Label createSummaryLabel(    String key, Money amount) {
         Label label = new Label();
         label.textProperty().bind(Bindings.createStringBinding(
-                    () -> lang.get(key, lang.get("format.price", amount.toBigDecimal())),
+                    () -> lang.get(key, lang.get("format.price", amount)),
                 lang.localeProperty()
         ));
         return label;
