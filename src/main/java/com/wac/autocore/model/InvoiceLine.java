@@ -62,8 +62,9 @@ public class InvoiceLine {
         this.serviceItemName = serviceItemName;
     }
 
+    // Kolumnerna i invoice_line är nullable, så en saknad rad i databasen läses som 0
     public Money getAmount() {
-        return amount;
+        return amount == null ? Money.ZERO : amount;
     }
 
     public void setAmount(Money amount) {
@@ -71,7 +72,7 @@ public class InvoiceLine {
     }
 
     public Money getDiscount() {
-        return discount;
+        return discount == null ? Money.ZERO : discount;
     }
 
     public void setDiscount(Money discount) {
@@ -79,7 +80,7 @@ public class InvoiceLine {
     }
 
     public Money getTotal() {
-        return this.total;
+        return total == null ? Money.ZERO : total;
     }
 
     public void setTotal(Money total) {
