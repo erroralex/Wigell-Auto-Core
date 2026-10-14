@@ -40,7 +40,7 @@ class MoneyConverterTest {
     @Test
     @DisplayName("0.1 + 0.2 is stored and read back as 0.30")
     void sumOfPointOneAndPointTwoIsStoredAsPointThirty() {
-        Money sum = Money.of(0.1).add(Money.of(0.2));
+        Money sum = Money.of("0.1").add(Money.of("0.2"));
 
         Money restored = converter.convertToEntityAttribute(converter.convertToDatabaseColumn(sum));
 
