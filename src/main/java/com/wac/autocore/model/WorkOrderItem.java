@@ -115,11 +115,11 @@ public class WorkOrderItem {
     }
 
     /* Beloppet kunden betalar för raden */
-    public double getChargedAmount() {
+    public Money getChargedAmount() {
         if (chargeable) {
             return this.agreedPrice;
         }
-        return 0.0;
+        return Money.ZERO;
     }
 
     public void setChargeable(boolean chargeable) {
