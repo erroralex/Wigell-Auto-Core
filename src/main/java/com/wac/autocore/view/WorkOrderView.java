@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.*;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.dialog.EditWorkOrderDialog;
@@ -8,6 +9,7 @@ import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -226,10 +228,11 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getDurationMinutes()))
         );
 
-        TableColumn<WorkOrderItem, String> priceCol = new TableColumn<>(lang.get("table.price"));
+        TableColumn<WorkOrderItem, Money> priceCol = new TableColumn<>(lang.get("table.price"));
         priceCol.setCellValueFactory(c ->
-                new SimpleStringProperty(DialogUtil.formatMoney(c.getValue().getAgreedPrice()))
+                new SimpleObjectProperty<>(c.getValue().getAgreedPrice())
         );
+        DialogUtil.configureMoneyColumn(priceCol);
 
         jobTable.getColumns().addAll(nameCol, durationCol, priceCol);
         jobTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
