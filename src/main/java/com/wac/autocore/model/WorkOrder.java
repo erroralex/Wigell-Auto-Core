@@ -138,7 +138,7 @@ public abstract class WorkOrder {
 
     // Ordern får bara ändras innan arbetet har påbörjat
     private void ensureEditable() {
-        if (status != WorkOrderStatus.DRAFT && status != WorkOrderStatus.CONFIRMED) {
+        if (!status.isEditable()) {
             throw new WorkOrderLockedException(this.getId(), this.status);
         }
     }
