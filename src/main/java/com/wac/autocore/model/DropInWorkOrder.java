@@ -11,7 +11,7 @@ import javax.persistence.Entity;
  * Ordern har därför ingen koppling till en {@link Booking} ({@code bookingId} är alltid {@code null}).</p>
  * <p>Skapas bara via {@link #draft(int, String)} med fordon och problembeskrivning, och börjar
  * som utkast ({@link WorkOrderStatus#DRAFT}). Mekaniker och tjänster läggs till i efterhand
- * ({@link #setMechanicId(Integer)}, {@link #addService(ServiceItem)}).
+ * ({@link #setMechanicId(Integer)}, {@link #addItem(WorkOrderItem)} (ServiceItem)}).
  * Ordern kan bekräftas med {@link #confirm()} först när de gemensamma fälten är ifyllda och
  * problembeskrivningen finns kvar.</p>
  */
@@ -43,11 +43,6 @@ public class DropInWorkOrder extends WorkOrder {
 
         return new DropInWorkOrder(vehicleId, problemDescription);
 
-    }
-
-    // Lägger till en tjänst från katalogen. Pris och tid fryses när raden skapas.
-    public void addService(ServiceItem service) {
-        addItem((WorkOrderItem.snapshotOf(service)));
     }
 
     @Override

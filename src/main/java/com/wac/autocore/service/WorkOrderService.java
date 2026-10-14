@@ -158,7 +158,7 @@ public class WorkOrderService {
             ServiceItem service = serviceItemRepository.findById(serviceItemId)
                     .orElseThrow(() -> new EntityNotFoundException(
                             "ServiceItem", serviceItemId, "error.serviceNotFound"));
-            dropIn.addService(service);
+            dropIn.addItem(service);
         }
         return workOrderRepository.save(dropIn);
     }

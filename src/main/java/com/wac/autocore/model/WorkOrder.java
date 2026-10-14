@@ -44,7 +44,6 @@ public abstract class WorkOrder {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "work_order_service_item", joinColumns = @JoinColumn(name = "work_order_id"))
-    @Column(name = "service_item_id")
     private List<WorkOrderItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
