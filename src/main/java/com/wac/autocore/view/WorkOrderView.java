@@ -6,6 +6,7 @@ import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.dialog.EditWorkOrderDialog;
 import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -227,7 +228,7 @@ public class WorkOrderView extends BaseView {
 
         TableColumn<WorkOrderItem, String> priceCol = new TableColumn<>(lang.get("table.price"));
         priceCol.setCellValueFactory(c ->
-                new SimpleStringProperty(String.format("%.2f", c.getValue().getAgreedPrice()))
+                new SimpleStringProperty(DialogUtil.formatMoney(c.getValue().getAgreedPrice()))
         );
 
         jobTable.getColumns().addAll(nameCol, durationCol, priceCol);
@@ -257,7 +258,7 @@ public class WorkOrderView extends BaseView {
 
         jobData.setAll(selected.getItems());
         jobSummaryLabel.setText(
-                lang.get("workOrder.total", selected.getTotalPrice())
+                lang.get("workOrder.total", selected.getTotalPrice().toBigDecimal())
                         + "  |  "
                         + lang.get("workOrder.totalDuration", selected.getTotalDurationMinutes())
         );
