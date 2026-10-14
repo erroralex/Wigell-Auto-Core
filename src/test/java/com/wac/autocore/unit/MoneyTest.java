@@ -148,4 +148,20 @@ class MoneyTest {
     void equalAmountsHaveEqualHashCode() {
         assertEquals(Money.of("1.5").hashCode(), Money.of("1.50").hashCode());
     }
+
+    @Test
+    void wholeKronorAndTextGiveTheSameMoney() {
+        assertEquals(Money.of("200.00"), Money.of(200));
+        assertEquals(Money.of("200.00").hashCode(), Money.of(200).hashCode());
+    }
+
+    @Test
+    void equalsIsTrueExactlyWhenCompareToIsZero() {
+        String[] values = {"0", "0.00", "0.004", "0.005", "1.5", "1.50", "1.499", "-1.5", "899"};
+        for (String a : values) {
+            for (String b : values) {
+                assertEquals(Money.of(a).compareTo(Money.of(b)) == 0, Money.of(a).equals(Money.of(b)), a + " vs " + b);
+            }
+        }
+    }
 }
