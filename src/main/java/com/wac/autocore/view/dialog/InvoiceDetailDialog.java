@@ -2,9 +2,10 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.InvoiceLine;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -108,22 +109,22 @@ public class InvoiceDetailDialog extends Dialog<Void> {
                 new SimpleStringProperty(c.getValue().getServiceItemName())
         );
 
-        TableColumn<InvoiceLine, Double> amountCol = new TableColumn<>();
+        TableColumn<InvoiceLine, Money> amountCol = new TableColumn<>();
         amountCol.textProperty().bind(lang.bind("invoice.originalPrice"));
         amountCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getAmount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getAmount())
         );
 
-        TableColumn<InvoiceLine, Double> discountCol = new TableColumn<>();
+        TableColumn<InvoiceLine, Money> discountCol = new TableColumn<>();
         discountCol.textProperty().bind(lang.bind("table.discount"));
         discountCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getDiscount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getDiscount())
         );
 
-        TableColumn<InvoiceLine, Double> totalCol = new TableColumn<>();
+        TableColumn<InvoiceLine, Money> totalCol = new TableColumn<>();
         totalCol.textProperty().bind(lang.bind("invoice.netPrice"));
         totalCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getTotal()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getTotal())
         );
 
         // Konfigurera kolumnerna som visar pengar
@@ -144,14 +145,14 @@ public class InvoiceDetailDialog extends Dialog<Void> {
     }
 
     // Kolumn som visar pengar, med högerjustering och formatering
-    private void configureMoneyColumn(TableColumn<InvoiceLine, Double> column) {
-        column.setCellFactory(col -> new TableCell<InvoiceLine, Double>() {
+    private void configureMoneyColumn(TableColumn<InvoiceLine, Money> column) {
+        column.setCellFactory(col -> new TableCell<InvoiceLine, Money>() {
             {
                 setAlignment(Pos.CENTER_RIGHT);
             }
 
             @Override
-            protected void updateItem(Double amount, boolean empty) {
+            protected void updateItem(Money amount, boolean empty) {
                 super.updateItem(amount, empty);
 
                 textProperty().unbind();
@@ -160,16 +161,16 @@ public class InvoiceDetailDialog extends Dialog<Void> {
                 if (empty || amount == null) {
                     setText(null);
                 } else {
-                    textProperty().bind(lang.bind("format.price", amount));
+                    textProperty().bind(lang.bind("format.price", amount.toBigDecimal()));
                 }
             }
         });
     }
     // Skapar en label som visar en summering (t.ex. totalbelopp) med språkstöd
-    private Label createSummaryLabel(String key, double amount) {
+    private Label createSummaryLabel(    String key, Money amount) {
         Label label = new Label();
         label.textProperty().bind(Bindings.createStringBinding(
-                () -> lang.get(key, lang.get("format.price", amount)),
+                    () -> lang.get(key, lang.get("format.price", amount.toBigDecimal())),
                 lang.localeProperty()
         ));
         return label;
