@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.dialog.AdminServiceItemDialog;
@@ -59,7 +60,7 @@ public class ServiceItemView extends BaseView {
 
         TableColumn<ServiceItem, String> nameColumn = new TableColumn<>(lang.get("table.name"));
         TableColumn<ServiceItem, String> descColumn = new TableColumn<>(lang.get("table.desc"));
-        TableColumn<ServiceItem, Double> priceColumn = new TableColumn<>(lang.get("table.price"));
+        TableColumn<ServiceItem, Money> priceColumn = new TableColumn<>(lang.get("table.price"));
         TableColumn<ServiceItem, Integer> durationColumn = new TableColumn<>(lang.get("table.estimatedDuration"));
 
         nameColumn.setCellValueFactory(cellData ->
@@ -97,7 +98,7 @@ public class ServiceItemView extends BaseView {
         return hBox;
     }
 
-    private void setPriceColumn(TableColumn<ServiceItem, Double> priceColumn) {
+    private void setPriceColumn(TableColumn<ServiceItem, Money> priceColumn) {
         priceColumn.setCellValueFactory(cellData ->
                 new SimpleObjectProperty<>(cellData.getValue().getPrice()));
 
@@ -106,15 +107,15 @@ public class ServiceItemView extends BaseView {
         formatter.setMinimumFractionDigits(2);
         formatter.setMaximumFractionDigits(2);
 
-        priceColumn.setCellFactory(column -> new TableCell<ServiceItem, Double>() {
+        priceColumn.setCellFactory(column -> new TableCell<ServiceItem, Money>() {
             @Override
-            protected void updateItem(Double price, boolean empty) {
+            protected void updateItem(Money price, boolean empty) {
                 super.updateItem(price, empty);
 
                 if (empty || price == null) {
                     setText(null);
                 } else {
-                    setText(formatter.format(price));
+                    setText(formatter.format(price.toBigDecimal()));
                 }
             }
         });
