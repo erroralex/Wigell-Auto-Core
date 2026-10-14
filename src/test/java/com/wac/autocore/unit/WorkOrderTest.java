@@ -3,6 +3,7 @@ package com.wac.autocore.unit;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.exception.WorkOrderLockedException;
 import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,7 +25,7 @@ public class WorkOrderTest {
     @Test
     void addItemAddsServiceSnapshotToDraft() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
-        ServiceItem service = createService(1, 899.0);
+        ServiceItem service = createService(1, Money.of(899));
 
         workOrder.addItem(service);
 
@@ -32,26 +34,26 @@ public class WorkOrderTest {
         WorkOrderItem item = workOrder.getItems().get(0);
         assertEquals(1, item.getServiceItemId());
         assertEquals("Oljebyte", item.getServiceName());
-        assertEquals(899.0, item.getAgreedPrice(), 0.001);
+        assertMoney(Money.of(899), item.getAgreedPrice());
         assertEquals(45, item.getDurationMinutes());
     }
 
     @Test
     void addedItemPriceDoesNotChange_WhenCatalogPriceChanges() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
-        ServiceItem service = createService(1, 899.0);
+        ServiceItem service = createService(1, Money.of(899));
 
         workOrder.addItem(service);
 
-        when(service.getPrice()).thenReturn(999.0);
+        when(service.getPrice()).thenReturn(Money.of(999));
 
-        assertEquals(899.0, workOrder.getItems().get(0).getAgreedPrice(), 0.001);
+        assertMoney(Money.of(899), workOrder.getItems().get(0).getAgreedPrice());
     }
 
     @Test
     void addItemThrows_WhenWorkOrderIsInProgress() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
-        workOrder.addItem(createService(1, 899.0));
+        workOrder.addItem(createService(1, Money.of(899)));
 
         workOrder.confirm();
         workOrder.start();
@@ -60,7 +62,7 @@ public class WorkOrderTest {
 
         assertThrows(
                 WorkOrderLockedException.class,
-                () -> workOrder.addItem(createService(2, 499.0))
+                () -> workOrder.addItem(createService(2, Money.of(499)))
         );
     }
 
@@ -68,11 +70,11 @@ public class WorkOrderTest {
     void addItemThrowsWhenServiceAlreadyExists() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
 
-        workOrder.addItem(createService(1, 899.0));
+        workOrder.addItem(createService(1, Money.of(899)));
 
         assertThrows(
                 ValidationException.class,
-                () -> workOrder.addItem(createService(1, 999.0))
+                () -> workOrder.addItem(createService(1, Money.of(999)))
         );
 
         assertEquals(1, workOrder.getItems().size());
@@ -81,7 +83,7 @@ public class WorkOrderTest {
     @Test
     void removeItemCannotRemoveLastService() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
-        workOrder.addItem(createService(1, 899.0));
+        workOrder.addItem(createService(1, Money.of(899)));
 
         ValidationException exception = assertThrows(
                 ValidationException.class,
@@ -95,28 +97,28 @@ public class WorkOrderTest {
     @Test
     void totalPriceCountsOnlyChargeableItems() {
         WarrantyWorkOrder warranty = warrantyDraft();
-        warranty.addItem(createService(1, 899.0));
-        warranty.addItem(createService(2, 499.0));
+        warranty.addItem(createService(1, Money.of(899)));
+        warranty.addItem(createService(2, Money.of(499)));
 
         warranty.setItemChargeable(2, false);
 
-        assertEquals(899.0, warranty.getTotalPrice(), 0.001);
+        assertMoney(Money.of(899), warranty.getTotalPrice());
     }
 
     @Test
     void warrantyTotalIsZero_WhenAllItemsAreNonChargeable() {
         WarrantyWorkOrder warranty = warrantyDraft();
-        warranty.addItem(createService(1, 899.0));
+        warranty.addItem(createService(1, Money.of(899)));
 
         warranty.setItemChargeable(1, false);
 
-        assertEquals(0.0, warranty.getTotalPrice(), 0.001);
+        assertMoney(Money.ZERO, warranty.getTotalPrice());
     }
 
     @Test
     void setItemChargeableThrows_WhenTypeDoesNotAllowNonChargeableItems() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
-        workOrder.addItem(createService(1, 899.0));
+        workOrder.addItem(createService(1, Money.of(899)));
 
         ValidationException exception = assertThrows(
                 ValidationException.class,
@@ -130,7 +132,7 @@ public class WorkOrderTest {
     @Test
     void setItemChargeableAllowsNonChargeable_OnWarranty() {
         WarrantyWorkOrder warranty = warrantyDraft();
-        warranty.addItem(createService(1, 899.0));
+        warranty.addItem(createService(1, Money.of(899)));
 
         warranty.setItemChargeable(1, false);
 
@@ -140,7 +142,7 @@ public class WorkOrderTest {
     @Test
     void applyChargeFlagsIsIgnored_WhenTypeDoesNotAllowNonChargeableItems() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
-        workOrder.addItem(createService(1, 899.0));
+        workOrder.addItem(createService(1, Money.of(899)));
 
         workOrder.applyChargeFlags(Collections.singletonMap(1, false));
 
@@ -150,8 +152,8 @@ public class WorkOrderTest {
     @Test
     void applyChargeFlagsSetsFlags_AndMissingItemsBecomeNonChargeable() {
         WarrantyWorkOrder warranty = warrantyDraft();
-        warranty.addItem(createService(1, 899.0));
-        warranty.addItem(createService(2, 499.0));
+        warranty.addItem(createService(1, Money.of(899)));
+        warranty.addItem(createService(2, Money.of(499)));
 
         Map<Integer, Boolean> flags = new HashMap<>();
         flags.put(1, true);
@@ -196,7 +198,7 @@ public class WorkOrderTest {
         assertEquals("Validation failed: " + "error.workOrder.missingProblemDescription", exception.getMessage());
     }
 
-    private ServiceItem createService(int id, double price) {
+    private ServiceItem createService(int id, Money price) {
         ServiceItem service = mock(ServiceItem.class);
 
         when(service.getId()).thenReturn(id);
