@@ -83,8 +83,8 @@ public abstract class WorkOrder {
     }
 
     // Regeln för problembeskrivning finns bara här. Typen avgör om den krävs, metoden avgör vad som räknas som tomt.
-    // Statisk så att fabrikerna kan validera innan objektet skapas.
-    protected static void requireProblemDescription(WorkOrderType type, String problemDescription) {
+    // Statisk så att fabrikerna kan validera innan objektet skapas. Dialogen förvaliderar med samma regel.
+    public static void requireProblemDescription(WorkOrderType type, String problemDescription) {
         if (type.requiresProblemDescription()
                 && (problemDescription == null || problemDescription.trim().isEmpty())) {
             throw new ValidationException("error.workOrder.missingProblemDescription");
