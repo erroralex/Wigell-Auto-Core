@@ -52,7 +52,7 @@ public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
                 new Label(lang.get("payment.invoice", invoice.getId())),
-                new Label(lang.get("payment.total", invoice.getTotalAmount().toBigDecimal())),
+                new Label(lang.get("payment.total", invoice.getTotalAmount())),
                 new Label(lang.get("table.paymentType")), paymentTypeSelection
         );
 
