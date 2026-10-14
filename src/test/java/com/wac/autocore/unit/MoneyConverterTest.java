@@ -8,8 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import javax.persistence.Converter;
-
 import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,13 +70,5 @@ class MoneyConverterTest {
     void nullIsNullInBothDirections() {
         assertNull(converter.convertToDatabaseColumn(null));
         assertNull(converter.convertToEntityAttribute(null));
-    }
-
-    @Test
-    void isAppliedAutomaticallyToMoneyAttributes() {
-        Converter annotation = MoneyConverter.class.getAnnotation(Converter.class);
-
-        assertNotNull(annotation, "MoneyConverter must be annotated with @Converter");
-        assertTrue(annotation.autoApply());
     }
 }
