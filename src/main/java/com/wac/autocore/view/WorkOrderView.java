@@ -179,11 +179,9 @@ public class WorkOrderView extends BaseView {
         TableColumn<WorkOrder, String> typeCol = new TableColumn<>(lang.get("table.type"));
         typeCol.setCellValueFactory(c -> {
             WorkOrder order = c.getValue();
-            if (order instanceof WarrantyWorkOrder) {
-                Integer originalId = ((WarrantyWorkOrder) order).getOriginalWorkOrderId();
-                if (originalId != null) {
-                    return new SimpleStringProperty(lang.get("workOrder.warrantyFor", originalId));
-                }
+            Integer originalId = order.getOriginalWorkOrderId();
+            if (originalId != null) {
+                return new SimpleStringProperty(lang.get("workOrder.warrantyFor", originalId));
             }
             return new SimpleStringProperty(lang.get(order.getType().getMessageKey()));
         });

@@ -69,8 +69,13 @@ public class WarrantyWorkOrder extends WorkOrder {
         }
     }
 
+    @Override
+    public boolean allowsNonChargeableItems() {
+        return true;
+    }
+
+    @Override
     public Integer getOriginalWorkOrderId() {
         return originalWorkOrderId;
     }
-
 }

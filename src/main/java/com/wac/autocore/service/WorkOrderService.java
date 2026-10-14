@@ -263,12 +263,7 @@ public class WorkOrderService {
             }
         }
 
-        if (workOrder instanceof WarrantyWorkOrder) {
-            for (WorkOrderItem item : workOrder.getItems()) {
-                int serviceItemId = item.getServiceItemId();
-                workOrder.setItemChargeable(serviceItemId, chargeFlags.getOrDefault(serviceItemId, false));
-            }
-        }
+        workOrder.applyChargeFlags(chargeFlags);
 
         workOrder.setMechanicId(mechanicId);
         workOrder.setPlannedDate(plannedDate);
