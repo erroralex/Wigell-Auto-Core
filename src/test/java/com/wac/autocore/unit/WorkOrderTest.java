@@ -176,6 +176,26 @@ public class WorkOrderTest {
         assertEquals(Integer.valueOf(7), warranty.getOriginalWorkOrderId());
     }
 
+    @Test
+    void dropInDraftThrows_WhenProblemDescriptionIsBlank() {
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> DropInWorkOrder.draft(1, "   ")
+        );
+
+        assertEquals("Validation failed: " + "error.workOrder.missingProblemDescription", exception.getMessage());
+    }
+
+    @Test
+    void warrantyDraftThrows_WhenProblemDescriptionIsMissing() {
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> WarrantyWorkOrder.draft(completedOriginal(), null)
+        );
+
+        assertEquals("Validation failed: " + "error.workOrder.missingProblemDescription", exception.getMessage());
+    }
+
     private ServiceItem createService(int id, double price) {
         ServiceItem service = mock(ServiceItem.class);
 

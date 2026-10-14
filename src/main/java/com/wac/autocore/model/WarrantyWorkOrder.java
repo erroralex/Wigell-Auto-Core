@@ -48,9 +48,7 @@ public class WarrantyWorkOrder extends WorkOrder {
             throw new ValidationException("error.workOrder.missingVehicle");
         }
 
-        if (problemDescription == null || problemDescription.trim().isEmpty()) {
-            throw new ValidationException("error.workOrder.missingProblemDescription");
-        }
+        requireProblemDescription(WorkOrderType.WARRANTY, problemDescription);
 
         return new WarrantyWorkOrder(original, problemDescription);
 

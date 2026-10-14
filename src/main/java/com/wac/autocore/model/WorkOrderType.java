@@ -6,18 +6,25 @@ package com.wac.autocore.model;
 // Ger en enda källa till sanning, och ingen duplicering.)
 public enum WorkOrderType {
 
-    PLANNED("workOrder.type.planned"),
-    DROP_IN("workOrder.type.dropIn"),
-    WARRANTY("workOrder.type.warranty");
+    PLANNED("workOrder.type.planned", false),
+    DROP_IN("workOrder.type.dropIn", true),
+    WARRANTY("workOrder.type.warranty", true);
 
     private final String messageKey;
 
-    WorkOrderType(String messageKey) {
+    private final boolean requiresProblemDescription;
+
+    WorkOrderType(String messageKey, boolean requiresProblemDescription) {
         this.messageKey = messageKey;
+        this.requiresProblemDescription = requiresProblemDescription;
     }
 
     public String getMessageKey() {
         return messageKey;
+    }
+
+    public boolean requiresProblemDescription() {
+        return requiresProblemDescription;
     }
 
 }

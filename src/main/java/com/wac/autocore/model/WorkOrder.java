@@ -79,6 +79,16 @@ public abstract class WorkOrder {
         if (mechanicId == null) {
             throw new ValidationException("error.workOrder.missingMechanic");
         }
+        requireProblemDescription(getType(), problemDescription);
+    }
+
+    // Regeln för problembeskrivning finns bara här. Typen avgör om den krävs, metoden avgör vad som räknas som tomt.
+    // Statisk så att fabrikerna kan validera innan objektet skapas.
+    protected static void requireProblemDescription(WorkOrderType type, String problemDescription) {
+        if (type.requiresProblemDescription()
+                && (problemDescription == null || problemDescription.trim().isEmpty())) {
+            throw new ValidationException("error.workOrder.missingProblemDescription");
+        }
     }
 
     protected void validateTypeSpecific() {
