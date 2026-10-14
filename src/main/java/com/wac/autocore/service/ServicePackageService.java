@@ -9,6 +9,8 @@ import com.wac.autocore.repository.ServicePackageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +42,9 @@ public class ServicePackageService {
         return packageRepository.findById(id);
     }
 
-    public ServicePackage create(String name, String description, List<Integer> serviceItemIds) {
+    public ServicePackage create(@NotBlank(message = "error.servicePackage.nameRequired") String name,
+                                 String description, // Allowed to be empty.
+                                 @NotEmpty(message = "error.servicePackage.noServices") List<Integer> serviceItemIds) {
         List<ServiceItem> services = loadServices(serviceItemIds);
         ServicePackage servicePackage = ServicePackage.create(name, description, services);
         if (packageRepository.existsByNameIgnoreCase(servicePackage.getName())) {

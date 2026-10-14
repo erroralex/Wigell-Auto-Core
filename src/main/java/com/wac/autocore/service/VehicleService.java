@@ -7,6 +7,8 @@ import com.wac.autocore.repository.CustomerRepo;
 import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,15 +39,15 @@ public class VehicleService {
         return vehicleRepo.existsById(id);
     }
 
-    public boolean existsByRegistrationNumber(String registrationNumber) {
+    public boolean existsByRegistrationNumber(@NotBlank(message="error.vehicle.blankRegNr") String registrationNumber) {
         return vehicleRepo.existsByRegistrationNumber(registrationNumber);
     }
 
-    public Vehicle create(String registrationNumber,
-                          String brand,
-                          String model,
-                          int year,
-                          int customerId) {
+    public Vehicle create(@NotBlank(message="error.vehicle.blankRegNr")String registrationNumber,
+                          @NotBlank(message="error.vehicle.blankBrand")String brand,
+                          @NotBlank(message="error.vehicle.blankModel")String model,
+                          @NotNull(message="error.vehicle.yearIsNull") int year,
+                          @NotNull(message="error.vehicle.customerIdIsNull") int customerId) {
         validateCustomer(customerId);
 
         if (vehicleRepo.existsByRegistrationNumber(registrationNumber)) {
