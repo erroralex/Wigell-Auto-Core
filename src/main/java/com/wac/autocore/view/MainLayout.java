@@ -63,8 +63,8 @@ public class MainLayout extends BorderPane {
             case BOOKINGS:          return new BookingView(bookingService, servicePackageService);
             case SERVICE_ITEMS:     return new ServiceItemView(serviceItemService);
             case SERVICE_PACKAGES:  return new ServicePackageView(servicePackageService, serviceItemService);
-            case MECHANICS:         return new MechanicView(mechanicService);
-            case WORK_ORDERS:       return new WorkOrderView(workOrderService, customerService, vehicleService);
+            case MECHANICS:         return new MechanicView(mechanicService, vehicleService);
+            case WORK_ORDERS:       return new WorkOrderView(workOrderService, customerService, vehicleService, bookingService, mechanicService, serviceItemService);
             case INVOICES:          return new InvoiceView(invoiceService, workOrderService);
             case PAYMENTS:          return new PaymentView(invoiceService, paymentService);
             default:                throw new IllegalStateException("Unknown NavigationItem: " + item);

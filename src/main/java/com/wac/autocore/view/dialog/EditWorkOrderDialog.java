@@ -1,8 +1,10 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.model.*;
+import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.WorkOrderItem;
 import com.wac.autocore.service.LanguageManager;
-import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
@@ -32,12 +34,10 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
-    public EditWorkOrderDialog(WorkOrder workOrder, WorkOrderService workOrderService) {
+    public EditWorkOrderDialog(WorkOrder workOrder, List<ServiceItem> serviceItems, List<Mechanic> mechanics) {
         this.workOrder = workOrder;
 
-        serviceSelectorBox = new ServiceSelectorBox(
-                workOrderService.findAllServiceItems()
-        );
+        serviceSelectorBox = new ServiceSelectorBox(serviceItems);
 
         serviceSelectorBox.selectServiceIds(
                 workOrder.getItems().stream()
@@ -51,7 +51,7 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
         DialogUtil.applyTheme(this);
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
-        setupFields(workOrderService);
+        setupFields(mechanics);
 
         if (workOrder.allowsNonChargeableItems()) {
             for (WorkOrderItem item : workOrder.getItems()) {
@@ -85,8 +85,8 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
 
     }
 
-    private void setupFields(WorkOrderService workOrderService) {
-        mechanicComboBox.getItems().setAll(workOrderService.findAllMechanics());
+    private void setupFields(List<Mechanic> mechanics) {
+        mechanicComboBox.getItems().setAll(mechanics);
         mechanicComboBox.setMaxWidth(Double.MAX_VALUE);
         mechanicComboBox.setConverter(new StringConverter<Mechanic>() {
             @Override
@@ -176,12 +176,29 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
             this.chargeFlags = chargeFlags;
         }
 
-        public List<Integer> getServiceItemIds() { return serviceItemIds; }
-        public Mechanic getMechanic() { return mechanic; }
-        public LocalDate getPlannedDate() { return plannedDate; }
-        public String getCustomerInstructions() { return customerInstructions; }
-        public String getComments() { return comments; }
-        public Map<Integer, Boolean> getChargeFlags() { return chargeFlags; }
+        public List<Integer> getServiceItemIds() {
+            return serviceItemIds;
+        }
+
+        public Mechanic getMechanic() {
+            return mechanic;
+        }
+
+        public LocalDate getPlannedDate() {
+            return plannedDate;
+        }
+
+        public String getCustomerInstructions() {
+            return customerInstructions;
+        }
+
+        public String getComments() {
+            return comments;
+        }
+
+        public Map<Integer, Boolean> getChargeFlags() {
+            return chargeFlags;
+        }
     }
 
 }

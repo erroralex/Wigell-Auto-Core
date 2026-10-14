@@ -1,7 +1,9 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.VehicleService;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -14,6 +16,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /**
  * <b>MechanicView</b>
  * <p>Ansvar: Visar och hanterar mekaniker i användargränssnittet.</p>
@@ -21,14 +27,16 @@ import javafx.scene.layout.VBox;
 public class MechanicView extends BaseView {
 
     private final MechanicService mechanicService;
+    private final VehicleService vehicleService;
 
     private final ObservableList<Mechanic> mechanicObservableList;
     private final VBox contentColumn = new VBox(20);
     private final VBox tableContainer = new VBox();
     private MechanicBookingsView bookingsView;
 
-    public MechanicView(MechanicService mechanicService) {
+    public MechanicView(MechanicService mechanicService, VehicleService vehicleService) {
         this.mechanicService = mechanicService;
+        this.vehicleService = vehicleService;
         this.mechanicObservableList = FXCollections.observableArrayList(mechanicService.listAll());
         initView();
     }
@@ -107,7 +115,10 @@ public class MechanicView extends BaseView {
 
     private void showBookingsFor(Mechanic mechanic) {
         if (bookingsView == null) {
-            bookingsView = new MechanicBookingsView(mechanic, mechanicService, () -> {
+            Map<Integer, Vehicle> vehiclesById = vehicleService.findAll().stream()
+                    .collect(Collectors.toMap(Vehicle::getId, Function.identity()));
+
+            bookingsView = new MechanicBookingsView(mechanic, mechanicService, vehiclesById, () -> {
                 contentColumn.getChildren().remove(bookingsView);
                 bookingsView = null;
             });
