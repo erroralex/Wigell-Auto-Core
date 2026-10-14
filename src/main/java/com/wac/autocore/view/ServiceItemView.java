@@ -5,6 +5,7 @@ import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.dialog.AdminServiceItemDialog;
+import com.wac.autocore.view.util.DialogUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,8 +16,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-
-import java.text.NumberFormat;
 
 
 /**
@@ -102,23 +101,7 @@ public class ServiceItemView extends BaseView {
         priceColumn.setCellValueFactory(cellData ->
                 new SimpleObjectProperty<>(cellData.getValue().getPrice()));
 
-        // Följer valt språk: 1 097,50 på svenska, 1,097.50 på engelska
-        NumberFormat formatter = NumberFormat.getNumberInstance(lang.getLocale());
-        formatter.setMinimumFractionDigits(2);
-        formatter.setMaximumFractionDigits(2);
-
-        priceColumn.setCellFactory(column -> new TableCell<ServiceItem, Money>() {
-            @Override
-            protected void updateItem(Money price, boolean empty) {
-                super.updateItem(price, empty);
-
-                if (empty || price == null) {
-                    setText(null);
-                } else {
-                    setText(formatter.format(price.toBigDecimal()));
-                }
-            }
-        });
+        DialogUtil.configureMoneyColumn(priceColumn);
     }
 
     private void openAdminServiceItemDialog(TableView<ServiceItem> itemTableView) {
