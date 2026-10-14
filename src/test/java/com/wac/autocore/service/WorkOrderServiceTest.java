@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.WorkOrderLockedException;
 import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.Optional;
 
+import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -50,7 +52,7 @@ public class WorkOrderServiceTest {
         ServiceItem serviceItem = mock(ServiceItem.class);
         when(serviceItem.getId()).thenReturn(1);
         when(serviceItem.getName()).thenReturn("Oil Change");
-        when(serviceItem.getPrice()).thenReturn(899.0);
+        when(serviceItem.getPrice()).thenReturn(Money.of(899));
         when(serviceItem.getEstimatedMinutes()).thenReturn(60);
 
         BookingServiceItem bookingItem = BookingServiceItem.snapshotOf(serviceItem);
@@ -82,7 +84,7 @@ public class WorkOrderServiceTest {
         assertEquals(5, result.getMechanicId());
         assertEquals(1, result.getItems().size());
         assertEquals("Oil Change", result.getItems().get(0).getServiceName());
-        assertEquals(899.0, result.getItems().get(0).getAgreedPrice());
+        assertMoney(Money.of(899), result.getItems().get(0).getAgreedPrice());
         assertInstanceOf(PlannedWorkOrder.class, result);
         assertEquals(WorkOrderStatus.CONFIRMED, result.getStatus());
 
@@ -135,7 +137,7 @@ public class WorkOrderServiceTest {
         ServiceItem serviceItem = mock(ServiceItem.class);
         when(serviceItem.getId()).thenReturn(1);
         when(serviceItem.getName()).thenReturn("Oil Change");
-        when(serviceItem.getPrice()).thenReturn(899.0);
+        when(serviceItem.getPrice()).thenReturn(Money.of(899));
         when(serviceItem.getEstimatedMinutes()).thenReturn(60);
 
         DropInWorkOrder workOrder = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
