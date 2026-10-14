@@ -7,6 +7,7 @@ import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.dialog.ServicePackageDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleObjectProperty;
@@ -20,7 +21,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -80,7 +80,7 @@ public class ServicePackageView extends BaseView {
         priceColumn.setCellValueFactory(cell ->
                 new SimpleObjectProperty<>(totalPrice(cell.getValue())));
 
-        setPriceFormat(priceColumn);
+        DialogUtil.configureMoneyColumn(priceColumn);
 
         table.getColumns().add(nameColumn);
         table.getColumns().add(descColumn);
@@ -88,21 +88,6 @@ public class ServicePackageView extends BaseView {
         table.getColumns().add(priceColumn);
 
         table.setItems(packages);
-    }
-
-    // Följer valt språk: 1 097,50 på svenska, 1,097.50 på engelska
-    private void setPriceFormat(TableColumn<ServicePackage, Money> priceColumn) {
-        NumberFormat formatter = NumberFormat.getNumberInstance(lang.getLocale());
-        formatter.setMinimumFractionDigits(2);
-        formatter.setMaximumFractionDigits(2);
-
-        priceColumn.setCellFactory(column -> new TableCell<ServicePackage, Money>() {
-            @Override
-            protected void updateItem(Money price, boolean empty) {
-                super.updateItem(price, empty);
-                setText(empty || price == null ? null : formatter.format(price.toBigDecimal()));
-            }
-        });
     }
 
     private static Money totalPrice(ServicePackage servicePackage) {
