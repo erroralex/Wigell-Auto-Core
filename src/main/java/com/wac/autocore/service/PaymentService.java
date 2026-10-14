@@ -7,6 +7,7 @@ import com.wac.autocore.model.Payment;
 import com.wac.autocore.repository.PaymentRepo;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Service
@@ -24,7 +25,8 @@ public class PaymentService {
         return paymentRepo.findAll();
     }
 
-    public Payment processPayment(Integer invoiceId, String paymentType) {
+    public Payment processPayment(Integer invoiceId,
+                                  @NotBlank(message="error.payment.emptyPaymentType") String paymentType) {
 
         Invoice invoice = invoiceService.findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Invoice", invoiceId));

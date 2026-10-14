@@ -5,7 +5,9 @@ import com.wac.autocore.model.*;
 import com.wac.autocore.repository.InvoiceRepo;
 import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +17,7 @@ import java.util.Optional;
  * <p>Ansvar: Skapar och hämtar fakturor. Beloppet räknas från arbetsorderns avtalade priser,
  * som frystes vid bokningen, och aldrig från tjänstekatalogens nuvarande priser.</p>
  */
+@Validated
 @Service
 public class InvoiceService {
 
@@ -33,7 +36,11 @@ public class InvoiceService {
         this.customerService = customerService;
     }
 
-    public Invoice create(int workOrderId, String discountCode) {
+    public Invoice create(int workOrderId,
+                          @Pattern(
+                                  regexp = "^[A-Z]+\\d+$",
+                                  message = "error.discountCode.invalidFormat"
+                          ) String discountCode) {
         WorkOrder workOrder = workOrderService.findById(workOrderId)
                 .orElseThrow(() -> new EntityNotFoundException("WorkOrder", workOrderId));
 

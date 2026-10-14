@@ -15,12 +15,17 @@ import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Validated
 @Service
 public class BookingService {
 
@@ -54,19 +59,17 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking create(int vehicleId, int mechanicId, LocalDate date,
-                          LocalTime startTime, String description,
-                          List<Integer> serviceItemIds) {
+    public Booking create(int vehicleId, int mechanicId,
+                          @NotNull(message = "error.dateSelect") LocalDate date,
+                          @NotNull(message = "error.startTimeSelect") LocalTime startTime,
+                          @NotBlank(message = "error.desc") String description,
+                          @NotEmpty(message= "error.serviceSelect") List<Integer> serviceItemIds) {
 
-        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+       /* if (serviceItemIds == null || serviceItemIds.isEmpty()) {
             throw new ValidationException("error.serviceSelect");
-        }
+        }*/
 
-        List<ServiceItem> serviceItems = serviceItemIds.stream()
-                .distinct()
-                .map(id -> findServiceItemById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
-                .collect(Collectors.toList());
+        List<ServiceItem> serviceItems = fetchServiceItemsByIds(serviceItemIds);
 
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
@@ -85,14 +88,13 @@ public class BookingService {
 
         return bookingRepository.save(booking);
     }
-    
 
     // Skapar en ny bokning från en tidigare med dagens tjänstepriser, utan att ändra originalet.
     // Återanvänder originalets mekaniker om mechanicId är null och kontrollerar dubbelbokning före sparandet.
     @Transactional
     public BookingCopyResult createFromPrevious(int previousBookingId,
-                                                LocalDate date,
-                                                LocalTime startTime,
+                                                @NotNull(message = "error.dateSelect") LocalDate date,
+                                                @NotNull(message = "error.startTimeSelect") LocalTime startTime,
                                                 Integer mechanicId,
                                                 Integer vehicleId,
                                                 String description,
@@ -161,22 +163,20 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking update(int bookingId, int vehicleId, int mechanicId, LocalDate date,
-                          LocalTime startTime, String description,
-                          List<Integer> serviceItemIds) {
+    public Booking update(int bookingId, int vehicleId, int mechanicId,
+                          @NotNull(message = "error.dateSelect") LocalDate date,
+                          @NotNull(message = "error.startTimeSelect") LocalTime startTime,
+                          @NotBlank(message = "error.desc") String description,
+                          @NotEmpty(message = "error.serviceSelect") List<Integer> serviceItemIds) {
 
         Booking booking = findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
 
-        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+    /*    if (serviceItemIds == null || serviceItemIds.isEmpty()) {
             throw new ValidationException("error.serviceSelect");
-        }
+        }*/
 
-        List<ServiceItem> serviceItems = serviceItemIds.stream()
-                .distinct()
-                .map(id -> findServiceItemById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
-                .collect(Collectors.toList());
+        List<ServiceItem> serviceItems = fetchServiceItemsByIds(serviceItemIds);
 
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
@@ -325,9 +325,15 @@ public class BookingService {
             }
 
         }
-
-
-
         return changes;
     }
+
+    private List<ServiceItem> fetchServiceItemsByIds(List<Integer> serviceItemIds) {
+        return serviceItemIds.stream()
+                .distinct()
+                .map(id -> findServiceItemById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
+                .collect(Collectors.toList());
+    }
+
 }

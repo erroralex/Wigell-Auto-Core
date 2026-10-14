@@ -3,10 +3,14 @@ package com.wac.autocore.service;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.repository.CustomerRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @Service
 public class CustomerService {
 
@@ -28,7 +32,9 @@ public class CustomerService {
         return customerRepo.existsById(id);
     }
 
-    public Customer create(String name, String phone, String email) {
+    public Customer create(@NotBlank(message = "error.customer.nameRequired") String name,
+                           @NotBlank(message = "error.customer.phoneRequired") String phone,
+                           @Email @NotBlank(message = "error.customer.emailInvalid") String email) {
         return customerRepo.save(new Customer(name, phone, email));
     }
 
