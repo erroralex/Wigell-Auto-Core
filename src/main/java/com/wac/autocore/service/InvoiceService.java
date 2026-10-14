@@ -35,11 +35,8 @@ public class InvoiceService {
     }
 
     public Invoice create(int workOrderId, String discountCode) {
-
-        WorkOrder workOrder = workOrderService.findById(workOrderId);
-        if (workOrder == null) {
-            throw new EntityNotFoundException("WorkOrder", workOrderId);
-        }
+        WorkOrder workOrder = workOrderService.findById(workOrderId)
+                .orElseThrow(() -> new EntityNotFoundException("WorkOrder", workOrderId));
 
         Integer vehicleId = workOrder.getVehicleId();
         if (vehicleId == null) {
@@ -57,7 +54,7 @@ public class InvoiceService {
 
         // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
         for (WorkOrderItem workOrderItem : workOrder.getItems()) {
-            Money amount = workOrderItem.isChargeable() ? workOrderItem.getAgreedPrice() : Money.ZERO;
+            Money amount = workOrderItem.getChargedAmount();
 
             Money discount = strategy.calculateDiscount(amount);
 

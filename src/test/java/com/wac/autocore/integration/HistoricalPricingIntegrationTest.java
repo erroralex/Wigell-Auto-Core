@@ -362,8 +362,8 @@ class HistoricalPricingIntegrationTest {
             WorkOrder workOrder = workOrders.createWorkOrder(booking.getId());
             int workOrderId = workOrder.getId();
 
-            workOrders.startWorkOrder(workOrder);
-            workOrders.completeWorkOrder(workOrder);
+            workOrders.startWorkOrder(workOrderId);
+            workOrders.completeWorkOrder(workOrderId);
 
             assertEquals(WorkOrderStatus.COMPLETED,
                     ctx.getBean(WorkOrderRepository.class).findById(workOrderId).get().getStatus(),

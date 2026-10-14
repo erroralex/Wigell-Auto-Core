@@ -1,17 +1,14 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.WorkOrderLockedException;
 import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <b>WorkOrder</b>
@@ -31,7 +28,7 @@ public abstract class WorkOrder {
     private Integer vehicleId;
     private Integer mechanicId;
 
-    @Column (name = "problem_description")
+    @Column(name = "problem_description")
     private String problemDescription;
 
     @Column(name = "planned_date")
@@ -45,13 +42,13 @@ public abstract class WorkOrder {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "work_order_service_item", joinColumns = @JoinColumn(name = "work_order_id"))
-    @Column(name = "service_item_id")
     private List<WorkOrderItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private WorkOrderStatus status = WorkOrderStatus.DRAFT;
 
-    protected WorkOrder() {}
+    protected WorkOrder() {
+    }
 
     protected WorkOrder(Integer bookingId, Integer vehicleId, Integer mechanicId, List<WorkOrderItem> items) {
         this.bookingId = bookingId;
@@ -67,7 +64,7 @@ public abstract class WorkOrder {
         this.status = next;
     }
 
-    public void confirm()  {
+    public void confirm() {
         validateCommon();
         validateTypeSpecific();
         transitionTo(WorkOrderStatus.CONFIRMED);
@@ -83,16 +80,42 @@ public abstract class WorkOrder {
         if (mechanicId == null) {
             throw new ValidationException("error.workOrder.missingMechanic");
         }
+        requireProblemDescription(getType(), problemDescription);
     }
 
-    protected void validateTypeSpecific() {} // Intentionally empty.
-    public void start()    { transitionTo(WorkOrderStatus.IN_PROGRESS); }
-    public void complete() { transitionTo(WorkOrderStatus.COMPLETED); }
-    public void cancel()   { transitionTo(WorkOrderStatus.CANCELLED); }
-    public void reopen()   { transitionTo(WorkOrderStatus.DRAFT); }
+    // Regeln för problembeskrivning finns bara här. Typen avgör om den krävs, metoden avgör vad som räknas som tomt.
+    // Statisk så att fabrikerna kan validera innan objektet skapas. Dialogen förvaliderar med samma regel.
+    public static void requireProblemDescription(WorkOrderType type, String problemDescription) {
+        if (type.requiresProblemDescription()
+                && (problemDescription == null || problemDescription.trim().isEmpty())) {
+            throw new ValidationException("error.workOrder.missingProblemDescription");
+        }
+    }
+
+    protected void validateTypeSpecific() {
+    } // Intentionally empty.
+
+    public void start() {
+        transitionTo(WorkOrderStatus.IN_PROGRESS);
+    }
+
+    public void complete() {
+        transitionTo(WorkOrderStatus.COMPLETED);
+    }
+
+    public void cancel() {
+        transitionTo(WorkOrderStatus.CANCELLED);
+    }
+
+    public void reopen() {
+        transitionTo(WorkOrderStatus.DRAFT);
+    }
 
     public void setItemChargeable(int serviceItemId, boolean chargeable) {
         ensureEditable();
+        if (!chargeable && !allowsNonChargeableItems()) {
+            throw new ValidationException("error.workOrder.nonChargeableNotAllowed");
+        }
         for (WorkOrderItem item : items) {
             if (item.getServiceItemId() == serviceItemId) {
                 item.setChargeable(chargeable);
@@ -100,6 +123,24 @@ public abstract class WorkOrder {
             }
         }
         throw new EntityNotFoundException("WorkOrderItem", serviceItemId);
+    }
+
+    // Tillämpar debiteringsflaggorna från redigeringsdialogen (Template Method).
+    // Typer som inte tillåter gratisrader ignorerar flaggorna, så anroparen behöver inte veta ordertypen.
+    // Rader som saknas i flaggorna, t.ex. en tjänst som lades till i samma redigering, blir ej debiterbara.
+    public void applyChargeFlags(Map<Integer, Boolean> chargeFlags) {
+        if (!allowsNonChargeableItems()) {
+            return;
+        }
+        for (WorkOrderItem item : items) {
+            int serviceItemId = item.getServiceItemId();
+            setItemChargeable(serviceItemId, chargeFlags.getOrDefault(serviceItemId, false));
+        }
+    }
+
+    // Subklasser som får ha gratisrader överskuggar
+    public boolean allowsNonChargeableItems() {
+        return false;
     }
 
     // Lägger till ett jobb på ordern. Bara subklasser som tillåter nya jobb exponerar detta.
@@ -140,9 +181,15 @@ public abstract class WorkOrder {
 
     // Ordern får bara ändras innan arbetet har påbörjat
     private void ensureEditable() {
-        if (status != WorkOrderStatus.DRAFT && status != WorkOrderStatus.CONFIRMED) {
+        if (!status.isEditable()) {
             throw new WorkOrderLockedException(this.getId(), this.status);
         }
+    }
+
+    // Bara ordrar som gäller en tidigare order har ett värde
+    // Subklassen överskuggar metoden och null betyder “gäller ingen tidigare order”
+    public Integer getOriginalWorkOrderId() {
+        return null;
     }
 
     public int getId() {

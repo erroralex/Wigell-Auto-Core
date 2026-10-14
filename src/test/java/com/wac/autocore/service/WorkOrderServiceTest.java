@@ -1,5 +1,7 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.WorkOrderLockedException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
@@ -89,24 +91,73 @@ public class WorkOrderServiceTest {
     }
 
     @Test
-    void findById_shouldReturnNullWhenWorkOrderDoesNotExist() {
+    void findById_shouldReturnEmptyWhenWorkOrderDoesNotExist() {
         when(workOrderRepository.findById(1))
                 .thenReturn(Optional.empty());
 
-        WorkOrder result = workOrderService.findById(1);
+        Optional<WorkOrder> result = workOrderService.findById(1);
 
-        assertNull(result);
+        assertFalse(result.isPresent());
     }
 
     @Test
     void startWorkOrder_shouldStartAndSaveWorkOrder() {
+        // Arrange
         WorkOrder workOrder = mock(WorkOrder.class);
-
         when(workOrder.getBookingId()).thenReturn(null);
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(workOrder));
 
-        workOrderService.startWorkOrder(workOrder);
+        // Act
+        workOrderService.startWorkOrder(1);
 
+        // Assert
         verify(workOrder).start();
         verify(workOrderRepository).save(workOrder);
+    }
+
+    @Test
+    void startWorkOrder_shouldThrowWhenWorkOrderDoesNotExist() {
+        // Arrange
+        when(workOrderRepository.findById(99)).thenReturn(Optional.empty());
+
+        // Act
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> workOrderService.startWorkOrder(99));
+
+        // Assert
+        assertEquals("error.notFound", exception.getMessageKey());
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateWorkOrder_shouldThrowLockedWhenWorkOrderIsInProgress() {
+        // Arrange
+        ServiceItem serviceItem = mock(ServiceItem.class);
+        when(serviceItem.getId()).thenReturn(1);
+        when(serviceItem.getName()).thenReturn("Oil Change");
+        when(serviceItem.getPrice()).thenReturn(899.0);
+        when(serviceItem.getEstimatedMinutes()).thenReturn(60);
+
+        DropInWorkOrder workOrder = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
+        workOrder.addItem(serviceItem);
+        workOrder.setMechanicId(5);
+        workOrder.confirm();
+        workOrder.start();
+
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(workOrder));
+        when(mechanicRepository.existsById(5)).thenReturn(true);
+
+        // Act + Assert
+        assertThrows(WorkOrderLockedException.class,
+                () -> workOrderService.updateWorkOrder(
+                        1,
+                        Collections.singletonList(1),
+                        5,
+                        null,
+                        null,
+                        null,
+                        Collections.emptyMap()));
+
+        verify(workOrderRepository, never()).save(any());
     }
 }

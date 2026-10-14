@@ -24,7 +24,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * <b>WorkOrderView</b>
@@ -179,11 +179,9 @@ public class WorkOrderView extends BaseView {
         TableColumn<WorkOrder, String> typeCol = new TableColumn<>(lang.get("table.type"));
         typeCol.setCellValueFactory(c -> {
             WorkOrder order = c.getValue();
-            if (order instanceof WarrantyWorkOrder) {
-                Integer originalId = ((WarrantyWorkOrder) order).getOriginalWorkOrderId();
-                if (originalId != null) {
-                    return new SimpleStringProperty(lang.get("workOrder.warrantyFor", originalId));
-                }
+            Integer originalId = order.getOriginalWorkOrderId();
+            if (originalId != null) {
+                return new SimpleStringProperty(lang.get("workOrder.warrantyFor", originalId));
             }
             return new SimpleStringProperty(lang.get(order.getType().getMessageKey()));
         });
@@ -249,14 +247,9 @@ public class WorkOrderView extends BaseView {
             return;
         }
 
-        double chargeableTotal = selected.getItems().stream()
-                        .filter(WorkOrderItem::isChargeable)
-                                .mapToDouble(WorkOrderItem::getAgreedPrice)
-                                        .sum();
-
         jobData.setAll(selected.getItems());
         jobSummaryLabel.setText(
-                lang.get("workOrder.total", chargeableTotal)
+                lang.get("workOrder.total", selected.getTotalPrice())
                         + "  |  "
                         + lang.get("workOrder.totalDuration", selected.getTotalDurationMinutes())
         );
@@ -371,14 +364,14 @@ public class WorkOrderView extends BaseView {
 
     // Gemensam hantering för alla åtgärder: kör servicen, laddar om tabellen och visar resultatet.
     // Fel (t.ex. valideringsfel vid Confirm) visas via ErrorFacade.
-    private void runAction(Consumer<WorkOrder> action, String titleKey, String messageKey) {
+    private void runAction(IntConsumer action, String titleKey, String messageKey) {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             return;
         }
 
         try {
-            action.accept(selected);
+            action.accept(selected.getId());
             refreshAfterAction(selected.getId());
             AlertHelper.showInfo(lang.get(titleKey), lang.get(messageKey));
         } catch (RuntimeException e) {
@@ -421,7 +414,7 @@ public class WorkOrderView extends BaseView {
         dialog.showAndWait().ifPresent(result -> {
             try {
                 workOrderService.updateWorkOrder(
-                        selected,
+                        selected.getId(),
                         result.getServiceItemIds(),
                         result.getMechanic() == null ? null : result.getMechanic().getId(),
                         result.getPlannedDate(),

@@ -25,6 +25,23 @@ public class WorkOrderItemTest {
         assertTrue(item.isChargeable());
     }
 
+    @Test
+    void chargedAmountEqualsAgreedPrice_WhenChargeable() {
+        WorkOrderItem item = WorkOrderItem.snapshotOf(validService());
+
+        assertEquals(899.0, item.getChargedAmount());
+    }
+
+    @Test
+    void chargedAmountIsZero_WhenNotChargeable() {
+        WorkOrderItem item = WorkOrderItem.snapshotOf(validService());
+
+        item.setChargeable(false);
+
+        assertEquals(0.0, item.getChargedAmount());
+        assertEquals(899.0, item.getAgreedPrice());
+    }
+
     private ServiceItem validService() {
         ServiceItem service = mock(ServiceItem.class);
 
