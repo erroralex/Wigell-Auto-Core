@@ -1,5 +1,8 @@
 package com.wac.autocore.view.util;
 
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.model.value.MoneyFormat;
+import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.AutoCoreApp;
 import javafx.geometry.Rectangle2D;
 import javafx.application.Platform;
@@ -210,6 +213,16 @@ public class DialogUtil {
         if (owner != null && alert.getOwner() == null) {
             alert.initOwner(owner);
         }
+    }
+
+    // Formaterar ett belopp med två decimaler enligt aktuellt språk
+    public static String formatMoney(Money money) {
+        return MoneyFormat.format(money, LanguageManager.getInstance().getLocale());
+    }
+
+    // Tolkar inmatat belopp, både komma och punkt accepteras
+    public static Money parseMoney(String text) {
+        return MoneyFormat.parse(text);
     }
 
 }
