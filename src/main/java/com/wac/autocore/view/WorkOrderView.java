@@ -258,7 +258,7 @@ public class WorkOrderView extends BaseView {
 
         jobData.setAll(selected.getItems());
         jobSummaryLabel.setText(
-                lang.get("workOrder.total", selected.getTotalPrice().toBigDecimal())
+                lang.get("workOrder.total", selected.getTotalPrice())
                         + "  |  "
                         + lang.get("workOrder.totalDuration", selected.getTotalDurationMinutes())
         );
