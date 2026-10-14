@@ -44,6 +44,22 @@ public class WorkOrderItemTest {
         assertMoney(Money.of(899), item.getAgreedPrice());
     }
 
+    @Test
+    void equalsAndHashCodeIgnoreHowThePriceWasWritten() {
+        WorkOrderItem a = itemWithPrice(Money.of("899"));
+        WorkOrderItem b = itemWithPrice(Money.of("899.00"));
+
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+        assertNotEquals(a, itemWithPrice(Money.of("899.01")));
+    }
+
+    private WorkOrderItem itemWithPrice(Money price) {
+        ServiceItem service = validService();
+        when(service.getPrice()).thenReturn(price);
+        return WorkOrderItem.snapshotOf(service);
+    }
+
     private ServiceItem validService() {
         ServiceItem service = mock(ServiceItem.class);
 
