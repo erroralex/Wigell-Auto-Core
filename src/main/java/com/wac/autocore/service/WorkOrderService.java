@@ -3,11 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
-import com.wac.autocore.repository.BookingRepository;
-import com.wac.autocore.repository.MechanicRepository;
-import com.wac.autocore.repository.VehicleRepo;
-import com.wac.autocore.repository.WorkOrderRepository;
-import com.wac.autocore.repository.ServiceItemRepository;
+import com.wac.autocore.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,21 +80,6 @@ public class WorkOrderService {
                 .filter(booking -> Booking.STATUS_BOOKED.equals(booking.getStatus()))
                 .filter(booking -> !workOrderRepository.existsByBookingIdAndStatusNot(booking.getId(), WorkOrderStatus.CANCELLED))
                 .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<Booking> findAllBookings() {
-        return bookingRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public List<Mechanic> findAllMechanics() {
-        return mechanicRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ServiceItem> findAllServiceItems() {
-        return serviceItemRepository.findAll();
     }
 
     // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.

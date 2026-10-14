@@ -1,9 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.*;
-import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.VehicleService;
-import com.wac.autocore.service.WorkOrderService;
+import com.wac.autocore.service.*;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.dialog.EditWorkOrderDialog;
 import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
@@ -49,6 +47,9 @@ public class WorkOrderView extends BaseView {
     private final WorkOrderService workOrderService;
     private final CustomerService customerService;
     private final VehicleService vehicleService;
+    private final BookingService bookingService;
+    private final MechanicService mechanicService;
+    private final ServiceItemService serviceItemService;
 
     private final Button btnStart = new Button(lang.get("btn.start"));
     private final Button btnComplete = new Button(lang.get("btn.complete"));
@@ -61,10 +62,17 @@ public class WorkOrderView extends BaseView {
 
     public WorkOrderView(WorkOrderService workOrderService,
                          CustomerService customerService,
-                         VehicleService vehicleService) {
+                         VehicleService vehicleService,
+                         BookingService bookingService,
+                         MechanicService mechanicService,
+                         ServiceItemService serviceItemService) {
+
         this.workOrderService = workOrderService;
         this.customerService = customerService;
         this.vehicleService = vehicleService;
+        this.bookingService = bookingService;
+        this.mechanicService = mechanicService;
+        this.serviceItemService = serviceItemService;
         refreshData();
         initializeTable();
         initializeJobTable();
@@ -96,12 +104,12 @@ public class WorkOrderView extends BaseView {
 
     private void refreshData() {
         bookingsById.clear();
-        for (Booking booking : workOrderService.findAllBookings()) {
+        for (Booking booking : bookingService.listAll()) {
             bookingsById.put(booking.getId(), booking);
         }
 
         mechanicsById.clear();
-        for (Mechanic mechanic : workOrderService.findAllMechanics()) {
+        for (Mechanic mechanic : mechanicService.listAll()) {
             mechanicsById.put(mechanic.getId(), mechanic);
         }
 
@@ -259,9 +267,9 @@ public class WorkOrderView extends BaseView {
     private void openCreateWorkOrderDialog() {
         CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
                 workOrderService.findBookableBookings(),
-                workOrderService.findAllBookings(),
+                bookingService.listAll(),
                 workOrderService.findCompletedWorkOrders(),
-                workOrderService.findAllServiceItems(),
+                serviceItemService.listAll(),
                 customerService,
                 vehicleService
         );
@@ -409,7 +417,7 @@ public class WorkOrderView extends BaseView {
 
         if (selected == null) return;
 
-        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, workOrderService);
+        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, serviceItemService.listAll(), mechanicService.listAll());
 
         dialog.showAndWait().ifPresent(result -> {
             try {

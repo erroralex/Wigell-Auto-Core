@@ -18,16 +18,20 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.util.Map;
+
 public class MechanicBookingsView extends BaseView {
 
     private final MechanicService mechanicService;
+    private final Map<Integer, Vehicle> vehiclesById;
     private final ObservableList<Booking> bookingObservableList = FXCollections.observableArrayList();
     private final TableView<Booking> bookingTableView = new TableView<>();
     private final Label nameLabel = new Label();
     private final Runnable onClose;
 
-    public MechanicBookingsView(Mechanic mechanic, MechanicService mechanicService, Runnable onClose) {
+    public MechanicBookingsView(Mechanic mechanic, MechanicService mechanicService, Map<Integer, Vehicle> vehiclesById, Runnable onClose) {
         this.mechanicService = mechanicService;
+        this.vehiclesById = vehiclesById;
         this.onClose = onClose;
 
         initializeTable();
@@ -85,7 +89,7 @@ public class MechanicBookingsView extends BaseView {
 
         TableColumn<Booking, String> vehicleColumn = new TableColumn<>(lang.get("table.vehicle"));
         vehicleColumn.setCellValueFactory(cellData -> {
-            Vehicle v = mechanicService.getVehicleById(cellData.getValue().getVehicleId()).orElse(null);
+            Vehicle v = vehiclesById.get(cellData.getValue().getVehicleId());
             String label = (v != null) ? v.getBrand() + " " + v.getModel() : lang.get("table.unknown");
             return new SimpleStringProperty(label);
         });
