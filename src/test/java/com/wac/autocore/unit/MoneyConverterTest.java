@@ -67,8 +67,8 @@ class MoneyConverterTest {
     }
 
     @Test
-    void nullIsNullInBothDirections() {
+    void nullIsWrittenAsNull_AndReadAsZero() {
         assertNull(converter.convertToDatabaseColumn(null));
-        assertNull(converter.convertToEntityAttribute(null));
+        assertMoney(Money.ZERO, converter.convertToEntityAttribute(null));
     }
 }
