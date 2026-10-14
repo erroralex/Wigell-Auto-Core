@@ -127,9 +127,9 @@ public class InvoiceView extends BaseView {
             }
         });
 
-        configureMoneyColumn(amountCol);
-        configureMoneyColumn(discountCol);
-        configureMoneyColumn(totalCol);
+        DialogUtil.configureMoneyColumn(amountCol);
+        DialogUtil.configureMoneyColumn(discountCol);
+        DialogUtil.configureMoneyColumn(totalCol);
 
         this.invoiceTable.getColumns().addAll(
                 idCol, workOrderIdCol, dateCol, amountCol, discountCol, totalCol, paidCol
@@ -195,19 +195,6 @@ public class InvoiceView extends BaseView {
 
         InvoiceDetailDialog dialog = new InvoiceDetailDialog(selected);
         dialog.showAndWait();
-    }
-
-    // Fabrik för att inte tabellen ska visa Money-objektets toString(), utan formaterad text.
-    // DialogUtil.formatMoney() använder locale och två decimaler.
-    private void configureMoneyColumn(TableColumn<Invoice, Money> column) {
-        column.setCellFactory(col -> new TableCell<Invoice, Money>() {
-            @Override
-            protected void updateItem(Money money, boolean empty) {
-                super.updateItem(money, empty);
-                setText(empty || money == null ? null : DialogUtil.formatMoney(money));
-            }
-        });
-
     }
 
 }

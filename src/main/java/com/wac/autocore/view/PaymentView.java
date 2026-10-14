@@ -19,7 +19,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
@@ -102,9 +101,9 @@ public class PaymentView extends BaseView {
                 new SimpleObjectProperty<>(c.getValue().getTotalAmount())
         );
 
-        configureMoneyColumn(amountCol);
-        configureMoneyColumn(discountCol);
-        configureMoneyColumn(totalCol);
+        DialogUtil.configureMoneyColumn(amountCol);
+        DialogUtil.configureMoneyColumn(discountCol);
+        DialogUtil.configureMoneyColumn(totalCol);
 
         TableColumn<Invoice, String> typeCol = new TableColumn<>(lang.get("table.paymentType"));
         typeCol.setCellValueFactory(c -> {
@@ -148,18 +147,6 @@ public class PaymentView extends BaseView {
 
         this.sortedData.comparatorProperty().bind(this.invoiceTable.comparatorProperty());
         this.invoiceTable.setItems(this.sortedData);
-    }
-
-    // Fabrik för att inte tabellen ska visa Money-objektets toString(), utan formaterad text.
-    // DialogUtil.formatMoney() använder locale och två decimaler.
-    private void configureMoneyColumn(TableColumn<Invoice, Money> column) {
-        column.setCellFactory(col -> new TableCell<Invoice, Money>() {
-            @Override
-            protected void updateItem(Money money, boolean empty) {
-                super.updateItem(money, empty);
-                setText(empty || money == null ? null : DialogUtil.formatMoney(money));
-            }
-        });
     }
 
     private Payment findPayment(Invoice invoice) {

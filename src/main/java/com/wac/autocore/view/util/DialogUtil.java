@@ -1,21 +1,17 @@
 package com.wac.autocore.view.util;
 
+import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.model.value.MoneyFormat;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.view.AutoCoreApp;
 import javafx.geometry.Rectangle2D;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.stage.Screen;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
 import javafx.scene.Node;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Region;
 
 /**
@@ -223,6 +219,18 @@ public class DialogUtil {
     // Tolkar inmatat belopp, både komma och punkt accepteras
     public static Money parseMoney(String text) {
         return MoneyFormat.parse(text);
+    }
+
+    // Fabrik för att inte tabellen ska visa Money-objektets toString(), utan formaterad text.
+    // DialogUtil.formatMoney() använder locale och två decimaler.
+    public static <S> void configureMoneyColumn(TableColumn<S, Money> col) {
+        col.setCellFactory(c -> new TableCell<S, Money>() {
+            @Override
+            protected void updateItem(Money item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : formatMoney(item));
+            }
+        });
     }
 
 }
