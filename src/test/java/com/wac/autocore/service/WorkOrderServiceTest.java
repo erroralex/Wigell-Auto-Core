@@ -1,6 +1,7 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.WorkOrderLockedException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
@@ -125,6 +126,38 @@ public class WorkOrderServiceTest {
 
         // Assert
         assertEquals("error.notFound", exception.getMessageKey());
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateWorkOrder_shouldThrowLockedWhenWorkOrderIsInProgress() {
+        // Arrange
+        ServiceItem serviceItem = mock(ServiceItem.class);
+        when(serviceItem.getId()).thenReturn(1);
+        when(serviceItem.getName()).thenReturn("Oil Change");
+        when(serviceItem.getPrice()).thenReturn(899.0);
+        when(serviceItem.getEstimatedMinutes()).thenReturn(60);
+
+        DropInWorkOrder workOrder = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
+        workOrder.addItem(serviceItem);
+        workOrder.setMechanicId(5);
+        workOrder.confirm();
+        workOrder.start();
+
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(workOrder));
+        when(mechanicRepository.existsById(5)).thenReturn(true);
+
+        // Act + Assert
+        assertThrows(WorkOrderLockedException.class,
+                () -> workOrderService.updateWorkOrder(
+                        1,
+                        Collections.singletonList(1),
+                        5,
+                        null,
+                        null,
+                        null,
+                        Collections.emptyMap()));
+
         verify(workOrderRepository, never()).save(any());
     }
 }

@@ -11,9 +11,9 @@ import javax.persistence.Entity;
  * Ordern har därför ingen koppling till en {@link Booking} ({@code bookingId} är alltid {@code null}).</p>
  * <p>Skapas bara via {@link #draft(int, String)} med fordon och problembeskrivning, och börjar
  * som utkast ({@link WorkOrderStatus#DRAFT}). Mekaniker och tjänster läggs till i efterhand
- * ({@link #setMechanicId(Integer)}, {@link #addService(ServiceItem)}).
+ * ({@link #setMechanicId(Integer)}, {@link #addItem(ServiceItem)}).
  * Ordern kan bekräftas med {@link #confirm()} först när de gemensamma fälten är ifyllda och
- * problembeskrivningen finns kvar.</p>
+ * problembeskrivningen finns kvar, eftersom {@link WorkOrderType#DROP_IN} kräver en sådan.</p>
  */
 @Entity
 @DiscriminatorValue("DROP_IN")
@@ -39,31 +39,14 @@ public class DropInWorkOrder extends WorkOrder {
             throw new ValidationException("error.workOrder.missingVehicle");
         }
 
-        requireProblemDescription(problemDescription);
+        requireProblemDescription(WorkOrderType.DROP_IN, problemDescription);
 
         return new DropInWorkOrder(vehicleId, problemDescription);
 
     }
 
-    // Lägger till en tjänst från katalogen. Pris och tid fryses när raden skapas.
-    public void addService(ServiceItem service) {
-        addItem((WorkOrderItem.snapshotOf(service)));
-    }
-
     @Override
     public WorkOrderType getType() {
         return WorkOrderType.DROP_IN;
-    }
-
-    @Override
-    protected void validateTypeSpecific() {
-        requireProblemDescription(getProblemDescription());
-    }
-
-    // Hjälp-metod
-    private static void requireProblemDescription(String problemDescription) {
-        if (problemDescription == null || problemDescription.trim().isEmpty()) {
-            throw new ValidationException("error.workOrder.missingProblemDescription");
-        }
     }
 }

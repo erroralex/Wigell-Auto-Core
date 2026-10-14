@@ -53,7 +53,7 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
 
         setupFields(workOrderService);
 
-        if (workOrder instanceof  WarrantyWorkOrder) {
+        if (workOrder.allowsNonChargeableItems()) {
             for (WorkOrderItem item : workOrder.getItems()) {
                 CheckBox cb = new CheckBox(item.getServiceName());
                 cb.setSelected(item.isChargeable());

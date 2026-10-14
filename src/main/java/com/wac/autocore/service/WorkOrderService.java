@@ -158,7 +158,7 @@ public class WorkOrderService {
             ServiceItem service = serviceItemRepository.findById(serviceItemId)
                     .orElseThrow(() -> new EntityNotFoundException(
                             "ServiceItem", serviceItemId, "error.serviceNotFound"));
-            dropIn.addService(service);
+            dropIn.addItem(service);
         }
         return workOrderRepository.save(dropIn);
     }
@@ -240,9 +240,6 @@ public class WorkOrderService {
                                 Map<Integer, Boolean> chargeFlags) {
         WorkOrder workOrder = require(id);
 
-        if (!workOrder.getStatus().isEditable()) {
-            throw new ValidationException("error.workOrder.notEditable", String.valueOf(id));
-        }
         if (mechanicId != null && !mechanicRepository.existsById(mechanicId)) {
             throw new EntityNotFoundException("Mechanic", mechanicId);
         }
@@ -266,12 +263,7 @@ public class WorkOrderService {
             }
         }
 
-        if (workOrder instanceof WarrantyWorkOrder) {
-            for (WorkOrderItem item : workOrder.getItems()) {
-                int serviceItemId = item.getServiceItemId();
-                workOrder.setItemChargeable(serviceItemId, chargeFlags.getOrDefault(serviceItemId, false));
-            }
-        }
+        workOrder.applyChargeFlags(chargeFlags);
 
         workOrder.setMechanicId(mechanicId);
         workOrder.setPlannedDate(plannedDate);
@@ -280,5 +272,4 @@ public class WorkOrderService {
 
         workOrderRepository.save(workOrder);
     }
-
 }
