@@ -249,14 +249,9 @@ public class WorkOrderView extends BaseView {
             return;
         }
 
-        double chargeableTotal = selected.getItems().stream()
-                        .filter(WorkOrderItem::isChargeable)
-                                .mapToDouble(WorkOrderItem::getAgreedPrice)
-                                        .sum();
-
         jobData.setAll(selected.getItems());
         jobSummaryLabel.setText(
-                lang.get("workOrder.total", chargeableTotal)
+                lang.get("workOrder.total", selected.getTotalPrice())
                         + "  |  "
                         + lang.get("workOrder.totalDuration", selected.getTotalDurationMinutes())
         );

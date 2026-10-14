@@ -53,7 +53,7 @@ public class InvoiceService {
 
         // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
         for (WorkOrderItem workOrderItem : workOrder.getItems()) {
-            double amount = workOrderItem.isChargeable() ? workOrderItem.getAgreedPrice() : 0;
+            double amount = workOrderItem.getChargedAmount();
 
             double discount = strategy.calculateDiscount(amount);
 

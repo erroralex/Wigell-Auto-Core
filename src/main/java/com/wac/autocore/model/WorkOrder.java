@@ -206,10 +206,10 @@ public abstract class WorkOrder {
         return Collections.unmodifiableList(items);
     }
 
-    // Summan av de avtalade priserna, underlag för fakturan
+    // Summan räknar bara debiterbara rader och är underlag för fakturan
     public double getTotalPrice() {
         return items.stream()
-                .mapToDouble(WorkOrderItem::getAgreedPrice)
+                .mapToDouble(WorkOrderItem::getChargedAmount)
                 .sum();
     }
 

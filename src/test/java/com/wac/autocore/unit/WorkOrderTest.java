@@ -2,11 +2,7 @@ package com.wac.autocore.unit;
 
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.exception.WorkOrderLockedException;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.model.WorkOrderItem;
-import com.wac.autocore.model.WorkOrderStatus;
-import com.wac.autocore.model.WorkOrderType;
+import com.wac.autocore.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -90,6 +86,31 @@ public class WorkOrderTest {
         assertEquals(1, workOrder.getItems().size());
     }
 
+    @Test
+    void totalPriceCountsOnlyChargeableItems() {
+        TestWorkOrder workOrder = new TestWorkOrder(1, 1);
+        workOrder.addItem(createService(1, 899.0));
+        workOrder.addItem(createService(2, 499.0));
+
+        workOrder.setItemChargeable(2, false);
+
+        assertEquals(899.0, workOrder.getTotalPrice(), 0.001);
+    }
+
+    @Test
+    void warrantyTotalIsZero_WhenAllItemsAreNonChargeable() {
+        WorkOrder original = mock(WorkOrder.class);
+        when(original.getId()).thenReturn(7);
+        when(original.getStatus()).thenReturn(WorkOrderStatus.COMPLETED);
+        when(original.getVehicleId()).thenReturn(1);
+
+        WarrantyWorkOrder warranty = WarrantyWorkOrder.draft(original, "Läcker igen");
+        warranty.addItem(createService(1, 899.0));
+
+        warranty.setItemChargeable(1, false);
+
+        assertEquals(0.0, warranty.getTotalPrice(), 0.001);
+    }
 
     private ServiceItem createService(int id, double price) {
         ServiceItem service = mock(ServiceItem.class);
@@ -113,5 +134,4 @@ public class WorkOrderTest {
             return WorkOrderType.PLANNED;
         }
     }
-
 }
