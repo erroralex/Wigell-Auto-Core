@@ -84,7 +84,7 @@ public class WorkOrderService {
     @Transactional(readOnly = true)
     public List<Booking> findBookableBookings() {
         return bookingRepository.findAll().stream()
-                .filter(booking -> Booking.STATUS_BOOKED.equals(booking.getStatus()))
+                .filter(booking -> BookingStatus.BOOKED.equals(booking.getStatus()))
                 .filter(booking -> !workOrderRepository.existsByBookingIdAndStatusNot(booking.getId(), WorkOrderStatus.CANCELLED))
                 .collect(Collectors.toList());
     }
@@ -99,7 +99,7 @@ public class WorkOrderService {
             throw new ValidationException("error.workOrder.alreadyExists", String.valueOf(bookingId));
         }
 
-        if (!Booking.STATUS_BOOKED.equals(booking.getStatus())) {
+        if (!BookingStatus.BOOKED.equals(booking.getStatus())) {
             throw new ValidationException("error.workOrder.bookingNotBookable", String.valueOf(bookingId));
         }
 

@@ -1,5 +1,7 @@
 package com.wac.autocore.exception.handler;
 
+import com.wac.autocore.service.LanguageManager;
+
 import javax.validation.ConstraintViolationException;
 
 import javax.validation.ConstraintViolation;
@@ -23,11 +25,20 @@ public class ValidationErrorHandler extends ErrorHandler {
             messageKey = "error.fields";
         }
 
+        Object[] messageArgs = null;
+        if ("error.requiredField".equals(messageKey)) {
+            String path = violation.getPropertyPath().toString();
+            String field = path.substring(path.lastIndexOf('.') + 1);
+            messageArgs = new Object[] {
+                    Translator.getInstance().get("table." + field)
+            };
+        }
+
         return new ErrorReport(
                 ErrorReport.Severity.EXPECTED,
                 "error.validation",
                 messageKey,
-                null,
+                messageArgs,
                 validation
         );
     }

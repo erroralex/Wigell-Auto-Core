@@ -40,8 +40,8 @@ public class CustomerService {
         return customerRepo.existsById(id);
     }
 
-    public Customer create(@NotBlank(message = "error.requiredField") String name,
-                           @NotBlank(message = "error.requiredField") String phone,
+    public Customer create(@NotBlank(message = "error.customer.nameRequired") String name,
+                           @NotBlank(message = "error.customer.phoneRequired") String phone,
                            @Email(message = "error.invalidEmail") String email) {
 
         return customerRepo.save(new Customer(name.trim(), phone.trim(), normalizeEmail(email)));

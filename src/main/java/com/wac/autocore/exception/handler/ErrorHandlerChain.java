@@ -20,7 +20,7 @@ public final class ErrorHandlerChain {
     public static ErrorHandler createDefault() {
         ErrorHandler head = new DomainErrorHandler();
         head.linkWith(new DataAccessErrorHandler())
-                .linkWith(new DataAccessErrorHandler())
+                .linkWith(new ValidationErrorHandler())
                 .linkWith(new FallbackErrorHandler());
         return head;
     }

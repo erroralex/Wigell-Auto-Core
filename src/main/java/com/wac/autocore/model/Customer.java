@@ -14,10 +14,10 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @NotBlank(message = "error.requiredField")
+    @NotBlank(message = "error.customer.nameRequired")
     private String name;
 
-    @NotBlank(message = "error.requiredField")
+    @NotBlank(message = "error.customer.phoneRequired")
     private String phone;
 
     @Email(message = "error.invalidEmail")

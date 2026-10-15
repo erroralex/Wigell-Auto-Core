@@ -3,12 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.BookingPrototype;
-import com.wac.autocore.model.BookingServiceItem;
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
@@ -179,7 +174,7 @@ public class BookingService {
         Booking booking = findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
 
-        if (!Booking.STATUS_BOOKED.equals(booking.getStatus())) {
+        if (!BookingStatus.BOOKED.equals(booking.getStatus())) {
             throw new ValidationException("error.bookingStarted");
         }
 
