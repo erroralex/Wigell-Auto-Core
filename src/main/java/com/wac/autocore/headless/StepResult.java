@@ -53,6 +53,9 @@ public final class StepResult {
 
     // Sant om steget blev som tänkt: ett vanligt steg lyckades, eller ett felsteg misslyckades
     public boolean isAsExpected() {
-        return succeeded != expectedFailure;
+        if (expectedFailure) {
+            return !succeeded && !error.isUnexpected();
+        }
+        return succeeded;
     }
 }

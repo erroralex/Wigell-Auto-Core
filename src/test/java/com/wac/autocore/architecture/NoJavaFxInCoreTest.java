@@ -23,13 +23,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Testet läser källkoden i stället för de kompilerade klasserna. Det letar efter
  * {@code javafx.} på alla rader som inte är kommentarer, så att även fullt kvalificerade
  * anrop utan import fångas, t.ex. {@code javafx.scene.paint.Color.web(...)}.</p>
+ * <p>Det förbjuder också referenser till {@code com.wac.autocore.view}. En ren textsökning ser
+ * inte transitiva beroenden, och view-lagret är den enda vägen till JavaFX i projektet. Stänger
+ * man den vägen kan kärnan inte heller indirekt bli beroende av JavaFX.</p>
  * <p>{@code i18n} och {@code headless} ingår eftersom de används av både UI och headless.</p>
  */
 class NoJavaFxInCoreTest {
 
     private static final Path ROOT = Paths.get("src", "main", "java", "com", "wac", "autocore");
 
-    @ParameterizedTest(name = "{0} importerar inte JavaFX")
+    // JavaFX direkt, eller view-lagret som i sin tur använder JavaFX
+    private static final String[] FORBIDDEN = {"javafx.", "com.wac.autocore.view"};
+
+    @ParameterizedTest(name = "{0} är oberoende av JavaFX och view")
     @ValueSource(strings = {"model", "service", "repository", "exception", "i18n", "headless"})
     void packageDoesNotUseJavaFx(String packageName) throws IOException {
         Path packageDir = ROOT.resolve(packageName);
@@ -42,27 +48,36 @@ class NoJavaFxInCoreTest {
         try (Stream<Path> files = Files.walk(packageDir)) {
             violations = files
                     .filter(path -> path.toString().endsWith(".java"))
-                    .flatMap(NoJavaFxInCoreTest::findJavaFxUsages)
+                    .flatMap(NoJavaFxInCoreTest::findForbiddenReferences)
                     .collect(Collectors.toList());
         }
 
         assertTrue(violations.isEmpty(),
-                () -> "JavaFX används i paketet '" + packageName + "':\n"
+                () -> "JavaFX eller view används i paketet '" + packageName + "':\n"
                         + String.join("\n", violations));
     }
 
-    // Returnerar "Fil.java:rad: kod" för varje rad som använder JavaFX
-    private static Stream<String> findJavaFxUsages(Path file) {
+    // Returnerar "Fil.java:rad: kod" för varje rad som refererar till JavaFX eller view-lagret
+    private static Stream<String> findForbiddenReferences(Path file) {
         List<String> lines = readLines(file);
         List<String> hits = new ArrayList<>();
 
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
-            if (!isComment(line) && line.contains("javafx.")) {
+            if (!isComment(line) && containsForbidden(line)) {
                 hits.add(ROOT.relativize(file) + ":" + (i + 1) + ": " + line);
             }
         }
         return hits.stream();
+    }
+
+    private static boolean containsForbidden(String line) {
+        for (String forbidden : FORBIDDEN) {
+            if (line.contains(forbidden)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Javadoc och kommentarer får nämna JavaFX, t.ex. i DomainException

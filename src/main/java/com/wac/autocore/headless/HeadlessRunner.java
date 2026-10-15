@@ -72,6 +72,13 @@ public class HeadlessRunner implements CommandLineRunner {
             LocalizedError text = formatter.format(error);
             System.out.println("       [" + error.getMessageKey() + "] "
                     + text.getTitle() + ": " + text.getMessage());
+
+            // Oväntade fel (t.ex. NullPointerException) visar också den tekniska orsaken för felsökning
+            if (error.isUnexpected() && error.getCause() != null) {
+                Throwable cause = error.getCause();
+                System.out.println("       Orsak: " + cause.getClass().getSimpleName()
+                        + (cause.getMessage() == null ? "" : " - " + cause.getMessage()));
+            }
         }
     }
 }
