@@ -44,3 +44,4 @@ out/
 # Local database
 *.db
 autocore.db
+autocore-headless.db
