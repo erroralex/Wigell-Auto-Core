@@ -3,6 +3,8 @@ package com.wac.autocore.model;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "customer")
@@ -12,8 +14,13 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @NotBlank(message = "error.requiredField")
     private String name;
+
+    @NotBlank(message = "error.requiredField")
     private String phone;
+
+    @Email(message = "error.invalidEmail")
     private String email;
 
     @Type(type = "org.hibernate.type.NumericBooleanType")

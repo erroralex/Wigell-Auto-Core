@@ -42,6 +42,7 @@ public class InvoiceService {
                                   regexp = "^[A-Z]+\\d+$",
                                   message = "error.discountCode.invalidFormat"
                           ) String discountCode) {
+
         WorkOrder workOrder = workOrderService.findById(workOrderId)
                 .orElseThrow(() -> new EntityNotFoundException("WorkOrder", workOrderId));
 

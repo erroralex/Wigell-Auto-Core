@@ -65,7 +65,7 @@ public class BookingService {
                           @Positive int mechanicId,
                           @NotNull(message = "error.dateSelect") LocalDate date,
                           @NotNull(message = "error.startTimeSelect") LocalTime startTime,
-                          String description,
+                          @NotBlank(message="error.desc") String description,
                           @NotEmpty(message= "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
 
         validateVehicleAndMechanic(vehicleId, mechanicId);
@@ -98,7 +98,7 @@ public class BookingService {
                                                 @NotNull(message = "error.startTimeSelect") LocalTime startTime,
                                                 @Positive Integer mechanicId,
                                                 @Positive Integer vehicleId,
-                                                String description,
+                                                @NotBlank(message="error.desc") String description,
                                                 @NotEmpty(message= "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
         Booking previous = findById(previousBookingId)
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -173,7 +173,7 @@ public class BookingService {
     public Booking update(int bookingId, int vehicleId, int mechanicId,
                           @NotNull(message = "error.dateSelect") LocalDate date,
                           @NotNull(message = "error.startTimeSelect") LocalTime startTime,
-                          String description, 
+                          @NotBlank(message="error.desc") String description,
                           @NotEmpty(message = "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
 
         Booking booking = findById(bookingId)
