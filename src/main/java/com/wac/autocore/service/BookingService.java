@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -59,16 +60,14 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking create(int vehicleId, int mechanicId,
+    public Booking create(@Positive int vehicleId,
+                          @Positive int mechanicId,
                           @NotNull(message = "error.dateSelect") LocalDate date,
                           @NotNull(message = "error.startTimeSelect") LocalTime startTime,
                           @NotBlank(message = "error.desc") String description,
                           @NotEmpty(message= "error.serviceSelect") List<Integer> serviceItemIds) {
 
-       /* if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            throw new ValidationException("error.serviceSelect");
-        }*/
-
+        
         List<ServiceItem> serviceItems = fetchServiceItemsByIds(serviceItemIds);
 
         int totalDuration = serviceItems.stream()
