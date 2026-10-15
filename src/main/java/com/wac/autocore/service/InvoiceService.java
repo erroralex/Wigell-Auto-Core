@@ -1,12 +1,16 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.InvoiceRepo;
 import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +20,7 @@ import java.util.Optional;
  * <p>Ansvar: Skapar och hämtar fakturor. Beloppet räknas från arbetsorderns avtalade priser,
  * som frystes vid bokningen, och aldrig från tjänstekatalogens nuvarande priser.</p>
  */
+@Validated
 @Service
 public class InvoiceService {
 
@@ -34,13 +39,26 @@ public class InvoiceService {
         this.customerService = customerService;
     }
 
-    public Invoice create(int workOrderId, String discountCode) {
+    public Invoice create(@Positive int workOrderId,
+                          @Pattern(
+                                  regexp = "^(?:[A-Z]+\\d+)?$",
+                                  message = "error.discountCode.invalidFormat"
+                          ) String discountCode) {
+
         WorkOrder workOrder = workOrderService.findById(workOrderId)
                 .orElseThrow(() -> new EntityNotFoundException("WorkOrder", workOrderId));
 
         Integer vehicleId = workOrder.getVehicleId();
         if (vehicleId == null) {
             throw new EntityNotFoundException("Vehicle", "none on WorkOrder " + workOrderId);
+        }
+
+        if (workOrder.getStatus() != WorkOrderStatus.COMPLETED) {
+            throw new ValidationException("error.invoice.workOrderNotCompleted");
+        }
+
+        if (invoiceRepo.existsByWorkOrderId(workOrderId)) {
+            throw new ValidationException("error.invoice.alreadyExists", String.valueOf(workOrderId));
         }
 
         Vehicle vehicle = vehicleService.findById(vehicleId)

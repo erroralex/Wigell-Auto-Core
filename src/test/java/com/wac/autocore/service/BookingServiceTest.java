@@ -1,10 +1,7 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.BookingServiceItem;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
@@ -76,6 +73,9 @@ public class BookingServiceTest {
         when(oldOilChange.getPrice()).thenReturn(Money.of(899));
         when(oldOilChange.getEstimatedMinutes()).thenReturn(60);
 
+        when(vehicleRepo.existsById(booking.getVehicleId())).thenReturn(true);
+        when(mechanicRepository.existsById(booking.getMechanicId())).thenReturn(true);
+
         Booking originalBooking = new Booking(
                 1,
                 1,
@@ -131,9 +131,14 @@ public class BookingServiceTest {
         when(bookingRepository.existsByVehicleIdAndDate(vehicleId, date))
                 .thenReturn(true);
 
+        when(vehicleRepo.existsById(vehicleId)).thenReturn(true);
+        when(mechanicRepository.existsById(mechanicId)).thenReturn(true);
+
         Vehicle vehicle = mock(Vehicle.class);
         when(vehicle.getRegistrationNumber()).thenReturn("ABC123");
         when(vehicleRepo.findById(vehicleId)).thenReturn(Optional.of(vehicle));
+        when(vehicleRepo.existsById(vehicleId)).thenReturn(true);
+        when(mechanicRepository.existsById(mechanicId)).thenReturn(true);
 
         ValidationException ex = assertThrows(ValidationException.class, () ->
                 bookingService.create(vehicleId, mechanicId, date, startTime, "Oil change",
@@ -165,6 +170,10 @@ public class BookingServiceTest {
 
         when(bookingRepository.existsByVehicleIdAndDateAndIdNot(vehicleId, date, bookingId))
                 .thenReturn(true);
+
+        when(vehicleRepo.existsById(vehicleId)).thenReturn(true);
+        when(mechanicRepository.existsById(mechanicId)).thenReturn(true);
+        when(existingBooking.getStatus()).thenReturn(BookingStatus.BOOKED);
 
         Vehicle vehicle = mock(Vehicle.class);
         when(vehicle.getRegistrationNumber()).thenReturn("ABC123");
@@ -208,6 +217,9 @@ public class BookingServiceTest {
         when(vehicle.getRegistrationNumber()).thenReturn("ABC123");
         when(vehicleRepo.findById(vehicleId)).thenReturn(Optional.of(vehicle));
 
+        when(vehicleRepo.existsById(vehicleId)).thenReturn(true);
+
+
         assertThrows(ValidationException.class, () ->
                 bookingService.createFromPrevious(previousBookingId, date, startTime, null, null, null, null));
 
@@ -229,9 +241,15 @@ public class BookingServiceTest {
         when(oilChange.getPrice()).thenReturn(Money.of(899));
         when(oilChange.getEstimatedMinutes()).thenReturn(60);
 
+        when(vehicleRepo.existsById(vehicleId)).thenReturn(true);
+        when(mechanicRepository.existsById(mechanicId)).thenReturn(true);
+
         Booking existing = new Booking(vehicleId, mechanicId, date,
                 startTime, startTime.plusMinutes(60), "Old description");
         existing.addServiceItem(oilChange);
+
+        when(vehicleRepo.existsById(vehicleId)).thenReturn(true);
+        when(mechanicRepository.existsById(mechanicId)).thenReturn(true);
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(existing));
         when(serviceItemRepository.findById(serviceItemId)).thenReturn(Optional.of(oilChange));

@@ -3,12 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.BookingPrototype;
-import com.wac.autocore.model.BookingServiceItem;
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
@@ -16,12 +11,18 @@ import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Validated
 @Service
 public class BookingService {
 
@@ -55,19 +56,16 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking create(int vehicleId, int mechanicId, LocalDate date,
-                          LocalTime startTime, String description,
-                          List<Integer> serviceItemIds) {
+    public Booking create(@Positive int vehicleId,
+                          @Positive int mechanicId,
+                          @NotNull(message = "error.dateSelect") LocalDate date,
+                          @NotNull(message = "error.startTimeSelect") LocalTime startTime,
+                          @NotBlank(message="error.desc") String description,
+                          @NotEmpty(message= "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
 
-        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            throw new ValidationException("error.serviceSelect");
-        }
+        validateVehicleAndMechanic(vehicleId, mechanicId);
 
-        List<ServiceItem> serviceItems = serviceItemIds.stream()
-                .distinct()
-                .map(id -> findServiceItemById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
-                .collect(Collectors.toList());
+        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(serviceItemIds);
 
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
@@ -86,18 +84,17 @@ public class BookingService {
 
         return bookingRepository.save(booking);
     }
-    
 
     // Skapar en ny bokning från en tidigare med dagens tjänstepriser, utan att ändra originalet.
     // Återanvänder originalets mekaniker om mechanicId är null och kontrollerar dubbelbokning före sparandet.
     @Transactional
     public BookingCopyResult createFromPrevious(int previousBookingId,
-                                                LocalDate date,
-                                                LocalTime startTime,
-                                                Integer mechanicId,
-                                                Integer vehicleId,
+                                                @NotNull(message = "error.dateSelect") LocalDate date,
+                                                @NotNull(message = "error.startTimeSelect") LocalTime startTime,
+                                                @Positive Integer mechanicId,
+                                                @Positive Integer vehicleId,
                                                 String description,
-                                                List<Integer> serviceItemIds) {
+                                                List<@NotNull @Positive Integer> serviceItemIds) {
         Booking previous = findById(previousBookingId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Booking", previousBookingId, "error.bookingNotFound"
@@ -121,10 +118,16 @@ public class BookingService {
         if (vehicleId != null) copy.setVehicleId(vehicleId);
         if (description != null) copy.setDescription(description);
 
+        if (copy.getDescription() == null || copy.getDescription().trim().isEmpty()) {
+            throw new ValidationException("error.desc");
+        }
+
         List<Integer> wantedIds = (serviceItemIds == null || serviceItemIds.isEmpty())
                 ? previous.getItems().stream()
                 .map(BookingServiceItem::getServiceItemId)
                 .collect(Collectors.toList()) : serviceItemIds.stream().distinct().collect(Collectors.toList());
+
+        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(wantedIds);
 
         Map<Integer, Money> oldPrices = previous.getItems().stream()
                 .collect(Collectors.toMap(
@@ -135,20 +138,20 @@ public class BookingService {
         List<BookingPriceChange> priceChanges = new ArrayList<>();
         copy.getItems().clear();
 
-        for (int serviceId : wantedIds) {
-            ServiceItem currentService = findServiceItemById(serviceId)
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "ServiceItem", serviceId, "error.serviceNotFound"));
-
-            Money oldPrice = oldPrices.get(serviceId);
-            if (oldPrice != null && oldPrice.compareTo(currentService.getPrice()) != 0) {
+        for (ServiceItem serviceItem : serviceItems) {
+            Money oldPrice = oldPrices.get(serviceItem.getId());
+            if (oldPrice != null && oldPrice.compareTo(serviceItem.getPrice()) != 0) {
                 priceChanges.add(new BookingPriceChange(
-                        serviceId, currentService.getName(),
-                        oldPrice, currentService.getPrice()));
+                        serviceItem.getId(),
+                        serviceItem.getName(),
+                        oldPrice,
+                        serviceItem.getPrice()));
             }
 
-            copy.addServiceItem(currentService);
+            copy.addServiceItem(serviceItem);
         }
+
+        validateVehicleAndMechanic(copy.getVehicleId(), selectedMechanicId);
 
         copy.setEndTime(startTime.plusMinutes(copy.getTotalDurationMinutes()));
 
@@ -162,22 +165,22 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking update(int bookingId, int vehicleId, int mechanicId, LocalDate date,
-                          LocalTime startTime, String description,
-                          List<Integer> serviceItemIds) {
+    public Booking update(int bookingId, int vehicleId, int mechanicId,
+                          @NotNull(message = "error.dateSelect") LocalDate date,
+                          @NotNull(message = "error.startTimeSelect") LocalTime startTime,
+                          @NotBlank(message="error.desc") String description,
+                          @NotEmpty(message = "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
 
         Booking booking = findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
 
-        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            throw new ValidationException("error.serviceSelect");
+        if (!BookingStatus.BOOKED.equals(booking.getStatus())) {
+            throw new ValidationException("error.bookingStarted");
         }
 
-        List<ServiceItem> serviceItems = serviceItemIds.stream()
-                .distinct()
-                .map(id -> findServiceItemById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
-                .collect(Collectors.toList());
+        validateVehicleAndMechanic(vehicleId, mechanicId);
+
+        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(serviceItemIds);
 
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
@@ -315,7 +318,6 @@ public class BookingService {
                             "ServiceItem", serviceId, "error.serviceNotFound"
                     ));
 
-
             if (item.getPriceAtBooking().compareTo(current.getPrice()) != 0) {
                 changes.add(new BookingPriceChange(
                         serviceId,
@@ -326,9 +328,41 @@ public class BookingService {
             }
 
         }
-
-
-
         return changes;
     }
+
+    private List<ServiceItem> fetchValidServiceItemsByIds(List<Integer> serviceItemIds) {
+        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+            throw new ValidationException("error.serviceSelect");
+        }
+
+        List<ServiceItem> serviceItems = new ArrayList<>();
+        for (Integer id : new LinkedHashSet<>(serviceItemIds)) {
+            if (id == null || id <= 0) {
+                throw new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound");
+            }
+
+            ServiceItem serviceItem = findServiceItemById(id)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ServiceItem", id, "error.serviceNotFound"));
+            serviceItems.add(serviceItem);
+        }
+
+        if (serviceItems.stream()
+                .anyMatch(serviceItem -> serviceItem.getEstimatedMinutes() <= 0)) {
+            throw new ValidationException("error.serviceItem.invalidDuration");
+        }
+
+        return serviceItems;
+    }
+
+    private void validateVehicleAndMechanic(int vehicleId, int mechanicId) {
+        if (vehicleId <= 0 || !vehicleRepo.existsById(vehicleId)) {
+            throw new EntityNotFoundException("Vehicle", vehicleId);
+        }
+        if (mechanicId <= 0 || !mechanicRepository.existsById(mechanicId)) {
+            throw new EntityNotFoundException("Mechanic", mechanicId);
+        }
+    }
+
 }

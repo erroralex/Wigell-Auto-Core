@@ -92,6 +92,8 @@ class InvoiceServiceTest {
         }
 
         WorkOrder workOrder = mock(WorkOrder.class);
+        when(workOrder.getStatus()).thenReturn(WorkOrderStatus.COMPLETED);
+        when(workOrder.getVehicleId()).thenReturn(5);
         when(workOrder.getVehicleId()).thenReturn(5);
         when(workOrder.getItems()).thenReturn(Arrays.asList(items));
         when(workOrderService.findById(1)).thenReturn(Optional.of(workOrder));

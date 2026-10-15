@@ -1,12 +1,20 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.repository.CustomerRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
+
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @Service
 public class CustomerService {
 
@@ -28,16 +36,30 @@ public class CustomerService {
         return customerRepo.existsById(id);
     }
 
-    public Customer create(String name, String phone, String email) {
-        return customerRepo.save(new Customer(name, phone, email));
+    public Customer create(@NotBlank(message = "error.customer.nameRequired") String name,
+                           @NotBlank(message = "error.customer.phoneRequired") String phone,
+                           @Email(message = "error.invalidEmail") String email) {
+
+        return customerRepo.save(new Customer(name.trim(), phone.trim(), normalizeEmail(email)));
     }
 
-    public Customer update(Customer customer) {
+    public Customer update(@NotNull @Valid Customer customer) {
+        if (customer == null || customer.getId() <= 0 || !customerRepo.existsById(customer.getId())) {
+            throw new EntityNotFoundException("Customer", customer == null ? null : customer.getId());
+        }
+
+        customer.setName(customer.getName().trim());
+        customer.setPhone(customer.getPhone().trim());
+        customer.setEmail(normalizeEmail(customer.getEmail()));
+
         return customerRepo.save(customer);
     }
 
     public void deleteById(Integer id) {
         customerRepo.deleteById(id);
     }
-
+    
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim();
+    }
 }
