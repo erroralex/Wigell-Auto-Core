@@ -69,9 +69,7 @@ public class BookingService {
                           @NotEmpty(message= "error.serviceSelect") List<Integer> serviceItemIds) {
 
         
-        List<ServiceItem> serviceItems = fetchServiceItemsByIds(serviceItemIds);
-
-        validateEstimatedDuration(serviceItems);
+        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(serviceItemIds);
 
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
@@ -129,6 +127,8 @@ public class BookingService {
                 .map(BookingServiceItem::getServiceItemId)
                 .collect(Collectors.toList()) : serviceItemIds.stream().distinct().collect(Collectors.toList());
 
+        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(wantedIds);
+
         Map<Integer, Money> oldPrices = previous.getItems().stream()
                 .collect(Collectors.toMap(
                         BookingServiceItem::getServiceItemId,
@@ -138,19 +138,17 @@ public class BookingService {
         List<BookingPriceChange> priceChanges = new ArrayList<>();
         copy.getItems().clear();
 
-        for (int serviceId : wantedIds) {
-            ServiceItem currentService = findServiceItemById(serviceId)
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "ServiceItem", serviceId, "error.serviceNotFound"));
-
-            Money oldPrice = oldPrices.get(serviceId);
-            if (oldPrice != null && oldPrice.compareTo(currentService.getPrice()) != 0) {
+        for (ServiceItem serviceItem : serviceItems) {
+            Money oldPrice = oldPrices.get(serviceItem.getId());
+            if (oldPrice != null && oldPrice.compareTo(serviceItem.getPrice()) != 0) {
                 priceChanges.add(new BookingPriceChange(
-                        serviceId, currentService.getName(),
-                        oldPrice, currentService.getPrice()));
+                        serviceItem.getId(),
+                        serviceItem.getName(),
+                        oldPrice,
+                        serviceItem.getPrice()));
             }
 
-            copy.addServiceItem(currentService);
+            copy.addServiceItem(serviceItem);
         }
 
         copy.setEndTime(startTime.plusMinutes(copy.getTotalDurationMinutes()));
@@ -174,9 +172,7 @@ public class BookingService {
         Booking booking = findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
 
-        List<ServiceItem> serviceItems = fetchServiceItemsByIds(serviceItemIds);
-
-        validateEstimatedDuration(serviceItems);
+        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(serviceItemIds);
 
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
@@ -328,22 +324,30 @@ public class BookingService {
         return changes;
     }
 
-    private List<ServiceItem> fetchServiceItemsByIds(List<Integer> serviceItemIds) {
-        return serviceItemIds.stream()
-                .distinct()
-                .map(id -> findServiceItemById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
-                .collect(Collectors.toList());
-    }
+    private List<ServiceItem> fetchValidServiceItemsByIds(List<Integer> serviceItemIds) {
+        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
+            throw new ValidationException("error.serviceSelect");
+        }
 
-    /** Checks each service item to make sure they all have a positive estimated duration.
-     *  If an invalid estimated duration is found, will throw ValidationException. **/
-    private void validateEstimatedDuration(List<ServiceItem> serviceItems) {
-        boolean hasInvalidEstimatedDuration = serviceItems.stream()
-                .anyMatch(serviceItem -> serviceItem.getEstimatedMinutes() <= 0);
-        if (hasInvalidEstimatedDuration) {
+        List<ServiceItem> serviceItems = new ArrayList<>();
+        for (Integer id : serviceItemIds) {
+            if (id == null || id <= 0) {
+                throw new ValidationException("ServiceItem", id, "error.serviceNotFound");
+            }
+
+            ServiceItem serviceItem = findServiceItemById(id)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "ServiceItem", id, "error.serviceNotFound"
+                    ));
+            serviceItems.add(serviceItem);
+        }
+
+        if (serviceItems.stream()
+                .anyMatch(serviceItem -> serviceItem.getEstimatedMinutes() <= 0)) {
             throw new ValidationException("error.serviceItem.invalidDuration");
         }
+
+        return serviceItems;
     }
 
 }
