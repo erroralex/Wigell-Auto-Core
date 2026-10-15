@@ -1,4 +1,4 @@
-package com.wac.autocore;
+package com.wac.autocore.service.errorChain;
 
 import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.handler.ErrorHandlerChain;

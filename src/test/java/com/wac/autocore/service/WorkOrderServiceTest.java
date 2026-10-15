@@ -73,6 +73,7 @@ public class WorkOrderServiceTest {
                 .thenReturn(1);
         when(booking.getVehicleId())
                 .thenReturn(10);
+        when(vehicleRepo.existsById(booking.getVehicleId())).thenReturn(true);
         when(workOrderRepository.save(any(WorkOrder.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
