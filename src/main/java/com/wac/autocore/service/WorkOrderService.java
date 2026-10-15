@@ -172,11 +172,9 @@ public class WorkOrderService {
         workOrderRepository.save(workOrder);
     }
 
-    // Återöppnar ordern som utkast. Bokningen följer orderns nya status och förblir därmed låst.
-    // Om ordern är avbruten måste bokningen först ha blivit ledig: har bokningen redan fått en ny order
-    // som inte är avbruten (t.ex efter att den avbrutna ordern ersatts) blockeras återöppningen,
-    // annars skulle bokningen få två pågående ordrar.
-    // Kontrollen sker före reopen(), annars skulle ordern räknas som aktiv.
+    // Återöppnar ordern som utkast. Till skillnad från cancelWorkOrder, som öppnar bokningen igen,
+    // låter reopen bokningen förbli låst: work ordern går till DRAFT, vilket mappar till
+    // WORK_ORDER_CREATED.
     public void reopenWorkOrder(int id) {
         WorkOrder workOrder = require(id);
         Integer bookingId = workOrder.getBookingId();

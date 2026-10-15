@@ -12,6 +12,9 @@ public enum BookingStatus {
         return this == BOOKED;
     }
 
+    // Översätter arbetsorderns status till bokningens status.
+    // CANCELLED → BOOKED: en avbruten arbetsorder släpper bokningen så den kan få en ny.
+    // Alla WorkOrderStatus-värden måste mappas; annars kastas IllegalArgumentException.
     public static BookingStatus forWorkOrder(WorkOrderStatus workOrderStatus) {
         switch (workOrderStatus) {
             case DRAFT:
@@ -24,7 +27,7 @@ public enum BookingStatus {
             case CANCELLED:
                 return BOOKED;
             default:
-                return null;
+                throw new IllegalArgumentException("Unhandled WorkOrderStatus: " + workOrderStatus);
         }
     }
 }
