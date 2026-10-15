@@ -1,12 +1,14 @@
 package com.wac.autocore.exception;
 
+import com.wac.autocore.model.BookingStatus;
+
 /**
  * <b>BookingLockedException</b>
- * <p>Ansvar: Kastas när någon försöker lägga till eller ta bort tjänster på en bokning där
- * verkstadsarbetet redan har påbörjats</p>
+ * <p>Ansvar: Kastas när någon försöker lägga till eller ta bort tjänster på en bokning
+ * som inte längre är redigerbar.</p>
  * <p><b>Exempel på användning:</b></p>
  * <pre>{@code
- * if (!"BOOKED".equals(booking.getStatus())) {
+ * if (!booking.getStatus().isEditable()) {
  *     throw new BookingLockedException(booking.getId(), booking.getStatus());
  * }
  * }</pre>
@@ -14,10 +16,10 @@ package com.wac.autocore.exception;
 public class BookingLockedException extends DomainException {
 
     private final int bookingId;
-    private final String status;
+    private final BookingStatus status;
 
-    public BookingLockedException(int bookingId, String status) {
-        super("Booking " + bookingId + "is locked (status " + status + ")",
+    public BookingLockedException(int bookingId, BookingStatus status) {
+        super("Booking " + bookingId + " is locked (status " + status + ")",
                 "error.booking", "error.bookingLocked", String.valueOf(bookingId));
         this.bookingId = bookingId;
         this.status = status;
@@ -27,7 +29,8 @@ public class BookingLockedException extends DomainException {
         return bookingId;
     }
 
-    public String getStatus() {
+    public BookingStatus getStatus() {
         return status;
     }
 }
+

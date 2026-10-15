@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class WorkOrderService {
 
-    private static final String BOOKING_STATUS_WORK_ORDER_CREATED = "WORK_ORDER_CREATED";
-
     private final WorkOrderRepository workOrderRepository;
     private final BookingRepository bookingRepository;
     private final MechanicRepository mechanicRepository;
@@ -76,10 +74,7 @@ public class WorkOrderService {
 
     @Transactional(readOnly = true)
     public List<Booking> findBookableBookings() {
-        return bookingRepository.findAll().stream()
-                .filter(booking -> Booking.STATUS_BOOKED.equals(booking.getStatus()))
-                .filter(booking -> !workOrderRepository.existsByBookingIdAndStatusNot(booking.getId(), WorkOrderStatus.CANCELLED))
-                .collect(Collectors.toList());
+        return bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED);
     }
 
     // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
@@ -92,7 +87,7 @@ public class WorkOrderService {
             throw new ValidationException("error.workOrder.alreadyExists", String.valueOf(bookingId));
         }
 
-        if (!Booking.STATUS_BOOKED.equals(booking.getStatus())) {
+        if (booking.getStatus() != BookingStatus.BOOKED) {
             throw new ValidationException("error.workOrder.bookingNotBookable", String.valueOf(bookingId));
         }
 
@@ -103,8 +98,7 @@ public class WorkOrderService {
 
         WorkOrder workOrder = PlannedWorkOrder.createFrom(booking);
 
-        booking.setStatus(BOOKING_STATUS_WORK_ORDER_CREATED);
-        bookingRepository.save(booking);
+        syncBooking(workOrder);
         return workOrderRepository.save(workOrder);
     }
 
@@ -147,38 +141,26 @@ public class WorkOrderService {
     public void startWorkOrder(int id) {
         WorkOrder workOrder = require(id);
         workOrder.start();
-        syncBookingStatus(workOrder, WorkOrderStatus.IN_PROGRESS);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
     public void completeWorkOrder(int id) {
         WorkOrder workOrder = require(id);
         workOrder.complete();
-        syncBookingStatus(workOrder, WorkOrderStatus.COMPLETED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
-    // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
-    private void syncBookingStatus(WorkOrder workOrder, WorkOrderStatus status) {
+    // Uppdaterar bokningens status så den följer arbetsordern.
+    // En arbetsorder utan bokning (drop-in, reklamation) har ingen bokning att uppdatera.
+    private void syncBooking(WorkOrder workOrder) {
         Integer bookingId = workOrder.getBookingId();
         if (bookingId == null) {
             return;
         }
-
         bookingRepository.findById(bookingId).ifPresent(booking -> {
-            booking.setStatus(status.name());
-            bookingRepository.save(booking);
-        });
-    }
-
-    // Sätter bokningens status direkt. Används när ordern släpper bokningen eller återöppnas.
-    private void setBookingStatus(WorkOrder workOrder, String bookingStatus) {
-        Integer bookingId = workOrder.getBookingId();
-        if (bookingId == null) {
-            return; // drop-in och reklamation saknar bokning
-        }
-        bookingRepository.findById(bookingId).ifPresent(booking -> {
-            booking.setStatus(bookingStatus);
+            booking.followWorkOrder(workOrder.getStatus());
             bookingRepository.save(booking);
         });
     }
@@ -186,15 +168,13 @@ public class WorkOrderService {
     public void confirmWorkOrder(int id) {
         WorkOrder workOrder = require(id);
         workOrder.confirm();
-        syncBookingStatus(workOrder, WorkOrderStatus.CONFIRMED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
-    // Återöppnar ordern som utkast och sätter bokningen till BOOKED så att den går att ändra.
-    // Om ordern är avbruten måste bokningen först ha blivit ledig: har bokningen redan fått en ny order
-    // som inte är avbruten (t.ex efter att den avbrutna ordern ersatts) blockeras återöppningen,
-    // annars skulle bokningen få två pågående ordrar.
-    // Kontrollen sker före reopen(), annars skulle ordern räknas som aktiv.
+    // Återöppnar ordern som utkast. Till skillnad från cancelWorkOrder, som öppnar bokningen igen,
+    // låter reopen bokningen förbli låst: work ordern går till DRAFT, vilket mappar till
+    // WORK_ORDER_CREATED.
     public void reopenWorkOrder(int id) {
         WorkOrder workOrder = require(id);
         Integer bookingId = workOrder.getBookingId();
@@ -203,7 +183,7 @@ public class WorkOrderService {
             throw new ValidationException("error.workOrder.bookingHasActiveOrder", String.valueOf(bookingId));
         }
         workOrder.reopen();
-        setBookingStatus(workOrder, Booking.STATUS_BOOKED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
@@ -211,7 +191,7 @@ public class WorkOrderService {
     public void cancelWorkOrder(int id) {
         WorkOrder workOrder = require(id);
         workOrder.cancel();
-        setBookingStatus(workOrder, Booking.STATUS_BOOKED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
