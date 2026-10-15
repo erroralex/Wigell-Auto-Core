@@ -3,7 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.component.CustomerVehiclePicker;
 import com.wac.autocore.view.component.ServiceSelectorBox;

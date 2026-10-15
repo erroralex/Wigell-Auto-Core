@@ -3,15 +3,17 @@ package com.wac.autocore.view.util;
 import com.wac.autocore.exception.handler.ErrorHandler;
 import com.wac.autocore.exception.handler.ErrorHandlerChain;
 import com.wac.autocore.exception.handler.ErrorReport;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.i18n.ErrorReportFormatter;
+import com.wac.autocore.i18n.LocalizedError;
+import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <b>ErrorFacade</b>
- * <p>Ansvar: En enda ingång (<b>Facade</b>) för att visa fel i gränssnittet. Döljer felkedjan,
- * språkhanteringen, loggningen och bytet till JavaFX-tråden bakom ett anrop.</p>
+ * <p>Ansvar: En enda ingång (<b>Facade</b>) för att visa fel i gränssnittet. Texten översätts av {@code ErrorReportFormatter},
+ * samma som i headless-läget, så att felen ser likadana ut i båda.</p>
  * <p>Fel som inte fångas alls hamnar här automatiskt via {@link GlobalExceptionHandler}.</p>
  * <p><b>Exempel på användning i en vy:</b></p>
  * <pre>{@code
@@ -26,6 +28,10 @@ public final class ErrorFacade {
 
     private static final Logger log = LoggerFactory.getLogger(ErrorFacade.class);
     private static final ErrorHandler CHAIN = ErrorHandlerChain.createDefault();
+
+    private static final ErrorReportFormatter FORMATTER =
+            new ErrorReportFormatter(LanguageManager.getInstance());
+
     private static boolean presenting;
 
     private ErrorFacade() {
@@ -60,14 +66,12 @@ public final class ErrorFacade {
         }
         presenting = true;
         try {
-            LanguageManager lang = LanguageManager.getInstance();
-            String title = lang.get(report.getTitleKey());
-            String message = lang.get(report.getMessageKey(), report.getMessageArgs());
+            LocalizedError error = FORMATTER.format(report);
 
             if (report.isUnexpected()) {
-                AlertHelper.showException(title, message, asException(report.getCause()));
+                AlertHelper.showException(error.getTitle(), error.getMessage(), asException(report.getCause()));
             } else {
-                AlertHelper.showError(title, message);
+                AlertHelper.showError(error.getTitle(), error.getMessage());
             }
         } catch (RuntimeException presentationError) {
             log.error("Could not show error alert", presentationError);

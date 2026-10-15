@@ -3,7 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.model.*;
 import com.wac.autocore.service.BookingPriceChange;
 import com.wac.autocore.service.BookingService;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.component.ServicePackageSelectorBox;
 import com.wac.autocore.view.component.ServiceSelectorBox;

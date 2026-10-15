@@ -4,7 +4,7 @@ import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderItem;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;

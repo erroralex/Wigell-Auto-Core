@@ -118,3 +118,26 @@ Gå till repot på GitHub, öppna en PR från din branch mot `dev`. Skriv gärna
 - ✅ `compile`-checken är grön
 - ✅ Branchen är uppdaterad mot `dev`
 - ✅ Alla kommentarer/konversationer är lösta
+
+
+# Köra utan gränssnitt (headless)
+
+Applikationens tjänster kan köras utan JavaFX. Headless-läget kör ett komplett drop-in-flöde
+(skapa, lägg till tjänster och mekaniker, bekräfta, starta, slutför, fakturera, betala) och därefter
+två otillåtna operationer, och skriver ut resultatet med samma felnycklar och texter som gränssnittet.
+
+```bash
+./mvnw clean package
+java -jar target/autocore-2.0.0.jar --spring.profiles.active=headless
+```
+
+Engelska:
+```bash
+java -jar target/autocore-2.0.0.jar --spring.profiles.active=headless --headless.lang=en
+```
+
+- Kör mot en egen databasfil, `autocore-headless.db`. Den vanliga `autocore.db` rörs inte.
+- Avslutar med kod `0` om alla steg blev som förväntat, annars med en felkod.
+- Samma scenario körs som integrationstest i `HeadlessDropInScenarioIntegrationTest`.
+
+**Windows:** visas `å`, `ä` och `ö` fel i konsolen, kör `chcp 65001` först.
