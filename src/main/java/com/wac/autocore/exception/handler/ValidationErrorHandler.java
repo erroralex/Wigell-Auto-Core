@@ -3,7 +3,11 @@ package com.wac.autocore.exception.handler;
 import javax.validation.ConstraintViolationException;
 
 import javax.validation.ConstraintViolation;
+import java.util.Comparator;
 
+/**
+ * Handles Bean Validation failures and preserves their message templates as i18n keys.
+ */
 public class ValidationErrorHandler extends ErrorHandler {
     @Override
     protected boolean canHandle(Throwable error) {
@@ -13,7 +17,11 @@ public class ValidationErrorHandler extends ErrorHandler {
     @Override
     protected ErrorReport createReport(Throwable error) {
         ConstraintViolationException validation = findCause(error, ConstraintViolationException.class);
-        ConstraintViolation<?> violation = validation.getConstraintViolations().iterator().next();
+        ConstraintViolation<?> violation = validation.getConstraintViolations().stream()
+                .min(Comparator.comparing(v -> v.getPropertyPath().toString()))
+                .orElseThrow(() -> new IllegalStateException(
+                        "ConstraintViolationException contained no violations"
+                ));
 
         String messageKey = violation.getMessageTemplate();
         if (messageKey != null && messageKey.startsWith("{") && messageKey.endsWith("}")) {

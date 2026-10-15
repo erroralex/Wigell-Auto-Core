@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,8 +49,8 @@ public class VehicleService {
     public Vehicle create(@NotBlank(message="error.vehicle.blankRegNr")String registrationNumber,
                           @NotBlank(message="error.vehicle.blankBrand")String brand,
                           @NotBlank(message="error.vehicle.blankModel")String model,
-                          @NotNull(message="error.vehicle.yearIsNull") int year,
-                          @NotNull(message="error.vehicle.customerIdIsNull") int customerId) {
+                          @Positive int year,
+                          @Positive int customerId) {
         validateCustomer(customerId);
 
         if (vehicleRepo.existsByRegistrationNumber(registrationNumber)) {

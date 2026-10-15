@@ -3,11 +3,9 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.repository.CustomerRepo;
-import org.springframework.format.annotation.NumberFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import com.wac.autocore.exception.ValidationException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
@@ -15,13 +13,11 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Validated
 @Service
 public class CustomerService {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private final CustomerRepo customerRepo;
 
     public CustomerService(CustomerRepo customerRepo) {

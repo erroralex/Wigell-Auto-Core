@@ -7,7 +7,6 @@ import com.wac.autocore.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import sun.awt.image.ImageWatched;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -29,8 +28,6 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class WorkOrderService {
-
-    private static final String BOOKING_STATUS_WORK_ORDER_CREATED = "WORK_ORDER_CREATED";
 
     private final WorkOrderRepository workOrderRepository;
     private final BookingRepository bookingRepository;
@@ -83,10 +80,7 @@ public class WorkOrderService {
 
     @Transactional(readOnly = true)
     public List<Booking> findBookableBookings() {
-        return bookingRepository.findAll().stream()
-                .filter(booking -> BookingStatus.BOOKED.equals(booking.getStatus()))
-                .filter(booking -> !workOrderRepository.existsByBookingIdAndStatusNot(booking.getId(), WorkOrderStatus.CANCELLED))
-                .collect(Collectors.toList());
+        return bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED);
     }
 
     // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
@@ -133,7 +127,7 @@ public class WorkOrderService {
     // Servicen kontrollerar att fordonet finns, modellen validerar resten.
     // Tjänster är valfria för ett utkast; null behandlas som "inga tjänster".
     public DropInWorkOrder createDropIn(@Positive(message = "error.notFound") int vehicleId,
-                                        @NotBlank(message = "error.workOrder.missingProblemDescription") String problemDescription,
+                                        String problemDescription,
                                         List<Integer> serviceItemIds) {
         if (!vehicleRepo.existsById(vehicleId)) {
             throw new EntityNotFoundException("Vehicle", vehicleId);
@@ -189,11 +183,9 @@ public class WorkOrderService {
         workOrderRepository.save(workOrder);
     }
 
-    // Återöppnar ordern som utkast och sätter bokningen till BOOKED så att den går att ändra.
-    // Om ordern är avbruten måste bokningen först ha blivit ledig: har bokningen redan fått en ny order
-    // som inte är avbruten (t.ex efter att den avbrutna ordern ersatts) blockeras återöppningen,
-    // annars skulle bokningen få två pågående ordrar.
-    // Kontrollen sker före reopen(), annars skulle ordern räknas som aktiv.
+    // Återöppnar ordern som utkast. Till skillnad från cancelWorkOrder, som öppnar bokningen igen,
+    // låter reopen bokningen förbli låst: work ordern går till DRAFT, vilket mappar till
+    // WORK_ORDER_CREATED.
     public void reopenWorkOrder(@Positive int id) {
         WorkOrder workOrder = require(id);
         Integer bookingId = workOrder.getBookingId();
@@ -215,12 +207,8 @@ public class WorkOrderService {
     }
 
     public void updateWorkOrder(@Positive int id,
-                                @NotEmpty(message = "error.workOrder.missingServices")
                                 List<@NotNull @Positive Integer> serviceItemIds,
-
-                                @NotNull(message = "error.workOrder.missingMechanic")
                                 @Positive Integer mechanicId,
-
                                 LocalDate plannedDate,
                                 String customerInstructions,
                                 String comments,
