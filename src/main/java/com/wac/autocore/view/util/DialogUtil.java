@@ -1,9 +1,8 @@
 package com.wac.autocore.view.util;
 
-import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.model.value.MoneyFormat;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.AutoCoreApp;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;

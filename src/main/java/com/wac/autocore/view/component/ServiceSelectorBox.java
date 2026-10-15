@@ -2,8 +2,7 @@ package com.wac.autocore.view.component;
 
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
-import com.wac.autocore.service.LanguageManager;
-import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;

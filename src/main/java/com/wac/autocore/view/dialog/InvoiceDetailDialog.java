@@ -3,7 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.InvoiceLine;
 import com.wac.autocore.model.value.Money;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;

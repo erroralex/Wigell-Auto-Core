@@ -3,7 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;

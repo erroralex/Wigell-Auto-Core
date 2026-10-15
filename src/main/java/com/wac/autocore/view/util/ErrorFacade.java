@@ -3,7 +3,7 @@ package com.wac.autocore.view.util;
 import com.wac.autocore.exception.handler.ErrorHandler;
 import com.wac.autocore.exception.handler.ErrorHandlerChain;
 import com.wac.autocore.exception.handler.ErrorReport;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.service.*;
+import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 
