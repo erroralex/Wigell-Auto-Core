@@ -1,6 +1,7 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.repository.CustomerRepo;
 import org.springframework.stereotype.Service;
@@ -8,9 +9,7 @@ import org.springframework.validation.annotation.Validated;
 
 
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,16 +42,21 @@ public class CustomerService {
         return customerRepo.save(new Customer(name.trim(), phone.trim(), normalizeEmail(email)));
     }
 
-    public Customer update(@NotNull @Valid Customer customer) {
-        if (customer == null || customer.getId() <= 0 || !customerRepo.existsById(customer.getId())) {
-            throw new EntityNotFoundException("Customer", customer == null ? null : customer.getId());
-        }
+    public Customer update(@Positive Integer customerId,
+                            @NotBlank(message = "error.customer.nameRequired") String name,
+                           @NotBlank(message = "error.customer.phoneRequired")
+                           @Pattern(regexp = "^[0-9-]+$", message = "error.customer.phoneDigitsOnly")
+                           String phone,
+                           @Email(message = "error.invalidEmail") String email) {
 
-        customer.setName(customer.getName().trim());
-        customer.setPhone(customer.getPhone().trim());
-        customer.setEmail(normalizeEmail(customer.getEmail()));
+        Customer existingCustomer = customerRepo.findById(customerId)
+                .orElseThrow(() -> new EntityNotFoundException("customer", customerId));
 
-        return customerRepo.save(customer);
+        existingCustomer.setName(name.trim());
+        existingCustomer.setPhone(phone.trim());
+        existingCustomer.setEmail(normalizeEmail(email));
+
+        return customerRepo.save(existingCustomer);
     }
 
     public void deleteById(Integer id) {
