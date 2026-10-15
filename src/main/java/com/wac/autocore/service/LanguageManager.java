@@ -1,5 +1,7 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.model.value.MoneyFormat;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -95,7 +97,18 @@ public final class LanguageManager {
         } catch (MissingResourceException e) {
             return "!" + key + "!";
         }
-        return args.length == 0 ? pattern : new MessageFormat(pattern, getLocale()).format(args);
+        return args.length == 0 ? pattern : new MessageFormat(pattern, getLocale()).format(toFormatArgs(args));
+    }
+
+    // Belopp formateras av MoneyFormat (enda källan), så bundlarna använder bara {0} för Money
+    private Object[] toFormatArgs(Object[] args) {
+        Object[] converted = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            converted[i] = args[i] instanceof Money
+                    ? MoneyFormat.format((Money) args[i], getLocale())
+                    : args[i];
+        }
+        return converted;
     }
 
     /** Ansvar: Ger en text som uppdateras automatiskt vid språkbyte. */

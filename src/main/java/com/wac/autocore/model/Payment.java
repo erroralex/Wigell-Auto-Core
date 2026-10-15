@@ -1,5 +1,8 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.data.MoneyConverter;
+import com.wac.autocore.model.value.Money;
+
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -14,7 +17,8 @@ public class Payment {
     private int id;
 
     private int invoiceId;
-    private double amount;
+    @Convert(converter = MoneyConverter.class)
+    private Money amount;
     private String paymentType;
     private LocalDateTime paymentDate;
 
@@ -23,7 +27,7 @@ public class Payment {
 
     protected Payment() {}
 
-    public Payment(int invoiceId, double amount, String paymentType) {
+    public Payment(int invoiceId, Money amount, String paymentType) {
         this.invoiceId = invoiceId;
         this.amount = amount;
         this.paymentType = paymentType;
@@ -43,11 +47,11 @@ public class Payment {
         this.invoiceId = invoiceId;
     }
 
-    public double getAmount() {
+    public Money getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(Money amount) {
         this.amount = amount;
     }
 

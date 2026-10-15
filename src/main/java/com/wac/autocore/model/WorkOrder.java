@@ -4,6 +4,7 @@ import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.exception.WorkOrderLockedException;
+import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -253,11 +254,11 @@ public abstract class WorkOrder {
         return Collections.unmodifiableList(items);
     }
 
-    // Summan räknar bara debiterbara rader och är underlag för fakturan
-    public double getTotalPrice() {
+    // Summan av de avtalade priserna, underlag för fakturan
+    public Money getTotalPrice() {
         return items.stream()
-                .mapToDouble(WorkOrderItem::getChargedAmount)
-                .sum();
+                .map(WorkOrderItem::getChargedAmount)
+                .reduce(Money.ZERO, Money::add);
     }
 
     public int getTotalDurationMinutes() {

@@ -1,0 +1,99 @@
+package com.wac.autocore.service;
+
+import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.repository.InvoiceRepo;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+/**
+ * <b>InvoiceServiceTest</b>
+ * <p>Ansvar: Låser hur rabatt avrundas per rad och att fakturans summor är summan av raderna.</p>
+ */
+class InvoiceServiceTest {
+
+    private InvoiceRepo invoiceRepo;
+    private WorkOrderService workOrderService;
+    private Customer customer;
+    private InvoiceService invoiceService;
+
+    @BeforeEach
+    void setUp() {
+        invoiceRepo = mock(InvoiceRepo.class);
+        workOrderService = mock(WorkOrderService.class);
+        VehicleService vehicleService = mock(VehicleService.class);
+        CustomerService customerService = mock(CustomerService.class);
+        customer = mock(Customer.class);
+        Vehicle vehicle = mock(Vehicle.class);
+
+        when(vehicle.getCustomerId()).thenReturn(7);
+        when(vehicleService.findById(5)).thenReturn(Optional.of(vehicle));
+        when(customerService.findById(7)).thenReturn(Optional.of(customer));
+        when(invoiceRepo.save(any(Invoice.class))).thenAnswer(call -> call.getArgument(0));
+
+        invoiceService = new InvoiceService(invoiceRepo, workOrderService, vehicleService, customerService);
+    }
+
+    @Test
+    void discountIsRoundedPerLine_AndInvoiceTotalsAreTheSumOfTheLines() {
+        givenWorkOrderWithPrices("1.05", "1.05", "99.95");
+
+        Invoice invoice = invoiceService.create(1, "WELCOME10");
+
+        assertMoney(Money.of("0.11"), invoice.getLines().get(0).getDiscount());
+        assertMoney(Money.of("10.00"), invoice.getLines().get(2).getDiscount());
+        assertMoney(Money.of("102.05"), invoice.getAmount());
+        assertMoney(Money.of("10.22"), invoice.getDiscount());
+        assertMoney(Money.of("91.83"), invoice.getTotalAmount());
+        assertMoney(invoice.getAmount().subtract(invoice.getDiscount()), invoice.getTotalAmount());
+    }
+
+    @Test
+    void vipAndDiscountCodeAreRoundedSeparately() {
+        when(customer.isVip()).thenReturn(true);
+        givenWorkOrderWithPrices("0.05");
+
+        Invoice invoice = invoiceService.create(1, "WELCOME10");
+
+        // Dagens regel: 0,01 + 0,01. Ett enda avrundat 20 % hade gett 0,01.
+        assertMoney(Money.of("0.02"), invoice.getLines().get(0).getDiscount());
+    }
+
+    @Test
+    void lineNeverGetsANegativeTotal() {
+        givenWorkOrderWithPrices("150", "300");
+
+        Invoice invoice = invoiceService.create(1, "SERVICE200");
+
+        assertMoney(Money.of("150"), invoice.getLines().get(0).getDiscount());
+        assertMoney(Money.ZERO, invoice.getLines().get(0).getTotal());
+        assertMoney(Money.of("200"), invoice.getLines().get(1).getDiscount());
+        assertEquals(2, invoice.getLines().size());
+    }
+
+    private void givenWorkOrderWithPrices(String... prices) {
+        WorkOrderItem[] items = new WorkOrderItem[prices.length];
+        for (int i = 0; i < prices.length; i++) {
+            ServiceItem service = mock(ServiceItem.class);
+            when(service.getId()).thenReturn(i + 1);
+            when(service.getName()).thenReturn("Service " + (i + 1));
+            when(service.getPrice()).thenReturn(Money.of(prices[i]));
+            when(service.getEstimatedMinutes()).thenReturn(30);
+            items[i] = WorkOrderItem.snapshotOf(service);
+        }
+
+        WorkOrder workOrder = mock(WorkOrder.class);
+        when(workOrder.getVehicleId()).thenReturn(5);
+        when(workOrder.getItems()).thenReturn(Arrays.asList(items));
+        when(workOrderService.findById(1)).thenReturn(Optional.of(workOrder));
+    }
+}

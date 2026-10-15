@@ -1,6 +1,8 @@
 package com.wac.autocore.view.dialog;
 
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.util.DialogUtil;
@@ -9,7 +11,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-public class AdminServiceItemDialog extends Dialog<Double> {
+public class AdminServiceItemDialog extends Dialog<Money> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -40,7 +42,7 @@ public class AdminServiceItemDialog extends Dialog<Double> {
 
         errorLabel.getStyleClass().add("text-error");
 
-        priceTextField.setText(String.valueOf(serviceItem.getPrice()));
+        priceTextField.setText(DialogUtil.formatMoney(serviceItem.getPrice()));
 
         setContent();
         handleInput();
@@ -66,23 +68,19 @@ public class AdminServiceItemDialog extends Dialog<Double> {
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
 
             try {
-                double newPrice = Double.parseDouble(
-                        priceTextField.getText().replace(',', '.')
-                );
+                Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
 
-                if (newPrice <= 0) {
+                if (!newPrice.isPositive()) {
                     rejectPrice(event);
                 }
-            } catch (NumberFormatException e) {
+            } catch (ValidationException e) {
                rejectPrice(event);
             }
         });
 
         setResultConverter(buttonType -> {
             if (buttonType == saveButtonType) {
-                return Double.parseDouble(
-                        priceTextField.getText().replace(',', '.')
-                );
+                return DialogUtil.parseMoney(priceTextField.getText());
             }
             return null;
         });

@@ -1,6 +1,7 @@
 package com.wac.autocore.view.component;
 
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.LanguageManager;
 import com.wac.autocore.service.ServicePackageService;
 import javafx.beans.binding.Bindings;
@@ -178,11 +179,11 @@ public class ServiceSelectorBox extends VBox {
     private void onSelectionChanged() {
         selectedIds.clear();
         int totalMinutes = 0;
-        double totalPrice = 0;
+        Money totalPrice = Money.ZERO;
         for (ServiceItem service : selectedListView.getItems()) {
             selectedIds.add(service.getId());
             totalMinutes += service.getEstimatedMinutes();
-            totalPrice += service.getPrice();
+            totalPrice = totalPrice.add(service.getPrice());
         }
 
         Set<Integer> excludedIds = new HashSet<>(selectedIds);

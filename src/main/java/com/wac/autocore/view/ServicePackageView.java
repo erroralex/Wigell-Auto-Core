@@ -2,10 +2,12 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.ServicePackage;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.dialog.ServicePackageDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleObjectProperty;
@@ -19,7 +21,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -75,11 +76,11 @@ public class ServicePackageView extends BaseView {
         countColumn.setCellValueFactory(cell ->
                 new SimpleObjectProperty<>(cell.getValue().getServices().size()));
 
-        TableColumn<ServicePackage, Double> priceColumn = new TableColumn<>(lang.get("table.totalPrice"));
+        TableColumn<ServicePackage, Money> priceColumn = new TableColumn<>(lang.get("table.totalPrice"));
         priceColumn.setCellValueFactory(cell ->
                 new SimpleObjectProperty<>(totalPrice(cell.getValue())));
 
-        setPriceFormat(priceColumn);
+        DialogUtil.configureMoneyColumn(priceColumn);
 
         table.getColumns().add(nameColumn);
         table.getColumns().add(descColumn);
@@ -89,25 +90,10 @@ public class ServicePackageView extends BaseView {
         table.setItems(packages);
     }
 
-    // Följer valt språk: 1 097,50 på svenska, 1,097.50 på engelska
-    private void setPriceFormat(TableColumn<ServicePackage, Double> priceColumn) {
-        NumberFormat formatter = NumberFormat.getNumberInstance(lang.getLocale());
-        formatter.setMinimumFractionDigits(2);
-        formatter.setMaximumFractionDigits(2);
-
-        priceColumn.setCellFactory(column -> new TableCell<ServicePackage, Double>() {
-            @Override
-            protected void updateItem(Double price, boolean empty) {
-                super.updateItem(price, empty);
-                setText(empty || price == null ? null : formatter.format(price));
-            }
-        });
-    }
-
-    private static double totalPrice(ServicePackage servicePackage) {
-        double sum = 0;
+    private static Money totalPrice(ServicePackage servicePackage) {
+        Money sum = Money.ZERO;
         for (ServiceItem service : servicePackage.getServices()) {
-            sum += service.getPrice();
+            sum = sum.add(service.getPrice());
         }
         return sum;
     }

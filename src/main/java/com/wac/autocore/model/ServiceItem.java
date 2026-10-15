@@ -1,5 +1,8 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.data.MoneyConverter;
+
 import javax.persistence.*;
 
 @Entity
@@ -12,13 +15,14 @@ public class ServiceItem {
 
     private String name;
     private String description;
-    private double price;
+    @Convert(converter = MoneyConverter.class)
+    private Money price;
     private int estimatedMinutes;
 
     protected ServiceItem() {}
 
     public ServiceItem(String name, String description,
-                       double price, int estimatedMinutes) {
+                       Money price, int estimatedMinutes) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -45,11 +49,11 @@ public class ServiceItem {
         this.description = description;
     }
 
-    public double getPrice() {
+    public Money getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Money price) {
         this.price = price;
     }
 

@@ -1,12 +1,12 @@
 package com.wac.autocore.model;
 
 import com.wac.autocore.exception.BookingLockedException;
+import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -181,10 +181,10 @@ public class Booking implements BookingPrototype {
         return false;
     }
 
-    public double getTotalAgreedPrice() {
+    public Money getTotalAgreedPrice() {
         return items.stream()
-                .mapToDouble(BookingServiceItem::getPriceAtBooking)
-                .sum();
+                .map(BookingServiceItem::getPriceAtBooking)
+                .reduce(Money.ZERO, Money::add);
     }
 
     public int getTotalDurationMinutes() {

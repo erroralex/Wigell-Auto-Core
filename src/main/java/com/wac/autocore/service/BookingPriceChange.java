@@ -1,18 +1,20 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.model.value.Money;
+
 // Returnerar information om prisändringar om vilka priser som ändrats i den nya bokningen jämfört med den gamla.
 // Används för att visa en sammanställning av prisändringar i bokningsdialogen.
 public final class BookingPriceChange {
 
     private final int serviceItemId;
     private final String serviceName;
-    private final double previousPrice;
-    private final double currentPrice;
+    private final Money previousPrice;
+    private final Money currentPrice;
 
     public BookingPriceChange(int serviceItemId,
                               String serviceName,
-                              double previousPrice,
-                              double currentPrice) {
+                              Money previousPrice,
+                              Money currentPrice) {
         this.serviceItemId = serviceItemId;
         this.serviceName = serviceName;
         this.previousPrice = previousPrice;
@@ -27,11 +29,11 @@ public final class BookingPriceChange {
         return serviceName;
     }
 
-    public double getPreviousPrice() {
+    public Money getPreviousPrice() {
         return previousPrice;
     }
 
-    public double getCurrentPrice() {
+    public Money getCurrentPrice() {
         return currentPrice;
     }
 
