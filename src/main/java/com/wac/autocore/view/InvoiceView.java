@@ -1,14 +1,15 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.Invoice;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
 import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -94,19 +95,19 @@ public class InvoiceView extends BaseView {
                 new SimpleObjectProperty<>(c.getValue().getInvoiceDate())
         );
 
-        TableColumn<Invoice, Double> amountCol = new TableColumn<>(lang.get("table.amount"));
+        TableColumn<Invoice, Money> amountCol = new TableColumn<>(lang.get("table.amount"));
         amountCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getAmount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getAmount())
         );
 
-        TableColumn<Invoice, Double> discountCol = new TableColumn<>(lang.get("table.discount"));
+        TableColumn<Invoice, Money> discountCol = new TableColumn<>(lang.get("table.discount"));
         discountCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getDiscount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getDiscount())
         );
 
-        TableColumn<Invoice, Double> totalCol = new TableColumn<>(lang.get("table.total"));
+        TableColumn<Invoice, Money> totalCol = new TableColumn<>(lang.get("table.total"));
         totalCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getTotalAmount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getTotalAmount())
         );
 
         TableColumn<Invoice, Boolean> paidCol = new TableColumn<>(lang.get("table.paid"));
@@ -125,6 +126,10 @@ public class InvoiceView extends BaseView {
                 }
             }
         });
+
+        DialogUtil.configureMoneyColumn(amountCol);
+        DialogUtil.configureMoneyColumn(discountCol);
+        DialogUtil.configureMoneyColumn(totalCol);
 
         this.invoiceTable.getColumns().addAll(
                 idCol, workOrderIdCol, dateCol, amountCol, discountCol, totalCol, paidCol
@@ -191,4 +196,5 @@ public class InvoiceView extends BaseView {
         InvoiceDetailDialog dialog = new InvoiceDetailDialog(selected);
         dialog.showAndWait();
     }
+
 }

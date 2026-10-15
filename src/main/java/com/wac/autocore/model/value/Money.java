@@ -21,7 +21,7 @@ public final class Money implements Comparable<Money> {
         return new Money(value);
     }
 
-    public static Money of(double value) {
+    public static Money of(long value) {
         return new Money(BigDecimal.valueOf(value));
     }
 
@@ -80,10 +80,6 @@ public final class Money implements Comparable<Money> {
 
     public BigDecimal toBigDecimal() {
         return amount;
-    }
-
-    public double toDouble() { // Bara för konvertern så att den kan sparas i databasen som en double. Använd inte i affärslogik.
-        return amount.doubleValue();
     }
 
     @Override

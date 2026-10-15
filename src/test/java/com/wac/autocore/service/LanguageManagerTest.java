@@ -1,5 +1,6 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.model.value.Money;
 import javafx.beans.binding.StringBinding;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -74,10 +75,18 @@ class LanguageManagerTest {
 
     @Test
     void priceFollowsLanguage() {
-        assertEquals("1097,50 kr", lang.get("format.price", 1097.5));
+        assertEquals("1097,50 kr", lang.get("format.price", Money.of("1097.50")));
 
         lang.toggleLanguage();
-        assertEquals("1097.50 kr", lang.get("format.price", 1097.5));
+        assertEquals("1097.50 kr", lang.get("format.price", Money.of("1097.50")));
+    }
+
+    @Test
+    void moneyArgumentIsFormattedLikeANumber() {
+        assertEquals("1097,50 kr", lang.get("format.price", Money.of("1097.50")));
+
+        lang.toggleLanguage();
+        assertEquals("1097.50 kr", lang.get("format.price", Money.of("1097.50")));
     }
 
     @Test

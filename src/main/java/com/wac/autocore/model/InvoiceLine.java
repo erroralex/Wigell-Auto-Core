@@ -1,5 +1,8 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.data.MoneyConverter;
+import com.wac.autocore.model.value.Money;
+
 import javax.persistence.*;
 
 @Entity
@@ -14,14 +17,20 @@ public class InvoiceLine {
     @JoinColumn(name = "invoice_id")
     private Invoice invoice;
 
+    @Convert(converter = MoneyConverter.class)
+    private Money amount = Money.ZERO;
+
+    @Convert(converter = MoneyConverter.class)
+    private Money discount = Money.ZERO;
+
+    @Convert(converter = MoneyConverter.class)
+    private Money total = Money.ZERO;
+
     private String serviceItemName;
-    private double amount;
-    private double discount;
-    private double total;
 
     protected InvoiceLine() {}
 
-    public InvoiceLine(Invoice invoice, String serviceItemName, double amount, double discount, double total) {
+    public InvoiceLine(Invoice invoice, String serviceItemName, Money amount, Money discount, Money total) {
         this.invoice = invoice;
         this.serviceItemName = serviceItemName;
         this.amount = amount;
@@ -53,27 +62,27 @@ public class InvoiceLine {
         this.serviceItemName = serviceItemName;
     }
 
-    public double getAmount() {
+    public Money getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(Money amount) {
         this.amount = amount;
     }
 
-    public double getDiscount() {
+    public Money getDiscount() {
         return discount;
     }
 
-    public void setDiscount(double discount) {
+    public void setDiscount(Money discount) {
         this.discount = discount;
     }
 
-    public double getTotal() {
+    public Money getTotal() {
         return this.total;
     }
 
-    public void setTotal(double total) {
+    public void setTotal(Money total) {
         this.total = total;
     }
 }

@@ -5,6 +5,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingServiceItem;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -54,7 +56,7 @@ public class BookingServiceTest {
 
         when(oilChange.getId()).thenReturn(1);
         when(oilChange.getName()).thenReturn("Oil change");
-        when(oilChange.getPrice()).thenReturn(999.0);
+        when(oilChange.getPrice()).thenReturn(Money.of(999));
         when(oilChange.getEstimatedMinutes()).thenReturn(60);
 
         Booking booking = new Booking(
@@ -71,7 +73,7 @@ public class BookingServiceTest {
         ServiceItem oldOilChange = mock(ServiceItem.class);
         when(oldOilChange.getId()).thenReturn(1);
         when(oldOilChange.getName()).thenReturn("Oil change");
-        when(oldOilChange.getPrice()).thenReturn(899.0);
+        when(oldOilChange.getPrice()).thenReturn(Money.of(899));
         when(oldOilChange.getEstimatedMinutes()).thenReturn(60);
 
         Booking originalBooking = new Booking(
@@ -110,7 +112,7 @@ public class BookingServiceTest {
         );
 
         assertEquals(1, updated.getItems().size());
-        assertEquals(899.0, updated.getItems().get(0).getPriceAtBooking());
+        assertMoney(Money.of(899), updated.getItems().get(0).getPriceAtBooking());
     }
 
     @Test
@@ -190,7 +192,7 @@ public class BookingServiceTest {
         ServiceItem oilChange = mock(ServiceItem.class);
         when(oilChange.getId()).thenReturn(3);
         when(oilChange.getName()).thenReturn("Oil change");
-        when(oilChange.getPrice()).thenReturn(899.0);
+        when(oilChange.getPrice()).thenReturn(Money.of(899));
         when(oilChange.getEstimatedMinutes()).thenReturn(60);
 
         Booking previous = new Booking(vehicleId, mechanicId,
@@ -224,7 +226,7 @@ public class BookingServiceTest {
         ServiceItem oilChange = mock(ServiceItem.class);
         when(oilChange.getId()).thenReturn(serviceItemId);
         when(oilChange.getName()).thenReturn("Oil change");
-        when(oilChange.getPrice()).thenReturn(899.0);
+        when(oilChange.getPrice()).thenReturn(Money.of(899));
         when(oilChange.getEstimatedMinutes()).thenReturn(60);
 
         Booking existing = new Booking(vehicleId, mechanicId, date,

@@ -5,6 +5,7 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.model.WorkOrderType;
+import com.wac.autocore.model.value.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -147,7 +148,7 @@ class WorkOrderStatusTest {
 
     private static TestWorkOrder workOrderIn(WorkOrderStatus target) {
         TestWorkOrder wo = new TestWorkOrder(1, 1);
-        wo.addItem(createService(1, 899.0));
+        wo.addItem(createService(1, Money.of(899)));
 
         switch (target) {
             case DRAFT:
@@ -172,7 +173,7 @@ class WorkOrderStatusTest {
         return wo;
     }
 
-    private static ServiceItem createService(int id, double price) {
+    private static ServiceItem createService(int id, Money price) {
         ServiceItem service = mock(ServiceItem.class);
 
         when(service.getId()).thenReturn(id);

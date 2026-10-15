@@ -2,6 +2,7 @@ package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.InvoiceRepo;
 import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
@@ -53,27 +54,27 @@ public class InvoiceService {
 
         // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
         for (WorkOrderItem workOrderItem : workOrder.getItems()) {
-            double amount = workOrderItem.getChargedAmount();
+            Money amount = workOrderItem.getChargedAmount();
 
-            double discount = strategy.calculateDiscount(amount);
+            Money discount = strategy.calculateDiscount(amount);
 
             if (customer.isVip())
-                discount += new VipDiscount().calculateDiscount(amount);
+                discount = discount.add(new VipDiscount().calculateDiscount(amount));
 
-            discount = Math.min(discount, amount);
-            double total = amount - discount;
+            discount = discount.min(amount);
+            Money total = amount.subtract(discount);
 
             invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount, total));
         }
 
-        double amountSum = 0;
-        double discountSum = 0;
-        double totalSum = 0;
+        Money amountSum = Money.ZERO;
+        Money discountSum = Money.ZERO;
+        Money totalSum = Money.ZERO;
 
         for (InvoiceLine invoiceLine : invoice.getLines()) {
-            amountSum += invoiceLine.getAmount();
-            discountSum += invoiceLine.getDiscount();
-            totalSum += invoiceLine.getTotal();
+            amountSum = amountSum.add(invoiceLine.getAmount());
+            discountSum = discountSum.add(invoiceLine.getDiscount());
+            totalSum = totalSum.add(invoiceLine.getTotal());
         }
 
         invoice.setAmount(amountSum);
