@@ -62,7 +62,7 @@ public class WorkOrderServiceTest {
         when(workOrderRepository.existsByBookingIdAndStatusNot(1, WorkOrderStatus.CANCELLED))
                 .thenReturn(false);
         when(booking.getStatus())
-                .thenReturn(Booking.STATUS_BOOKED);
+                .thenReturn(BookingStatus.BOOKED);
         when(booking.getMechanicId())
                 .thenReturn(5);
         when(mechanicRepository.existsById(5))

@@ -240,7 +240,7 @@ public class BookingView extends BaseView {
         if (selected == null)
             return;
 
-        if (!Booking.STATUS_BOOKED.equals(selected.getStatus())) {
+        if (!selected.getStatus().isEditable()) {
             AlertHelper.showError(
                     lang.get("error.title"),
                     lang.get("error.bookingStarted")

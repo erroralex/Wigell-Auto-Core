@@ -114,8 +114,7 @@ public class WorkOrderService {
 
         WorkOrder workOrder = PlannedWorkOrder.createFrom(booking);
 
-        booking.setStatus(BOOKING_STATUS_WORK_ORDER_CREATED);
-        bookingRepository.save(booking);
+        syncBooking(workOrder);
         return workOrderRepository.save(workOrder);
     }
 
@@ -159,38 +158,26 @@ public class WorkOrderService {
     public void startWorkOrder(@Positive int id) {
         WorkOrder workOrder = require(id);
         workOrder.start();
-        syncBookingStatus(workOrder, WorkOrderStatus.IN_PROGRESS);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
     public void completeWorkOrder(@Positive int id) {
         WorkOrder workOrder = require(id);
         workOrder.complete();
-        syncBookingStatus(workOrder, WorkOrderStatus.COMPLETED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
-    // En arbetsorder utan bokning (drop-in) har ingen bokningsstatus att uppdatera
-    private void syncBookingStatus(WorkOrder workOrder, WorkOrderStatus status) {
+    // Uppdaterar bokningens status så den följer arbetsordern.
+    // En arbetsorder utan bokning (drop-in, reklamation) har ingen bokning att uppdatera.
+    private void syncBooking(WorkOrder workOrder) {
         Integer bookingId = workOrder.getBookingId();
         if (bookingId == null) {
             return;
         }
-
         bookingRepository.findById(bookingId).ifPresent(booking -> {
-            booking.setStatus(status.name());
-            bookingRepository.save(booking);
-        });
-    }
-
-    // Sätter bokningens status direkt. Används när ordern släpper bokningen eller återöppnas.
-    private void setBookingStatus(WorkOrder workOrder, String bookingStatus) {
-        Integer bookingId = workOrder.getBookingId();
-        if (bookingId == null) {
-            return; // drop-in och reklamation saknar bokning
-        }
-        bookingRepository.findById(bookingId).ifPresent(booking -> {
-            booking.setStatus(bookingStatus);
+            booking.followWorkOrder(workOrder.getStatus());
             bookingRepository.save(booking);
         });
     }
@@ -198,7 +185,7 @@ public class WorkOrderService {
     public void confirmWorkOrder(@Positive int id) {
         WorkOrder workOrder = require(id);
         workOrder.confirm();
-        syncBookingStatus(workOrder, WorkOrderStatus.CONFIRMED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
@@ -215,7 +202,7 @@ public class WorkOrderService {
             throw new ValidationException("error.workOrder.bookingHasActiveOrder", String.valueOf(bookingId));
         }
         workOrder.reopen();
-        setBookingStatus(workOrder, Booking.STATUS_BOOKED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
@@ -223,7 +210,7 @@ public class WorkOrderService {
     public void cancelWorkOrder(@Positive int id) {
         WorkOrder workOrder = require(id);
         workOrder.cancel();
-        setBookingStatus(workOrder, Booking.STATUS_BOOKED);
+        syncBooking(workOrder);
         workOrderRepository.save(workOrder);
     }
 
@@ -238,7 +225,6 @@ public class WorkOrderService {
                                 String customerInstructions,
                                 String comments,
                                 Map<Integer, Boolean> chargeFlags) {
-
         WorkOrder workOrder = require(id);
 
         if (!mechanicRepository.existsById(mechanicId)) {
@@ -246,7 +232,6 @@ public class WorkOrderService {
         }
 
         Set<Integer> wanted = new HashSet<>(serviceItemIds);
-
         Set<Integer> existing = workOrder.getItems().stream()
                 .map(WorkOrderItem::getServiceItemId)
                 .collect(Collectors.toSet());
@@ -259,7 +244,6 @@ public class WorkOrderService {
                 workOrder.addItem(service);
             }
         }
-
         for (int serviceItemId : existing) {
             if (!wanted.contains(serviceItemId)) {
                 workOrder.removeItem(serviceItemId);
