@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 @Validated
@@ -27,7 +28,7 @@ public class PaymentService {
         return paymentRepo.findAll();
     }
 
-    public Payment processPayment(Integer invoiceId,
+    public Payment processPayment(@Positive Integer invoiceId,
                                   @NotBlank(message="error.payment.emptyPaymentType") String paymentType) {
 
         Invoice invoice = invoiceService.findById(invoiceId)
