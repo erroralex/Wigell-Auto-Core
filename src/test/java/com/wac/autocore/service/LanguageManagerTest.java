@@ -1,6 +1,7 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.beans.binding.StringBinding;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
