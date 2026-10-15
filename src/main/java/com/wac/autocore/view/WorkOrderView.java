@@ -1,14 +1,15 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.*;
-import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.VehicleService;
-import com.wac.autocore.service.WorkOrderService;
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.service.*;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.dialog.EditWorkOrderDialog;
 import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +50,9 @@ public class WorkOrderView extends BaseView {
     private final WorkOrderService workOrderService;
     private final CustomerService customerService;
     private final VehicleService vehicleService;
+    private final BookingService bookingService;
+    private final MechanicService mechanicService;
+    private final ServiceItemService serviceItemService;
 
     private final Button btnStart = new Button(lang.get("btn.start"));
     private final Button btnComplete = new Button(lang.get("btn.complete"));
@@ -61,10 +65,17 @@ public class WorkOrderView extends BaseView {
 
     public WorkOrderView(WorkOrderService workOrderService,
                          CustomerService customerService,
-                         VehicleService vehicleService) {
+                         VehicleService vehicleService,
+                         BookingService bookingService,
+                         MechanicService mechanicService,
+                         ServiceItemService serviceItemService) {
+
         this.workOrderService = workOrderService;
         this.customerService = customerService;
         this.vehicleService = vehicleService;
+        this.bookingService = bookingService;
+        this.mechanicService = mechanicService;
+        this.serviceItemService = serviceItemService;
         refreshData();
         initializeTable();
         initializeJobTable();
@@ -96,12 +107,12 @@ public class WorkOrderView extends BaseView {
 
     private void refreshData() {
         bookingsById.clear();
-        for (Booking booking : workOrderService.findAllBookings()) {
+        for (Booking booking : bookingService.listAll()) {
             bookingsById.put(booking.getId(), booking);
         }
 
         mechanicsById.clear();
-        for (Mechanic mechanic : workOrderService.findAllMechanics()) {
+        for (Mechanic mechanic : mechanicService.listAll()) {
             mechanicsById.put(mechanic.getId(), mechanic);
         }
 
@@ -179,11 +190,9 @@ public class WorkOrderView extends BaseView {
         TableColumn<WorkOrder, String> typeCol = new TableColumn<>(lang.get("table.type"));
         typeCol.setCellValueFactory(c -> {
             WorkOrder order = c.getValue();
-            if (order instanceof WarrantyWorkOrder) {
-                Integer originalId = ((WarrantyWorkOrder) order).getOriginalWorkOrderId();
-                if (originalId != null) {
-                    return new SimpleStringProperty(lang.get("workOrder.warrantyFor", originalId));
-                }
+            Integer originalId = order.getOriginalWorkOrderId();
+            if (originalId != null) {
+                return new SimpleStringProperty(lang.get("workOrder.warrantyFor", originalId));
             }
             return new SimpleStringProperty(lang.get(order.getType().getMessageKey()));
         });
@@ -219,10 +228,11 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getDurationMinutes()))
         );
 
-        TableColumn<WorkOrderItem, String> priceCol = new TableColumn<>(lang.get("table.price"));
+        TableColumn<WorkOrderItem, Money> priceCol = new TableColumn<>(lang.get("table.price"));
         priceCol.setCellValueFactory(c ->
-                new SimpleStringProperty(String.format("%.2f", c.getValue().getAgreedPrice()))
+                new SimpleObjectProperty<>(c.getValue().getAgreedPrice())
         );
+        DialogUtil.configureMoneyColumn(priceCol);
 
         jobTable.getColumns().addAll(nameCol, durationCol, priceCol);
         jobTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -249,14 +259,9 @@ public class WorkOrderView extends BaseView {
             return;
         }
 
-        double chargeableTotal = selected.getItems().stream()
-                        .filter(WorkOrderItem::isChargeable)
-                                .mapToDouble(WorkOrderItem::getAgreedPrice)
-                                        .sum();
-
         jobData.setAll(selected.getItems());
         jobSummaryLabel.setText(
-                lang.get("workOrder.total", chargeableTotal)
+                lang.get("workOrder.total", selected.getTotalPrice())
                         + "  |  "
                         + lang.get("workOrder.totalDuration", selected.getTotalDurationMinutes())
         );
@@ -266,9 +271,9 @@ public class WorkOrderView extends BaseView {
     private void openCreateWorkOrderDialog() {
         CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
                 workOrderService.findBookableBookings(),
-                workOrderService.findAllBookings(),
+                bookingService.listAll(),
                 workOrderService.findCompletedWorkOrders(),
-                workOrderService.findAllServiceItems(),
+                serviceItemService.listAll(),
                 customerService,
                 vehicleService
         );
@@ -416,7 +421,7 @@ public class WorkOrderView extends BaseView {
 
         if (selected == null) return;
 
-        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, workOrderService);
+        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, serviceItemService.listAll(), mechanicService.listAll());
 
         dialog.showAndWait().ifPresent(result -> {
             try {

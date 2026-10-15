@@ -8,6 +8,7 @@ import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.ServicePackage;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.CustomerRepo;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -52,11 +54,10 @@ class ServicePackageHistoryIntegrationTest {
     private static final String WINTER_CHECK = "Winter check (test)";
     private static final String BRAKE_FLUID = "Brake fluid";
 
-    private static final double BRAKE_PRICE = 2495.0;
-    private static final double BRAKE_PRICE_RAISED = 2995.0;
-    private static final double DIAGNOSTICS_PRICE = 1195.0;
-    private static final double BRAKE_FLUID_PRICE = 495.0;
-    private static final double DELTA = 0.005;
+    private static final Money BRAKE_PRICE = Money.of(2495);
+    private static final Money BRAKE_PRICE_RAISED = Money.of(2995);
+    private static final Money DIAGNOSTICS_PRICE = Money.of(1195);
+    private static final Money BRAKE_FLUID_PRICE = Money.of(495);
 
     private static final LocalDate DATE = LocalDate.of(2026, 11, 3);
 
@@ -104,7 +105,7 @@ class ServicePackageHistoryIntegrationTest {
                 vehicle.getId(), mechanic.getId(), DATE, LocalTime.of(8, 0),
                 WINTER_CHECK, packageIds).getId();
 
-        Map<Integer, Double> before = pricesById(bookingService.findById(bookingId).get());
+        Map<Integer, Money> before = pricesById(bookingService.findById(bookingId).get());
         assertEquals(2, before.size(), "Arrange: booking should have the package's 2 lines");
 
         // Act: lägg till Brake fluid i paketet och höj priset på en tjänst
@@ -120,18 +121,22 @@ class ServicePackageHistoryIntegrationTest {
         ServicePackage updated = servicePackageService.findById(winter.getId()).get();
         assertEquals(3, updated.getServices().size(),
                 "Arrange: package should now contain 3 services");
-        assertEquals(BRAKE_PRICE_RAISED,
-                serviceItemRepository.findById(brakes.getId()).get().getPrice(), DELTA,
+        assertMoney(BRAKE_PRICE_RAISED,
+                serviceItemRepository.findById(brakes.getId()).get().getPrice(),
                 "Arrange: catalogue price should be raised");
 
         // Assert: den gamla bokningen är orörd
         Booking reloaded = bookingService.findById(bookingId).get();
-        Map<Integer, Double> after = pricesById(reloaded);
+        Map<Integer, Money> after = pricesById(reloaded);
 
-        assertEquals(before, after, "Old booking lines or prices changed");
+        assertEquals(before.keySet(), after.keySet(), "Old booking lines changed");
+        for (Map.Entry<Integer, Money> line : before.entrySet()) {
+            assertMoney(line.getValue(), after.get(line.getKey()),
+                    "Price changed for service " + line.getKey());
+        }
         assertFalse(after.containsKey(brakeFluid.getId()),
                 "Brake fluid must not be added to an existing booking");
-        assertEquals(BRAKE_PRICE + DIAGNOSTICS_PRICE, reloaded.getTotalAgreedPrice(), DELTA,
+        assertMoney(BRAKE_PRICE.add(DIAGNOSTICS_PRICE), reloaded.getTotalAgreedPrice(),
                 "Booking total should still be the price at booking-time");
     }
 
@@ -141,7 +146,7 @@ class ServicePackageHistoryIntegrationTest {
                 .collect(Collectors.toList());
     }
 
-    private static Map<Integer, Double> pricesById(Booking booking) {
+    private static Map<Integer, Money> pricesById(Booking booking) {
         return booking.getItems().stream()
                 .collect(Collectors.toMap(
                         BookingServiceItem::getServiceItemId,

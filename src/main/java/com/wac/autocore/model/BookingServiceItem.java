@@ -1,6 +1,8 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.data.MoneyConverter;
 import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
 
@@ -37,7 +39,8 @@ public class BookingServiceItem {
     private String serviceName;
 
     @Column(name = "price_at_booking", nullable = false)
-    private double priceAtBooking;
+    @Convert(converter = MoneyConverter.class)
+    private Money priceAtBooking;
 
     @Column(name = "duration_minutes", nullable = false)
     private int durationMinutes;
@@ -46,7 +49,7 @@ public class BookingServiceItem {
 
     private BookingServiceItem(int serviceItemId,
                                String serviceName,
-                               double priceAtBooking,
+                               Money priceAtBooking,
                                int durationMinutes) {
         this.serviceItemId = serviceItemId;
         this.serviceName = serviceName;
@@ -101,7 +104,7 @@ public class BookingServiceItem {
     }
 
     /** Price frozen at booking time. */
-    public double getPriceAtBooking() {
+    public Money getPriceAtBooking() {
         return priceAtBooking;
     }
 

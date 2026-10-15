@@ -5,11 +5,13 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.model.WorkOrderType;
+import com.wac.autocore.model.value.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
@@ -64,6 +66,19 @@ class WorkOrderStatusTest {
     void expectedTableCoversAllStatuses() {
         assertEquals(EnumSet.allOf(WorkOrderStatus.class), EXPECTED_ALLOWED.keySet(),
                 "A status was added or removed, update EXPECTED_ALLOWED");
+    }
+
+    @ParameterizedTest(name = "{0} is editable")
+    @EnumSource(value = WorkOrderStatus.class, names = {"DRAFT", "CONFIRMED"})
+    void isEditable_trueBeforeWorkStarts(WorkOrderStatus status) {
+        assertTrue(status.isEditable(), status + " should be editable");
+    }
+
+    @ParameterizedTest(name = "{0} is locked")
+    @EnumSource(value = WorkOrderStatus.class, names = {"DRAFT", "CONFIRMED"},
+            mode = EnumSource.Mode.EXCLUDE)
+    void isEditable_falseOnceWorkHasStarted(WorkOrderStatus status) {
+        assertFalse(status.isEditable(), status + " should be locked");
     }
 
     @Nested
@@ -133,7 +148,7 @@ class WorkOrderStatusTest {
 
     private static TestWorkOrder workOrderIn(WorkOrderStatus target) {
         TestWorkOrder wo = new TestWorkOrder(1, 1);
-        wo.addItem(createService(1, 899.0));
+        wo.addItem(createService(1, Money.of(899)));
 
         switch (target) {
             case DRAFT:
@@ -158,7 +173,7 @@ class WorkOrderStatusTest {
         return wo;
     }
 
-    private static ServiceItem createService(int id, double price) {
+    private static ServiceItem createService(int id, Money price) {
         ServiceItem service = mock(ServiceItem.class);
 
         when(service.getId()).thenReturn(id);

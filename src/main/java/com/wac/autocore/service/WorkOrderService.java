@@ -3,11 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
-import com.wac.autocore.repository.BookingRepository;
-import com.wac.autocore.repository.MechanicRepository;
-import com.wac.autocore.repository.VehicleRepo;
-import com.wac.autocore.repository.WorkOrderRepository;
-import com.wac.autocore.repository.ServiceItemRepository;
+import com.wac.autocore.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,21 +77,6 @@ public class WorkOrderService {
         return bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED);
     }
 
-    @Transactional(readOnly = true)
-    public List<Booking> findAllBookings() {
-        return bookingRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public List<Mechanic> findAllMechanics() {
-        return mechanicRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ServiceItem> findAllServiceItems() {
-        return serviceItemRepository.findAll();
-    }
-
     // Skapar en planerad arbetsorder för en bokning, ordern returneras bekräftad.
     // Mekaniker och alla tjänster, med avtalade priser, ärvs från bokningen.
     public WorkOrder createWorkOrder(int bookingId) {
@@ -152,7 +133,7 @@ public class WorkOrderService {
             ServiceItem service = serviceItemRepository.findById(serviceItemId)
                     .orElseThrow(() -> new EntityNotFoundException(
                             "ServiceItem", serviceItemId, "error.serviceNotFound"));
-            dropIn.addService(service);
+            dropIn.addItem(service);
         }
         return workOrderRepository.save(dropIn);
     }
@@ -222,9 +203,6 @@ public class WorkOrderService {
                                 Map<Integer, Boolean> chargeFlags) {
         WorkOrder workOrder = require(id);
 
-        if (!workOrder.getStatus().isEditable()) {
-            throw new ValidationException("error.workOrder.notEditable", String.valueOf(id));
-        }
         if (mechanicId != null && !mechanicRepository.existsById(mechanicId)) {
             throw new EntityNotFoundException("Mechanic", mechanicId);
         }
@@ -248,12 +226,7 @@ public class WorkOrderService {
             }
         }
 
-        if (workOrder instanceof WarrantyWorkOrder) {
-            for (WorkOrderItem item : workOrder.getItems()) {
-                int serviceItemId = item.getServiceItemId();
-                workOrder.setItemChargeable(serviceItemId, chargeFlags.getOrDefault(serviceItemId, false));
-            }
-        }
+        workOrder.applyChargeFlags(chargeFlags);
 
         workOrder.setMechanicId(mechanicId);
         workOrder.setPlannedDate(plannedDate);
@@ -262,5 +235,4 @@ public class WorkOrderService {
 
         workOrderRepository.save(workOrder);
     }
-
 }

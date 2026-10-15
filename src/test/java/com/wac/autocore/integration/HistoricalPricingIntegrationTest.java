@@ -2,6 +2,7 @@ package com.wac.autocore.integration;
 
 import com.wac.autocore.AutoCoreConfig;
 import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.*;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.InvoiceService;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
+import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -49,11 +51,10 @@ class HistoricalPricingIntegrationTest {
 
     private static final String OIL_CHANGE = "Oljebyte";
     private static final String TIRE_CHANGE = "Däckbyte";
-    private static final double OIL_PRICE = 899.0;
-    private static final double OIL_PRICE_RAISED = 999.0;
-    private static final double TIRE_PRICE = 400.0;
+    private static final Money OIL_PRICE = Money.of(899);
+    private static final Money OIL_PRICE_RAISED = Money.of(999);
+    private static final Money TIRE_PRICE = Money.of(400);
 
-    private static final double DELTA = 0.005;
 
     private static final LocalDate BOOKING_DATE = LocalDate.of(2026, 10, 10);
     private static final AtomicInteger REG_SEQUENCE = new AtomicInteger(100);
@@ -93,9 +94,9 @@ class HistoricalPricingIntegrationTest {
         serviceItemService.updatePrice(scenario.serviceItemId(OIL_CHANGE), OIL_PRICE_RAISED);
 
         // Assert: katalogen är uppdaterad, historiken är det inte
-        assertEquals(OIL_PRICE_RAISED,
+        assertMoney(OIL_PRICE_RAISED,
                 serviceItemRepository.findById(scenario.serviceItemId(OIL_CHANGE)).get().getPrice(),
-                DELTA, "Catalogue price should be updated to 999:-");
+                "Catalogue price should be updated to 999:-");
         assertSnapshotIntact(context, scenario);
     }
 
@@ -110,11 +111,11 @@ class HistoricalPricingIntegrationTest {
         Invoice created = invoiceService.create(scenario.workOrderId, null);
 
         Invoice invoice = invoiceRepo.findById(created.getId()).get();
-        assertEquals(OIL_PRICE, invoice.getAmount(), DELTA,
+        assertMoney(OIL_PRICE, invoice.getAmount(),
                 "Invoice should keep price at booking-time, not the new catalogue price");
-        assertEquals(OIL_PRICE,
+        assertMoney(OIL_PRICE,
                 lineNamed(invoice.getLines(), InvoiceLine::getServiceItemName, OIL_CHANGE).getAmount(),
-                DELTA, "Invoice line should keep price at booking-time");
+                "Invoice line should keep price at booking-time");
     }
 
     @Test
@@ -129,7 +130,7 @@ class HistoricalPricingIntegrationTest {
         // Bara den ena tjänsten höjs, så att en rad som läser katalogpris syns direkt
         serviceItemService.updatePrice(scenario.serviceItemId(OIL_CHANGE), OIL_PRICE_RAISED);
 
-        assertEquals(OIL_PRICE + TIRE_PRICE, scenario.expectedSubtotal(), DELTA,
+        assertMoney(OIL_PRICE.add(TIRE_PRICE), scenario.expectedSubtotal(),
                 "Arrange: subtotal should be 1299:-");
         assertSnapshotIntact(context, scenario);
     }
@@ -144,22 +145,22 @@ class HistoricalPricingIntegrationTest {
                 .build();
 
         Invoice before = invoiceRepo.findById(scenario.invoiceId).get();
-        assertTrue(before.getDiscount() > 0, "Arrange: WELCOME10 should give a discount");
+        assertTrue(before.getDiscount().isPositive(), "Arrange: WELCOME10 should give a discount");
 
         serviceItemService.updatePrice(scenario.serviceItemId(OIL_CHANGE), OIL_PRICE_RAISED);
 
         // Jämför före/efter i stället för att räkna rabatten själv:
         // testet bevisar att inget ändras, inte hur rabatten räknas ut
         Invoice after = invoiceRepo.findById(scenario.invoiceId).get();
-        assertEquals(before.getAmount(), after.getAmount(), DELTA, "Invoice amount changed");
-        assertEquals(before.getDiscount(), after.getDiscount(), DELTA, "Invoice discount changed");
-        assertEquals(before.getTotalAmount(), after.getTotalAmount(), DELTA, "Invoice total changed");
+        assertMoney(before.getAmount(), after.getAmount(), "Invoice amount changed");
+        assertMoney(before.getDiscount(), after.getDiscount(), "Invoice discount changed");
+        assertMoney(before.getTotalAmount(), after.getTotalAmount(), "Invoice total changed");
 
         for (String name : scenario.agreedPrices.keySet()) {
             InvoiceLine lineBefore = lineNamed(before.getLines(), InvoiceLine::getServiceItemName, name);
             InvoiceLine lineAfter = lineNamed(after.getLines(), InvoiceLine::getServiceItemName, name);
-            assertEquals(lineBefore.getDiscount(), lineAfter.getDiscount(), DELTA, name + ": line discount changed");
-            assertEquals(lineBefore.getTotal(), lineAfter.getTotal(), DELTA, name + ": line total changed");
+            assertMoney(lineBefore.getDiscount(), lineAfter.getDiscount(), name + ": line discount changed");
+            assertMoney(lineBefore.getTotal(), lineAfter.getTotal(), name + ": line total changed");
         }
     }
 
@@ -185,7 +186,7 @@ class HistoricalPricingIntegrationTest {
         try (ConfigurableApplicationContext second = startApplication(url)) {
             ServiceItem oilChange = second.getBean(ServiceItemRepository.class)
                     .findById(scenario.serviceItemId(OIL_CHANGE)).get();
-            assertEquals(OIL_PRICE_RAISED, oilChange.getPrice(), DELTA);
+            assertMoney(OIL_PRICE_RAISED, oilChange.getPrice());
 
             assertSnapshotIntact(second, scenario);
 
@@ -216,18 +217,18 @@ class HistoricalPricingIntegrationTest {
         assertEquals(lineCount, booking.getItems().size(), "Booking line count");
         assertEquals(lineCount, workOrder.getItems().size(), "Work order line count");
 
-        for (Map.Entry<String, Double> agreed : scenario.agreedPrices.entrySet()) {
+        for (Map.Entry<String, Money> agreed : scenario.agreedPrices.entrySet()) {
             String name = agreed.getKey();
-            double price = agreed.getValue();
+            Money price = agreed.getValue();
 
-            assertEquals(price,
+            assertMoney(price,
                     lineNamed(booking.getItems(), BookingServiceItem::getServiceName, name).getPriceAtBooking(),
-                    DELTA, name + ": booking should keep price at booking-time");
-            assertEquals(price,
+                    name + ": booking should keep price at booking-time");
+            assertMoney(price,
                     lineNamed(workOrder.getItems(), WorkOrderItem::getServiceName, name).getAgreedPrice(),
-                    DELTA, name + ": work order line should keep agreed price");
+                    name + ": work order line should keep agreed price");
         }
-        assertEquals(scenario.expectedSubtotal(), workOrder.getTotalPrice(), DELTA, "Work order total");
+        assertMoney(scenario.expectedSubtotal(), workOrder.getTotalPrice(), "Work order total");
 
         if (scenario.invoiceId == null) {
             return;
@@ -236,15 +237,15 @@ class HistoricalPricingIntegrationTest {
         Invoice invoice = ctx.getBean(InvoiceRepo.class).findById(scenario.invoiceId).get();
         assertEquals(lineCount, invoice.getLines().size(), "Invoice line count");
 
-        double lineTotalSum = 0;
-        for (Map.Entry<String, Double> agreed : scenario.agreedPrices.entrySet()) {
+        Money lineTotalSum = Money.ZERO;
+        for (Map.Entry<String, Money> agreed : scenario.agreedPrices.entrySet()) {
             InvoiceLine line = lineNamed(invoice.getLines(), InvoiceLine::getServiceItemName, agreed.getKey());
-            assertEquals(agreed.getValue(), line.getAmount(), DELTA,
+            assertMoney(agreed.getValue(), line.getAmount(),
                     agreed.getKey() + ": invoice line should keep agreed price");
-            lineTotalSum += line.getTotal();
+            lineTotalSum = lineTotalSum.add(line.getTotal());
         }
-        assertEquals(scenario.expectedSubtotal(), invoice.getAmount(), DELTA, "Invoice amount");
-        assertEquals(invoice.getTotalAmount(), lineTotalSum, DELTA,
+        assertMoney(scenario.expectedSubtotal(), invoice.getAmount(), "Invoice amount");
+        assertMoney(invoice.getTotalAmount(), lineTotalSum,
                 "Invoice total should equal the sum of its line totals");
     }
 
@@ -273,13 +274,13 @@ class HistoricalPricingIntegrationTest {
      */
     private static final class PricingScenario {
         final Map<String, Integer> serviceItemIds;
-        final Map<String, Double> agreedPrices;
+        final Map<String, Money> agreedPrices;
         final int vehicleId;
         final int bookingId;
         final int workOrderId;
         final Integer invoiceId;
 
-        private PricingScenario(Map<String, Integer> serviceItemIds, Map<String, Double> agreedPrices,
+        private PricingScenario(Map<String, Integer> serviceItemIds, Map<String, Money> agreedPrices,
                                 int vehicleId, int bookingId, int workOrderId, Integer invoiceId) {
             this.serviceItemIds = serviceItemIds;
             this.agreedPrices = agreedPrices;
@@ -297,18 +298,14 @@ class HistoricalPricingIntegrationTest {
             return serviceItemIds.get(name);
         }
 
-        double expectedSubtotal() {
-            double sum = 0;
-            for (double price : agreedPrices.values()) {
-                sum += price;
-            }
-            return sum;
+        Money expectedSubtotal() {
+            return Money.sum(agreedPrices.values());
         }
     }
 
     private static final class Builder {
         private final ApplicationContext ctx;
-        private final Map<String, Double> services = new LinkedHashMap<>();
+        private final Map<String, Money> services = new LinkedHashMap<>();
         private boolean invoice;
         private String discountCode;
 
@@ -316,7 +313,7 @@ class HistoricalPricingIntegrationTest {
             this.ctx = ctx;
         }
 
-        Builder withService(String name, double price) {
+        Builder withService(String name, Money price) {
             services.put(name, price);
             return this;
         }
@@ -339,7 +336,7 @@ class HistoricalPricingIntegrationTest {
             WorkOrderService workOrders = ctx.getBean(WorkOrderService.class);
 
             Map<String, Integer> ids = new LinkedHashMap<>();
-            for (Map.Entry<String, Double> service : services.entrySet()) {
+            for (Map.Entry<String, Money> service : services.entrySet()) {
                 ServiceItem item = serviceItems.save(
                         new ServiceItem(service.getKey(), "Testtjänst", service.getValue(), 30));
                 ids.put(service.getKey(), item.getId());

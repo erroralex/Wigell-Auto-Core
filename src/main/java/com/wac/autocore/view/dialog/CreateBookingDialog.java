@@ -114,8 +114,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         StringBuilder sb = new StringBuilder(lang.get("booking.priceChangedNotice"));
         for (BookingPriceChange c : changes) {
             sb.append("\n• ").append(c.getServiceName())
-                    .append(": ").append(c.getPreviousPrice())
-                    .append(" → ").append(c.getCurrentPrice());
+                    .append(": ").append(DialogUtil.formatMoney(c.getPreviousPrice()))
+                    .append(" → ").append(DialogUtil.formatMoney(c.getCurrentPrice()));
         }
 
         Label notice = new Label(sb.toString());

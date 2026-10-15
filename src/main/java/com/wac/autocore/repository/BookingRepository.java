@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
     List<Booking> findByMechanicId(int id);
@@ -25,4 +26,5 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             "  AND w.status <> :cancelled)")
     List<Booking> findBookable(@Param("status") BookingStatus status,
                                @Param("cancelled") WorkOrderStatus cancelled);
+    boolean existsByVehicleIdAndDateAndIdNot(int vehicleId, LocalDate date, int excludedBookingId); // excludedBookingId är ID:t av en bokning som checken ska ignorera när den letar efter konflikten.
 }
