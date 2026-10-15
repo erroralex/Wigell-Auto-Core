@@ -78,10 +78,7 @@ public class WorkOrderService {
 
     @Transactional(readOnly = true)
     public List<Booking> findBookableBookings() {
-        return bookingRepository.findAll().stream()
-                .filter(booking -> booking.getStatus() == BookingStatus.BOOKED)
-                .filter(booking -> !workOrderRepository.existsByBookingIdAndStatusNot(booking.getId(), WorkOrderStatus.CANCELLED))
-                .collect(Collectors.toList());
+        return bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED);
     }
 
     @Transactional(readOnly = true)
