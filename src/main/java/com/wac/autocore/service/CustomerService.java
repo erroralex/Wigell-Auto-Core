@@ -36,18 +36,21 @@ public class CustomerService {
     }
 
     public Customer create(@NotBlank(message = "error.customer.nameRequired") String name,
-                           @NotBlank(message = "error.customer.phoneRequired") String phone,
+                           @NotBlank(message = "error.customer.phoneRequired")
+                           @Pattern(regexp = "^[0-9-]+$", message = "error.customer.phoneDigitsOnly")
+                           String phone,
                            @Email(message = "error.invalidEmail") String email) {
 
         return customerRepo.save(new Customer(name.trim(), phone.trim(), normalizeEmail(email)));
     }
 
-    public Customer update(@Positive Integer customerId,
+    public Customer update(@NotNull @Positive Integer customerId,
                             @NotBlank(message = "error.customer.nameRequired") String name,
                            @NotBlank(message = "error.customer.phoneRequired")
                            @Pattern(regexp = "^[0-9-]+$", message = "error.customer.phoneDigitsOnly")
                            String phone,
-                           @Email(message = "error.invalidEmail") String email) {
+                           @Email(message = "error.invalidEmail") String email,
+                            boolean isVip) {
 
         Customer existingCustomer = customerRepo.findById(customerId)
                 .orElseThrow(() -> new EntityNotFoundException("customer", customerId));
@@ -55,6 +58,7 @@ public class CustomerService {
         existingCustomer.setName(name.trim());
         existingCustomer.setPhone(phone.trim());
         existingCustomer.setEmail(normalizeEmail(email));
+        existingCustomer.setVip(isVip);
 
         return customerRepo.save(existingCustomer);
     }
@@ -62,7 +66,7 @@ public class CustomerService {
     public void deleteById(Integer id) {
         customerRepo.deleteById(id);
     }
-    
+
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim();
     }

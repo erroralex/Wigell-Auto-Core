@@ -16,6 +16,9 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import java.util.regex.Pattern;
 
 /**
@@ -93,6 +96,49 @@ public class CreateCustomerDialog {
     }
 
     private boolean saveCustomer() {
+        String name = getTrimmedValue(nameField);
+        String phone = getTrimmedValue(phoneField);
+        String email = getTrimmedValue(emailField);
+
+        try {
+            Customer customer = customerService.create(name, phone, email);
+            if (vipCheckBox.isSelected()) {
+                customerService.update(customer.getId(), name, phone, email, true);
+            }
+            return true;
+        } catch (ConstraintViolationException e) {
+            ErrorFacade.handle(e);
+
+            for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
+                String key = violation.getMessageTemplate()
+                        .replace("{", "")
+                        .replace("}", "");
+
+                switch (key) {
+                    case "error.customer.nameRequired":
+                        markFieldError(nameField);
+                        break;
+                    case "error.customer.phoneRequired":
+                    case "error.customer.phoneDigitsOnly":
+                        markFieldError(phoneField);
+                        break;
+                    case "error.invalidEmail":
+                        markFieldError(emailField);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            ErrorFacade.handle(e);
+            return false;
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+            return false;
+        }
+    }
+
+    /*private boolean saveCustomer() {
         resetFieldErrorState();
 
         String name = getTrimmedValue(nameField);
@@ -120,8 +166,9 @@ public class CreateCustomerDialog {
         try {
             Customer customer = customerService.create(name, phone, email);
             if (vipCheckBox.isSelected()) {
-                customer.setVip(true);
-                customerService.update(customer);
+                //customer.setVip(true);
+                customerService.update(customer.getId(),
+                        name, phone, email, true);
             }
         } catch (RuntimeException e) {
             ErrorFacade.handle(e);
@@ -129,7 +176,7 @@ public class CreateCustomerDialog {
         }
 
         return true;
-    }
+    }*/
 
     private String getTrimmedValue(TextField field) {
         return field.getText() == null ? "" : field.getText().trim();
