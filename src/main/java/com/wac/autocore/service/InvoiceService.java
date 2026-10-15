@@ -1,6 +1,7 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.InvoiceRepo;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -37,9 +39,9 @@ public class InvoiceService {
         this.customerService = customerService;
     }
 
-    public Invoice create(int workOrderId,
+    public Invoice create(@Positive int workOrderId,
                           @Pattern(
-                                  regexp = "^[A-Z]+\\d+$",
+                                  regexp = "^(?:[A-Z]+\\d+)?$",
                                   message = "error.discountCode.invalidFormat"
                           ) String discountCode) {
 
@@ -49,6 +51,14 @@ public class InvoiceService {
         Integer vehicleId = workOrder.getVehicleId();
         if (vehicleId == null) {
             throw new EntityNotFoundException("Vehicle", "none on WorkOrder " + workOrderId);
+        }
+
+        if (workOrder.getStatus() != WorkOrderStatus.COMPLETED) {
+            throw new ValidationException("error.invoice.workOrderNotCompleted");
+        }
+
+        if (invoiceRepo.existsByWorkOrderId(workOrderId)) {
+            throw new ValidationException("error.invoice.alreadyExists", String.valueOf(workOrderId));
         }
 
         Vehicle vehicle = vehicleService.findById(vehicleId)
