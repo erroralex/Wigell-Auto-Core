@@ -35,7 +35,7 @@ public class PaymentService {
                                           regexp = "^(CARD|SWISH|CASH)$",
                                           message = "error.payment.invalidType"
                                   ) String paymentType) {
-        
+
         Invoice invoice = invoiceService.findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Invoice", invoiceId));
 
