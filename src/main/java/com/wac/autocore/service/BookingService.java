@@ -98,8 +98,8 @@ public class BookingService {
                                                 @NotNull(message = "error.startTimeSelect") LocalTime startTime,
                                                 @Positive Integer mechanicId,
                                                 @Positive Integer vehicleId,
-                                                @NotBlank(message="error.desc") String description,
-                                                @NotEmpty(message= "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
+                                                String description,
+                                                List<@NotNull @Positive Integer> serviceItemIds) {
         Booking previous = findById(previousBookingId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Booking", previousBookingId, "error.bookingNotFound"
