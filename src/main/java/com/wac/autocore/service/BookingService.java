@@ -71,6 +71,8 @@ public class BookingService {
         
         List<ServiceItem> serviceItems = fetchServiceItemsByIds(serviceItemIds);
 
+        validateEstimatedDuration(serviceItems);
+
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
                 .sum();
@@ -172,11 +174,9 @@ public class BookingService {
         Booking booking = findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
 
-    /*    if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            throw new ValidationException("error.serviceSelect");
-        }*/
-
         List<ServiceItem> serviceItems = fetchServiceItemsByIds(serviceItemIds);
+
+        validateEstimatedDuration(serviceItems);
 
         int totalDuration = serviceItems.stream()
                 .mapToInt(ServiceItem::getEstimatedMinutes)
@@ -334,6 +334,16 @@ public class BookingService {
                 .map(id -> findServiceItemById(id)
                         .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")))
                 .collect(Collectors.toList());
+    }
+
+    /** Checks each service item to make sure they all have a positive estimated duration.
+     *  If an invalid estimated duration is found, will throw ValidationException. **/
+    private void validateEstimatedDuration(List<ServiceItem> serviceItems) {
+        boolean hasInvalidEstimatedDuration = serviceItems.stream()
+                .anyMatch(serviceItem -> serviceItem.getEstimatedMinutes() <= 0);
+        if (hasInvalidEstimatedDuration) {
+            throw new ValidationException("error.serviceItem.invalidDuration");
+        }
     }
 
 }
