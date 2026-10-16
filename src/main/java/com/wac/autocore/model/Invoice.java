@@ -95,8 +95,12 @@ public class Invoice {
         this.lines = lines;
     }
 
-    public void addLine(InvoiceLine line) {
+    public void addLine(String serviceItemName, Money amount, Money discount) {
+        InvoiceLine line = new InvoiceLine(this, serviceItemName, amount, discount);
         this.lines.add(line);
+        this.amount = this.amount.add(line.getAmount());
+        this.discount = this.discount.add(line.getDiscount());
+        this.totalAmount = this.totalAmount.add(line.getTotal());
     }
 
     @Override

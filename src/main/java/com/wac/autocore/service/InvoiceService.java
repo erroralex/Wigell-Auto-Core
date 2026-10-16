@@ -79,10 +79,7 @@ public class InvoiceService {
             if (customer.isVip())
                 discount = discount.add(new VipDiscount().calculateDiscount(amount));
 
-            discount = discount.min(amount);
-            Money total = amount.subtract(discount);
-
-            invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount, total));
+            invoice.addLine(workOrderItem.getServiceName(), amount, discount);
         }
 
         Money amountSum = Money.ZERO;

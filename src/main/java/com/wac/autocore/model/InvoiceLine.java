@@ -30,12 +30,12 @@ public class InvoiceLine {
 
     protected InvoiceLine() {}
 
-    public InvoiceLine(Invoice invoice, String serviceItemName, Money amount, Money discount, Money total) {
+    public InvoiceLine(Invoice invoice, String serviceItemName, Money amount, Money discount) {
         this.invoice = invoice;
         this.serviceItemName = serviceItemName;
         this.amount = amount;
-        this.discount = discount;
-        this.total = total;
+        this.discount = discount.min(amount);
+        this.total = this.amount.subtract(this.discount);
     }
 
     public int getId() {
