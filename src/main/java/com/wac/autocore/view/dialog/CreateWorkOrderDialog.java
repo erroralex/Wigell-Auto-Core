@@ -1,12 +1,10 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.exception.handler.ErrorHandlerChain;
-import com.wac.autocore.exception.handler.ErrorReport;
+
 import com.wac.autocore.model.*;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.WorkOrderService;
-import com.wac.autocore.view.WorkOrderView;
+
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.component.CustomerVehiclePicker;

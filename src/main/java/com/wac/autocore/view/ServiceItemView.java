@@ -5,6 +5,7 @@ import com.wac.autocore.model.value.Money;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.dialog.AdminServiceItemDialog;
+import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -117,11 +118,13 @@ public class ServiceItemView extends BaseView {
 
         dialog.showAndWait().ifPresent(newPrice -> {
 
-            serviceItemService.updatePrice(
+           /* serviceItemService.updatePrice(
                     selected.getId(),
                     newPrice
-            );
+            );*/
             serviceItemList.setAll(serviceItemService.listAll());
+            AlertHelper.showInfo(lang.get("serviceItem.updatedPriceConfirm"), lang.get("serviceItem.updatedMsg"));
+
         });
     }
 }

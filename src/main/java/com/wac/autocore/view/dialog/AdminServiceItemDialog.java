@@ -6,20 +6,22 @@ import com.wac.autocore.model.value.Money;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-public class AdminServiceItemDialog extends Dialog<Money> {
+public class AdminServiceItemDialog extends Dialog<AdminServiceItemDialog.Result> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
+
+    private Money savedPrice;
 
     private final ServiceItemService serviceItemService;
     private final ServiceItem serviceItem;
 
     private final TextField priceTextField = new TextField();
-    private final Label errorLabel = new Label();
 
     private final ButtonType saveButtonType =
             new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
@@ -40,7 +42,6 @@ public class AdminServiceItemDialog extends Dialog<Money> {
                 cancelButtonType
         );
 
-        errorLabel.getStyleClass().add("text-error");
 
         priceTextField.setText(DialogUtil.formatMoney(serviceItem.getPrice()));
 
@@ -51,9 +52,7 @@ public class AdminServiceItemDialog extends Dialog<Money> {
     private void setContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
-
         content.getChildren().addAll(
-                errorLabel,
                 new Label(lang.get("table.price")),
                 priceTextField
         );
@@ -66,29 +65,28 @@ public class AdminServiceItemDialog extends Dialog<Money> {
                 (Button) getDialogPane().lookupButton(saveButtonType);
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-
             try {
                 Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
-
-                if (!newPrice.isPositive()) {
-                    rejectPrice(event);
-                }
-            } catch (ValidationException e) {
-               rejectPrice(event);
+                ServiceItem updated = serviceItemService.updatePrice(serviceItem.getId(), newPrice);
+                savedPrice = updated.getPrice();
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+                rejectPrice(event);
             }
         });
 
-        setResultConverter(buttonType -> {
-            if (buttonType == saveButtonType) {
-                return DialogUtil.parseMoney(priceTextField.getText());
-            }
-            return null;
-        });
+        setResultConverter(buttonType ->
+            buttonType == saveButtonType ? new Result() : null);
     }
 
     // Visar felmeddelandet och hindrar dialogen från att stängas
     private void rejectPrice(ActionEvent event) {
-        errorLabel.setText(lang.get("error.serviceItem.invalidPrice"));
         event.consume();
+    }
+
+    public static class Result {
+        private Result() {
+
+        }
     }
 }
