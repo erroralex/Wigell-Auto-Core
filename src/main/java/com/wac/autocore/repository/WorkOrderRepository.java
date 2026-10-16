@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,8 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
 
     List<WorkOrder> findByStatus(WorkOrderStatus status);
     List<WorkOrder> findByMechanicId(int mechanicId);
+    // Kandidater för mekanikerns krockkontroll. Status filtreras i domänen (WorkOrder.collidesWith), så regeln finns på ett ställe.
+    List<WorkOrder> findByMechanicIdAndPlannedDate(int mechanicId, LocalDate plannedDate);
     Optional<WorkOrder> findByBookingId(int bookingId);
     boolean existsByBookingId(int bookingId);
     // Bokningen ses som upptagen genom att ha en aktiv order. Avbrutna ordrar räknas inte, så bokningen kan få en ny order.

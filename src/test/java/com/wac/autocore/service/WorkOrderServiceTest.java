@@ -1,6 +1,9 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.IllegalStatusTransitionException;
+import com.wac.autocore.exception.MechanicDoubleBookingException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.exception.WorkOrderLockedException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
@@ -11,20 +14,33 @@ import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class WorkOrderServiceTest {
+    // En osparad bokning har id 0, så ordern som skapas från den får bookingId 0.
+    private static final int UNSAVED_BOOKING_ID = 0;
+    private static final LocalDate DATE = LocalDate.of(2026, 11, 2);
+    private static final LocalTime EIGHT = LocalTime.of(8, 0);
+    private static final Mechanic MECHANIC = new Mechanic("Ali", "070-1234567", "Motor");
+
     private WorkOrderRepository workOrderRepository;
     private BookingRepository bookingRepository;
     private MechanicRepository mechanicRepository;
     private VehicleRepo vehicleRepo;
     private ServiceItemRepository serviceItemRepository;
+    private BookingService bookingService;
 
     private WorkOrderService workOrderService;
 
@@ -35,62 +51,63 @@ public class WorkOrderServiceTest {
         mechanicRepository = mock(MechanicRepository.class);
         vehicleRepo = mock(VehicleRepo.class);
         serviceItemRepository = mock(ServiceItemRepository.class);
+        bookingService = mock(BookingService.class);
+        // Uppslagningen är default-metoder på repositoryt; mocken ska köra dem mot stubbade findById.
+        when(serviceItemRepository.requireById(anyInt())).thenCallRealMethod();
+        when(serviceItemRepository.requireAllById(any())).thenCallRealMethod();
 
         workOrderService = new WorkOrderService(
                 workOrderRepository,
                 bookingRepository,
                 mechanicRepository,
                 vehicleRepo,
-                serviceItemRepository
+                serviceItemRepository,
+                bookingService
         );
     }
 
     @Test
     void createWorkOrder_shouldCreateWorkOrderFromBookedBooking() {
-        Booking booking = mock(Booking.class);
+        stubBookedBooking(1, null);
 
-        ServiceItem serviceItem = mock(ServiceItem.class);
-        when(serviceItem.getId()).thenReturn(1);
-        when(serviceItem.getName()).thenReturn("Oil Change");
-        when(serviceItem.getPrice()).thenReturn(Money.of(899));
-        when(serviceItem.getEstimatedMinutes()).thenReturn(60);
+        WorkOrderScheduleResult result = workOrderService.createWorkOrder(1);
 
-        BookingServiceItem bookingItem = BookingServiceItem.snapshotOf(serviceItem);
+        WorkOrder order = result.getWorkOrder();
+        assertNotNull(order);
+        assertEquals(1, order.getBookingId());
+        assertEquals(10, order.getVehicleId());
+        assertNull(order.getMechanicId());
+        assertEquals(DATE, order.getPlannedDate());
+        assertEquals(EIGHT, order.getPlannedStartTime());
+        assertEquals(1, order.getItems().size());
+        assertEquals("Oil Change", order.getItems().get(0).getServiceName());
+        assertMoney(Money.of(899), order.getItems().get(0).getAgreedPrice());
+        assertInstanceOf(PlannedWorkOrder.class, order);
+        assertEquals(WorkOrderStatus.DRAFT, order.getStatus());
+        assertTrue(result.getMechanicConflicts().isEmpty());
+        assertFalse(result.getSuggestedStartTime().isPresent());
 
-        when(bookingRepository.findById(1))
-                .thenReturn(Optional.of(booking));
-        when(workOrderRepository.existsByBookingIdAndStatusNot(1, WorkOrderStatus.CANCELLED))
-                .thenReturn(false);
-        when(booking.getStatus())
-                .thenReturn(BookingStatus.BOOKED);
-        when(booking.getMechanicId())
-                .thenReturn(5);
-        when(mechanicRepository.existsById(5))
-                .thenReturn(true);
-        when(booking.getItems())
-                .thenReturn(Collections.singletonList(bookingItem));
-        when(booking.getId())
-                .thenReturn(1);
-        when(booking.getVehicleId())
-                .thenReturn(10);
-        when(vehicleRepo.existsById(booking.getVehicleId())).thenReturn(true);
-        when(workOrderRepository.save(any(WorkOrder.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        verify(bookingService).followWorkOrderStatus(1, WorkOrderStatus.DRAFT);
+        verify(workOrderRepository).save(order);
+        verify(workOrderRepository, never()).findByMechanicIdAndPlannedDate(anyInt(), any());
+        verifyNoInteractions(mechanicRepository);
+    }
 
-        WorkOrder result = workOrderService.createWorkOrder(1);
+    @Test
+    void createWorkOrder_suggestedMechanicIsBusy_savesDraftAndWarnsWithNextFreeTime() {
+        stubBookedBooking(1, 7);
+        WorkOrder busy = confirmed(dropIn(2, 7, LocalTime.of(8, 30)));
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(busy));
 
-        assertNotNull(result);
-        assertEquals(1, result.getBookingId());
-        assertEquals(10, result.getVehicleId());
-        assertEquals(5, result.getMechanicId());
-        assertEquals(1, result.getItems().size());
-        assertEquals("Oil Change", result.getItems().get(0).getServiceName());
-        assertMoney(Money.of(899), result.getItems().get(0).getAgreedPrice());
-        assertInstanceOf(PlannedWorkOrder.class, result);
-        assertEquals(WorkOrderStatus.CONFIRMED, result.getStatus());
+        WorkOrderScheduleResult result = workOrderService.createWorkOrder(1);
 
-        verify(bookingRepository).save(booking);
-        verify(workOrderRepository).save(any(WorkOrder.class));
+        WorkOrder order = result.getWorkOrder();
+        assertEquals(WorkOrderStatus.DRAFT, order.getStatus());
+        assertEquals(Integer.valueOf(7), order.getMechanicId());
+        assertEquals(Collections.singletonList(busy), result.getMechanicConflicts());
+        assertEquals(Optional.of(LocalTime.of(9, 30)), result.getSuggestedStartTime());
+        verify(workOrderRepository).save(order);
+        verifyNoInteractions(mechanicRepository);
     }
 
     @Test
@@ -148,7 +165,8 @@ public class WorkOrderServiceTest {
         workOrder.start();
 
         when(workOrderRepository.findById(1)).thenReturn(Optional.of(workOrder));
-        when(mechanicRepository.existsById(5)).thenReturn(true);
+        when(mechanicRepository.findById(5)).thenReturn(Optional.of(MECHANIC));
+        when(serviceItemRepository.findById(1)).thenReturn(Optional.of(serviceItem));
 
         // Act + Assert
         assertThrows(WorkOrderLockedException.class,
@@ -159,8 +177,446 @@ public class WorkOrderServiceTest {
                         null,
                         null,
                         null,
+                        null,
                         Collections.emptyMap()));
 
         verify(workOrderRepository, never()).save(any());
+    }
+
+    // ----- Tjänster vid uppdatering -----
+
+    @Test
+    void updateWorkOrder_keepsExistingItems_addsNewAtCatalogPrice_removesDeselected() {
+        WorkOrder draft = dropIn(1, null, EIGHT);
+        draft.addItem(service(2, "Bromsinspektion", "1295.00", 60));
+        stubOrder(draft);
+        ServiceItem raisedOilChange = service(1, "Oljebyte", "999.00", 60);
+        ServiceItem diagnostics = service(3, "Diagnostik", "598.50", 30);
+        when(serviceItemRepository.findById(1)).thenReturn(Optional.of(raisedOilChange));
+        when(serviceItemRepository.findById(3)).thenReturn(Optional.of(diagnostics));
+
+        workOrderService.updateWorkOrder(1, Arrays.asList(3, 1), null, DATE, EIGHT,
+                null, null, Collections.emptyMap());
+
+        // Ordningen följer valet, inte orderns tidigare ordning.
+        assertEquals(Arrays.asList(3, 1), draft.getItems().stream()
+                .map(WorkOrderItem::getServiceItemId).collect(Collectors.toList()));
+        assertMoney(Money.of("899.00"), itemFor(draft, 1).getAgreedPrice());
+        assertMoney(Money.of("598.50"), itemFor(draft, 3).getAgreedPrice());
+        assertEquals(LocalTime.of(9, 30), draft.getPlannedEndTime());
+        verify(workOrderRepository).save(draft);
+    }
+
+    @Test
+    void updateWorkOrder_unknownService_throwsAndDoesNotSave() {
+        WorkOrder draft = dropIn(1, null, EIGHT);
+        stubOrder(draft);
+        when(serviceItemRepository.findById(99)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> workOrderService.updateWorkOrder(1, Arrays.asList(1, 99), null, DATE, EIGHT,
+                        null, null, Collections.emptyMap()));
+
+        assertEquals("error.serviceNotFound", exception.getMessageKey());
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    // ----- Bokningen följer ordern (Kortförslag D) -----
+
+    @Test
+    void updateWorkOrder_plannedOrder_bookingFollowsDateTimeAndServices() {
+        WorkOrder order = planned(1, 20);
+        stubOrder(order);
+        ServiceItem diagnostics = service(3, "Diagnostik", "598.50", 30);
+        when(serviceItemRepository.findById(3)).thenReturn(Optional.of(diagnostics));
+        LocalDate newDate = DATE.plusDays(1);
+
+        workOrderService.updateWorkOrder(1, Arrays.asList(1, 3), null, newDate, LocalTime.of(13, 0),
+                null, null, Collections.emptyMap());
+
+        verify(bookingService).followWorkOrder(20, newDate, LocalTime.of(13, 0), Arrays.asList(1, 3));
+        verify(workOrderRepository).save(order);
+    }
+
+    @Test
+    void updateWorkOrder_dropIn_doesNotTouchAnyBooking() {
+        WorkOrder draft = dropIn(1, null, EIGHT);
+        stubOrder(draft);
+
+        update(draft, null, EIGHT);
+
+        verifyNoInteractions(bookingService);
+        verify(workOrderRepository).save(draft);
+    }
+
+    @Test
+    void updateWorkOrder_bookingCannotFollow_throwsAndDoesNotSaveOrder() {
+        WorkOrder order = planned(1, 20);
+        stubOrder(order);
+        ValidationException vehicleBooked = new ValidationException("error.vehicleBooked", "ABC123");
+        doThrow(vehicleBooked).when(bookingService)
+                .followWorkOrder(20, DATE.plusDays(1), EIGHT, Collections.singletonList(1));
+
+        ValidationException exception = assertThrows(ValidationException.class,
+                () -> workOrderService.updateWorkOrder(1, Collections.singletonList(1), null, DATE.plusDays(1), EIGHT,
+                        null, null, Collections.emptyMap()));
+
+        assertSame(vehicleBooked, exception);
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    // ----- Mekanikerns reservation (Kortförslag M) -----
+
+    @Test
+    void updateWorkOrder_draftWithBusyMechanic_savesAndWarns() {
+        WorkOrder draft = dropIn(1, null, EIGHT);
+        WorkOrder busy = confirmed(dropIn(2, 7, LocalTime.of(8, 30)));
+        stubOrder(draft);
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(busy));
+
+        WorkOrderScheduleResult result = update(draft, 7, EIGHT);
+
+        assertSame(draft, result.getWorkOrder());
+        assertEquals(Integer.valueOf(7), draft.getMechanicId());
+        assertEquals(Collections.singletonList(busy), result.getMechanicConflicts());
+        assertEquals(Optional.of(LocalTime.of(9, 30)), result.getSuggestedStartTime());
+        verify(workOrderRepository).save(draft);
+    }
+
+    @Test
+    void updateWorkOrder_draftWithFreeMechanic_savesWithoutWarning() {
+        WorkOrder draft = dropIn(1, null, EIGHT);
+        WorkOrder elsewhere = confirmed(dropIn(2, 7, LocalTime.of(12, 0)));
+        stubOrder(draft);
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(elsewhere));
+
+        WorkOrderScheduleResult result = update(draft, 7, EIGHT);
+
+        assertTrue(result.getMechanicConflicts().isEmpty());
+        assertFalse(result.getSuggestedStartTime().isPresent());
+        verify(workOrderRepository).save(draft);
+    }
+
+    @Test
+    void updateWorkOrder_withoutMechanic_skipsMechanicLookupAndConflictCheck() {
+        WorkOrder draft = dropIn(1, null, EIGHT);
+        stubOrder(draft);
+
+        WorkOrderScheduleResult result = update(draft, null, EIGHT);
+
+        assertNull(draft.getMechanicId());
+        assertTrue(result.getMechanicConflicts().isEmpty());
+        verifyNoInteractions(mechanicRepository);
+        verify(workOrderRepository, never()).findByMechanicIdAndPlannedDate(anyInt(), any());
+        verify(workOrderRepository).save(draft);
+    }
+
+    @Test
+    void updateWorkOrder_unknownMechanic_throwsAndDoesNotSave() {
+        WorkOrder draft = dropIn(1, null, EIGHT);
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(draft));
+        when(mechanicRepository.findById(99)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> workOrderService.updateWorkOrder(1,
+                Collections.singletonList(1), 99, DATE, EIGHT, null, null, Collections.emptyMap()));
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateWorkOrder_confirmedOrderToBusyMechanic_throwsAndDoesNotSave() {
+        WorkOrder order = confirmed(dropIn(1, 5, EIGHT));
+        WorkOrder busy = confirmed(dropIn(2, 7, LocalTime.of(8, 30)));
+        stubOrder(order);
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(busy));
+
+        assertThrows(MechanicDoubleBookingException.class, () -> update(order, 7, EIGHT));
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    @Test
+    void updateWorkOrder_confirmedOrderToBusyTime_throwsAndDoesNotSave() {
+        WorkOrder order = confirmed(dropIn(1, 7, LocalTime.of(12, 0)));
+        WorkOrder busy = confirmed(dropIn(2, 7, LocalTime.of(8, 30)));
+        stubOrder(order);
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Arrays.asList(order, busy));
+
+        assertThrows(MechanicDoubleBookingException.class, () -> update(order, 7, EIGHT));
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    @Test
+    void confirmWorkOrder_withBusyMechanic_throwsAndDoesNotSave() {
+        WorkOrder draft = dropIn(1, 7, EIGHT);
+        WorkOrder busy = confirmed(dropIn(2, 7, LocalTime.of(8, 30)));
+        stubOrder(draft);
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(busy));
+
+        assertThrows(MechanicDoubleBookingException.class, () -> workOrderService.confirmWorkOrder(1));
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    @Test
+    void confirmWorkOrder_withFreeMechanic_confirmsAndSaves() {
+        WorkOrder draft = dropIn(1, 7, EIGHT);
+        stubOrder(draft);
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(draft));
+
+        workOrderService.confirmWorkOrder(1);
+
+        assertEquals(WorkOrderStatus.CONFIRMED, draft.getStatus());
+        verify(workOrderRepository).save(draft);
+    }
+
+    @Test
+    void twoDraftsWithSameMechanicAndTime_bothSave_secondIsStoppedAtConfirm() {
+        WorkOrder first = dropIn(1, null, EIGHT);
+        WorkOrder second = dropIn(2, null, EIGHT);
+        stubOrder(first);
+        stubOrder(second);
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Arrays.asList(first, second));
+
+        assertTrue(update(first, 7, EIGHT).getMechanicConflicts().isEmpty());
+        assertTrue(update(second, 7, EIGHT).getMechanicConflicts().isEmpty());
+
+        workOrderService.confirmWorkOrder(1);
+        assertThrows(MechanicDoubleBookingException.class, () -> workOrderService.confirmWorkOrder(2));
+
+        assertEquals(WorkOrderStatus.CONFIRMED, first.getStatus());
+        verify(workOrderRepository, times(1)).save(second);
+    }
+
+    // ----- reopenWorkOrder -----
+
+    @Test
+    void reopenWorkOrder_cancelledPlannedOrder_createsNewDraftFromCurrentBooking() {
+        ServiceItem oil = service(1, "Oljebyte", "899.00", 45);
+        ServiceItem brakes = service(2, "Bromsinspektion", "1295.00", 60);
+        Booking booking = new Booking(10, 5, DATE, EIGHT, "Service", Collections.singletonList(oil));
+
+        WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
+        cancelled.setMechanicId(3);
+        cancelled.setComments("Kunden väntar på plats");
+        cancelled.setCustomerInstructions("Ring före start");
+        cancelled.cancel();
+
+        // Bokningen ändras medan ordern är avbruten: en tjänst till
+        booking.update(10, 5, DATE, EIGHT, "Service", Arrays.asList(oil, brakes));
+        stubReopen(cancelled, booking);
+
+        WorkOrderReopenResult result = workOrderService.reopenWorkOrder(1);
+
+        WorkOrder reopened = result.getWorkOrder();
+        assertNotSame(cancelled, reopened);
+        assertInstanceOf(PlannedWorkOrder.class, reopened);
+        assertEquals(WorkOrderStatus.DRAFT, reopened.getStatus());
+        assertEquals(Integer.valueOf(5), reopened.getMechanicId(),
+                "The new order gets the booking's suggestion, not the cancelled order's mechanic");
+        assertEquals(2, reopened.getItems().size());
+        assertEquals("Kunden väntar på plats", reopened.getComments());
+        assertEquals("Ring före start", reopened.getCustomerInstructions());
+
+        assertEquals(WorkOrderStatus.CANCELLED, cancelled.getStatus());
+
+        assertEquals(Arrays.asList(WorkOrderChangeType.MECHANIC_CHANGED, WorkOrderChangeType.SERVICE_ADDED),
+                result.getChanges().stream().map(WorkOrderChange::getType).collect(Collectors.toList()));
+        assertTrue(result.getMechanicConflicts().isEmpty());
+
+        verify(workOrderRepository).save(reopened);
+        verify(workOrderRepository, never()).save(cancelled);
+        verify(bookingService).followWorkOrderStatus(UNSAVED_BOOKING_ID, WorkOrderStatus.DRAFT);
+    }
+
+    @Test
+    void reopenWorkOrder_cancelledPlannedOrder_warnsWhenSuggestedMechanicIsBusy() {
+        Booking booking = new Booking(10, 7, DATE, EIGHT, "Service",
+                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+        WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
+        cancelled.cancel();
+        stubReopen(cancelled, booking);
+        WorkOrder busy = confirmed(dropIn(2, 7, LocalTime.of(8, 30)));
+        when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(busy));
+
+        WorkOrderReopenResult result = workOrderService.reopenWorkOrder(1);
+
+        assertEquals(WorkOrderStatus.DRAFT, result.getWorkOrder().getStatus());
+        assertEquals(Collections.singletonList(busy), result.getMechanicConflicts());
+        assertEquals(Optional.of(LocalTime.of(9, 30)), result.getSuggestedStartTime());
+        verify(workOrderRepository).save(result.getWorkOrder());
+    }
+
+    @Test
+    void reopenWorkOrder_cancelledPlannedOrder_throwsWhenBookingHasAnotherActiveOrder() {
+        Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
+                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+        WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
+        cancelled.cancel();
+
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(cancelled));
+        when(workOrderRepository.existsByBookingIdAndStatusNot(UNSAVED_BOOKING_ID, WorkOrderStatus.CANCELLED))
+                .thenReturn(true);
+
+        ValidationException exception = assertThrows(ValidationException.class,
+                () -> workOrderService.reopenWorkOrder(1));
+
+        assertEquals("error.workOrder.bookingHasActiveOrder", exception.getMessageKey());
+        verify(workOrderRepository, never()).save(any());
+        verifyNoInteractions(bookingService);
+    }
+
+    @Test
+    void reopenWorkOrder_cancelledPlannedOrder_throwsWhenBookingIsCancelled() {
+        Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
+                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+        WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
+        cancelled.cancel();
+        booking.followWorkOrder(cancelled.getStatus());
+        booking.cancel();
+        stubReopen(cancelled, booking);
+
+        ValidationException exception = assertThrows(ValidationException.class,
+                () -> workOrderService.reopenWorkOrder(1));
+
+        assertEquals("error.workOrder.bookingNotBookable", exception.getMessageKey());
+        assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+        verify(workOrderRepository, never()).save(any());
+        verifyNoInteractions(bookingService);
+    }
+
+    @Test
+    void reopenWorkOrder_confirmedOrder_becomesDraftWithoutChanges() {
+        Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
+                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+        WorkOrder confirmed = confirmed(PlannedWorkOrder.createFrom(booking));
+
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(confirmed));
+
+        WorkOrderReopenResult result = workOrderService.reopenWorkOrder(1);
+
+        assertSame(confirmed, result.getWorkOrder());
+        assertEquals(WorkOrderStatus.DRAFT, confirmed.getStatus());
+        assertTrue(result.getChanges().isEmpty());
+        assertTrue(result.getMechanicConflicts().isEmpty());
+        verify(workOrderRepository).save(confirmed);
+    }
+
+    @Test
+    void reopenWorkOrder_cancelledDropIn_becomesDraftWithoutChanges() {
+        DropInWorkOrder dropIn = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
+        dropIn.addItem(service(1, "Oljebyte", "899.00", 45));
+        dropIn.cancel();
+
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(dropIn));
+
+        WorkOrderReopenResult result = workOrderService.reopenWorkOrder(1);
+
+        assertSame(dropIn, result.getWorkOrder());
+        assertEquals(WorkOrderStatus.DRAFT, dropIn.getStatus());
+        assertTrue(result.getChanges().isEmpty());
+        verify(workOrderRepository).save(dropIn);
+    }
+
+    @Test
+    void reopenWorkOrder_completedOrder_throws() {
+        Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
+                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+        WorkOrder completed = confirmed(PlannedWorkOrder.createFrom(booking));
+        completed.start();
+        completed.complete();
+
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(completed));
+
+        assertThrows(IllegalStatusTransitionException.class, () -> workOrderService.reopenWorkOrder(1));
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    // Hjälpmetoder
+
+    // En bokad bokning (mock) med en tjänst på 60 min kl. 08:00 och valfri föreslagen mekaniker.
+    private void stubBookedBooking(int bookingId, Integer suggestedMechanicId) {
+        Booking booking = mock(Booking.class);
+        // Snapshoten skapas före stubbningen: den anropar tjänstemocken, vilket Mockito inte tillåter inuti when(...).
+        List<BookingServiceItem> items = Collections.singletonList(
+                BookingServiceItem.snapshotOf(service(1, "Oil Change", "899", 60)));
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+        when(workOrderRepository.existsByBookingIdAndStatusNot(bookingId, WorkOrderStatus.CANCELLED)).thenReturn(false);
+        when(booking.getStatus()).thenReturn(BookingStatus.BOOKED);
+        when(booking.getDate()).thenReturn(DATE);
+        when(booking.getStartTime()).thenReturn(EIGHT);
+        when(booking.getItems()).thenReturn(items);
+        when(booking.getId()).thenReturn(bookingId);
+        when(booking.getVehicleId()).thenReturn(10);
+        when(booking.getMechanicId()).thenReturn(suggestedMechanicId);
+        when(vehicleRepo.existsById(10)).thenReturn(true);
+        when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    // Stubbar för att återöppna en avbruten planerad order (id 1) från en osparad bokning.
+    private void stubReopen(WorkOrder cancelled, Booking booking) {
+        when(workOrderRepository.findById(1)).thenReturn(Optional.of(cancelled));
+        when(workOrderRepository.existsByBookingIdAndStatusNot(UNSAVED_BOOKING_ID, WorkOrderStatus.CANCELLED))
+                .thenReturn(false);
+        when(bookingRepository.findById(UNSAVED_BOOKING_ID)).thenReturn(Optional.of(booking));
+        when(vehicleRepo.existsById(10)).thenReturn(true);
+        when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    private WorkOrderScheduleResult update(WorkOrder order, Integer mechanicId, LocalTime startTime) {
+        if (mechanicId != null) {
+            when(mechanicRepository.findById(mechanicId)).thenReturn(Optional.of(MECHANIC));
+        }
+        return workOrderService.updateWorkOrder(order.getId(), Collections.singletonList(1), mechanicId,
+                DATE, startTime, null, null, Collections.emptyMap());
+    }
+
+    // Stubbar ordern och katalogen för tjänst 1, som alla hjälpordrar har; uppdateringen slår upp alla valda tjänster.
+    private void stubOrder(WorkOrder order) {
+        ServiceItem oilChange = service(1, "Oljebyte", "899.00", 60);
+        when(workOrderRepository.findById(order.getId())).thenReturn(Optional.of(order));
+        when(serviceItemRepository.findById(1)).thenReturn(Optional.of(oilChange));
+    }
+
+    // Drop-in-utkast med en tjänst på 60 min. Id sätts så att krockregeln kan skilja ordrarna åt.
+    private static WorkOrderItem itemFor(WorkOrder order, int serviceItemId) {
+        return order.getItems().stream()
+                .filter(item -> item.getServiceItemId() == serviceItemId)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Tjänst " + serviceItemId + " saknas i ordern"));
+    }
+
+    private static WorkOrder dropIn(int id, Integer mechanicId, LocalTime startTime) {
+        DropInWorkOrder order = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
+        ReflectionTestUtils.setField(order, "id", id);
+        order.addItem(service(1, "Oljebyte", "899.00", 60));
+        order.setMechanicId(mechanicId);
+        order.setPlannedDate(DATE);
+        order.setPlannedStartTime(startTime);
+        return order;
+    }
+
+    // Planerad order (utkast) från en sparad bokning med en tjänst på 60 min kl. 08:00.
+    private static WorkOrder planned(int id, int bookingId) {
+        Booking booking = new Booking(10, null, DATE, EIGHT, "Service",
+                Collections.singletonList(service(1, "Oljebyte", "899.00", 60)));
+        ReflectionTestUtils.setField(booking, "id", bookingId);
+        WorkOrder order = PlannedWorkOrder.createFrom(booking);
+        ReflectionTestUtils.setField(order, "id", id);
+        return order;
+    }
+
+    private static WorkOrder confirmed(WorkOrder order) {
+        if (order.getMechanicId() == null) {
+            order.setMechanicId(5);
+        }
+        order.confirm();
+        return order;
+    }
+
+    private static ServiceItem service(int id, String name, String price, int minutes) {
+        ServiceItem service = mock(ServiceItem.class);
+        when(service.getId()).thenReturn(id);
+        when(service.getName()).thenReturn(name);
+        when(service.getPrice()).thenReturn(Money.of(price));
+        when(service.getEstimatedMinutes()).thenReturn(minutes);
+        return service;
     }
 }

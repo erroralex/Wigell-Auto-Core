@@ -6,14 +6,8 @@ import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
 
-/**
- * <b>BookingServiceItem</b>
- * <p>Ansvar: En tjänsterad på en bokning. Namn, pris och tidsåtgång kopieras från
- * {@link ServiceItem} när raden skapas och ändras aldrig efter det, så att en senare
- * ändring i tjänstekatalogen inte påverkar det som avtalades vid bokningen.</p>
- * <p>Skapas via {@link #snapshotOf(ServiceItem)} och kopplas till bokningen av
- * {@link Booking#addServiceItem(ServiceItem)}.</p>
- */
+// Samordnar bokningar.
+// Servicen laddar data, anropar domänen och kontrollerar regler.
 @Entity
 @Table(name = "booking_service_item", uniqueConstraints = {
         @UniqueConstraint(
@@ -68,19 +62,6 @@ public class BookingServiceItem {
                 serviceItem.getPrice(),
                 serviceItem.getEstimatedMinutes()
         );
-    }
-
-    // Skapar en ny instans av BookingServiceItem med samma värden, men utan det gamla id:t.
-    // Används när man vill duplicera en tjänsterad för en ny bokning.
-    // Kopierar tillfälligt priset, Servicelagret hämtar sedan dagens pris och tidsåtgång från ServiceItem.
-    BookingServiceItem copyAsNew() {
-        return new BookingServiceItem(
-                serviceItemId,
-                serviceName,
-                priceAtBooking,
-                durationMinutes
-        );
-
     }
 
     void setBooking(Booking booking) {

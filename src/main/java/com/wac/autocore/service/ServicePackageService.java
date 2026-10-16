@@ -13,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +47,7 @@ public class ServicePackageService {
     public ServicePackage create(@NotBlank(message = "error.servicePackage.nameRequired") String name,
                                  @NotBlank(message = "error.desc") String description,
                                  @NotEmpty(message = "error.servicePackage.noServices") List<Integer> serviceItemIds) {
-        List<ServiceItem> services = loadServices(serviceItemIds);
+        List<ServiceItem> services = serviceItemRepository.requireAllById(serviceItemIds);
         ServicePackage servicePackage = ServicePackage.create(name, description, services);
         if (packageRepository.existsByNameIgnoreCase(servicePackage.getName())) {
             throw new ValidationException("error.servicePackage.nameTaken", servicePackage.getName());
@@ -63,7 +62,7 @@ public class ServicePackageService {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
 
-        List<ServiceItem> services = loadServices(serviceItemIds);
+        List<ServiceItem> services = serviceItemRepository.requireAllById(serviceItemIds);
 
         String newName = name != null ? name.trim() : null;
         if (newName != null && !newName.isEmpty()
@@ -80,17 +79,5 @@ public class ServicePackageService {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
         packageRepository.delete(servicePackage);
-    }
-
-    private List<ServiceItem> loadServices(List<Integer> serviceItemIds) {
-        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<ServiceItem> serviceItems = new ArrayList<>();
-        for (Integer id : serviceItemIds) {
-            serviceItems.add(serviceItemRepository.findById(id).orElseThrow(() ->
-                    new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")));
-        }
-        return serviceItems;
     }
 }

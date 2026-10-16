@@ -1,6 +1,7 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.model.BookingStatus;
+import com.wac.autocore.model.WorkOrderChangeType;
 import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.view.NavigationItem;
 import org.junit.jupiter.api.Test;
@@ -134,6 +135,13 @@ class LanguageBundleTest {
 
         for (WorkOrderStatus status : WorkOrderStatus.values()) {
             String key = "workOrder.status." + status.name();
+            if (!sv.containsKey(key)) {
+                missing.add(key);
+            }
+        }
+
+        for (WorkOrderChangeType type : WorkOrderChangeType.values()) {
+            String key = "workOrder.change." + type.name();
             if (!sv.containsKey(key)) {
                 missing.add(key);
             }

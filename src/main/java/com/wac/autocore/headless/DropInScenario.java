@@ -90,10 +90,11 @@ public class DropInScenario {
                                 "Headless-demo: motorlampan lyser",
                                 Collections.<Integer>emptyList()).getId())),
 
-                // Drop-in tillåter inga gratisrader, så debiteringsflaggorna ignoreras
+                // Drop-in tillåter inga gratisrader, så debiteringsflaggorna ignoreras.
+                // Ingen starttid: bilen tas in direkt. Utan starttid krockkontrolleras ordern inte,
                 step("Lägg till tjänster och mekaniker", ctx -> workOrderService.updateWorkOrder(
                         ctx.getWorkOrderId(), ctx.getServiceItemIds(), ctx.getMechanicId(),
-                        LocalDate.now(), null, null, Collections.<Integer, Boolean>emptyMap())),
+                        LocalDate.now(), null, null, null, Collections.<Integer, Boolean>emptyMap())),
 
                 step("Bekräfta order", ctx -> workOrderService.confirmWorkOrder(ctx.getWorkOrderId())),
                 step("Starta order", ctx -> workOrderService.startWorkOrder(ctx.getWorkOrderId())),

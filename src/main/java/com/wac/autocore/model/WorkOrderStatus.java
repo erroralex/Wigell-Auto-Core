@@ -31,4 +31,8 @@ public enum WorkOrderStatus {
     public boolean isEditable() {
         return this == DRAFT || this == CONFIRMED;
     }
+
+    public boolean reservesMechanic() {
+        return this == CONFIRMED || this == IN_PROGRESS;
+    }
 }

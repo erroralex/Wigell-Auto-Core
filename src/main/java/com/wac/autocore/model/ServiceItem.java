@@ -1,5 +1,6 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.data.MoneyConverter;
 
@@ -25,8 +26,15 @@ public class ServiceItem {
                        Money price, int estimatedMinutes) {
         this.name = name;
         this.description = description;
-        this.price = price;
+        this.price = requireValidPrice(price);
         this.estimatedMinutes = estimatedMinutes;
+    }
+
+    private static Money requireValidPrice(Money price) {
+        if (price == null || !price.isPositive()) {
+            throw new ValidationException("error.serviceItem.invalidPrice");
+        }
+        return price;
     }
 
     public int getId() {
@@ -53,8 +61,9 @@ public class ServiceItem {
         return price;
     }
 
-    public void setPrice(Money price) {
-        this.price = price;
+    // Används för att ändra priset på ett ServiceItem, med validering av det nya priset.
+    public void changePrice(Money newPrice) {
+        this.price = requireValidPrice(newPrice);
     }
 
     public int getEstimatedMinutes() {

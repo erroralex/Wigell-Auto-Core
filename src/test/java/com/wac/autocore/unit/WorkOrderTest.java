@@ -81,13 +81,13 @@ public class WorkOrderTest {
     }
 
     @Test
-    void removeItemCannotRemoveLastService() {
+    void replaceItemsCannotRemoveAllServices() {
         TestWorkOrder workOrder = new TestWorkOrder(1, 1);
         workOrder.addItem(createService(1, Money.of(899)));
 
         ValidationException exception = assertThrows(
                 ValidationException.class,
-                () -> workOrder.removeItem(1)
+                () -> workOrder.replaceItems(Collections.<ServiceItem>emptyList())
         );
 
         assertEquals("Validation failed: " + "error.workOrder.missingServices", exception.getMessage());

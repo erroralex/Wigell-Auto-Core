@@ -81,6 +81,19 @@ class WorkOrderStatusTest {
         assertFalse(status.isEditable(), status + " should be locked");
     }
 
+    @ParameterizedTest(name = "{0} reserves the mechanic")
+    @EnumSource(value = WorkOrderStatus.class, names = {"CONFIRMED", "IN_PROGRESS"})
+    void reservesMechanic_trueOnceConfirmedAndUntilDone(WorkOrderStatus status) {
+        assertTrue(status.reservesMechanic(), status + " should reserve the mechanic");
+    }
+
+    @ParameterizedTest(name = "{0} does not reserve the mechanic")
+    @EnumSource(value = WorkOrderStatus.class, names = {"CONFIRMED", "IN_PROGRESS"},
+            mode = EnumSource.Mode.EXCLUDE)
+    void reservesMechanic_falseForDraftAndFinished(WorkOrderStatus status) {
+        assertFalse(status.reservesMechanic(), status + " should not reserve the mechanic");
+    }
+
     @Nested
     @DisplayName("Entity methods throw on forbidden transitions")
     class EntityMethods {

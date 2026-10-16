@@ -12,6 +12,8 @@ import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -96,7 +99,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 .ifPresent(vehicleComboBox::setValue);
 
         mechanicComboBox.getItems().stream()
-                .filter(m -> m.getId() == previous.getMechanicId())
+                .filter(m -> Objects.equals(m.getId(), previous.getMechanicId()))
                 .findFirst()
                 .ifPresent(mechanicComboBox::setValue);
 
@@ -134,13 +137,25 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 new Label(lang.get("table.date")), datePicker,
                 new Label(lang.get("table.startTime")), startTimeComboBox,
                 new Label(lang.get("table.desc")), descriptionTextField,
-                new Label(lang.get("table.mechanic")), mechanicComboBox,
+                new Label(lang.get("table.suggestedMechanic")), suggestedMechanicBox(),
                 new Label(lang.get("servicePackage.label")), servicePackageSelector,
                 new Label(lang.get("table.serviceItem")), serviceSelector
         );
         getDialogPane().setContent(contentBox);
 
         handleInput();
+    }
+
+    // Förslaget är valfritt, så ett valt förslag ska kunna rensas utan att dialogen avbryts.
+    private HBox suggestedMechanicBox() {
+        Button clearButton = new Button(lang.get("btn.remove"));
+        clearButton.getStyleClass().addAll("btn", "btn-secondary");
+        clearButton.disableProperty().bind(mechanicComboBox.valueProperty().isNull());
+        clearButton.setOnAction(event -> mechanicComboBox.setValue(null));
+
+        mechanicComboBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(mechanicComboBox, Priority.ALWAYS);
+        return new HBox(8, mechanicComboBox, clearButton);
     }
 
     private void handleInput() {
@@ -167,7 +182,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                     && vehicleComboBox.getValue() == null
                     && datePicker.getValue() == null
                     && startTimeComboBox.getValue() == null
-                    && mechanicComboBox.getValue() == null
                     && serviceSelector.isEmpty()) {
                 // Bytte ut tidigare checkbox-check mot ServiceSelectorBox: isEmpty() som hanterar valet av tjänster.
                 errorLabel.setText(lang.get("error.fields"));
@@ -175,7 +189,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 datePicker.getStyleClass().add("input-error");
                 startTimeComboBox.getStyleClass().add("input-error");
                 descriptionTextField.getStyleClass().add("input-error");
-                mechanicComboBox.getStyleClass().add("input-error");
                 serviceSelector.setError(true);
                 event.consume();
                 return;
@@ -209,12 +222,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 return;
             }
 
-            if (mechanicComboBox.getValue() == null) {
-                errorLabel.setText(lang.get("error.mechanicSelect"));
-                event.consume();
-                return;
-            }
-
             if (serviceSelector.isEmpty()) {
                 errorLabel.setText(lang.get("error.serviceSelect"));
                 serviceSelector.setError(true);
@@ -241,10 +248,11 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 LocalTime startTime = startTimeComboBox.getValue();
 
                 List<Integer> serviceItemIds = serviceSelector.getSelectedServiceIds();
+                Mechanic mechanic = mechanicComboBox.getValue();
 
                 return new Result(
                         vehicleComboBox.getValue().getId(),
-                        mechanicComboBox.getValue().getId(),
+                        mechanic == null ? null : mechanic.getId(),
                         datePicker.getValue(),
                         startTime,
                         descriptionTextField.getText(),
@@ -280,11 +288,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             }
         });
 
-        mechanicComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                mechanicComboBox.getStyleClass().removeAll("input-error");
-            }
-        });
     }
 
     private void setConverters() {
@@ -312,11 +315,12 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         private final int vehicleId;
         private final LocalDate date;
         private final String description;
-        private final int mechanicId;
+        // Valfritt förslag; null = ingen föreslagen mekaniker.
+        private final Integer mechanicId;
         private final LocalTime startTime;
         private final List<Integer> serviceItemIds;
 
-        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, String description, List<Integer> serviceItemIds) {
+        public Result(int vehicleId, Integer mechanicId, LocalDate date, LocalTime startTime, String description, List<Integer> serviceItemIds) {
 
             this.vehicleId = vehicleId;
             this.mechanicId = mechanicId;
@@ -330,7 +334,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             return vehicleId;
         }
 
-        public int getMechanicId() {
+        public Integer getMechanicId() {
             return mechanicId;
         }
 
