@@ -225,23 +225,11 @@ public class BookingView extends BaseView {
 
         dialog.showAndWait().ifPresent(result -> {
 
-            try {
-
-                bookingService.update(
-                        selected.getId(),
-                        selected.getVehicleId(),
-                        selected.getMechanicId(),
-                        selected.getDate(),
-                        selected.getStartTime(),
-                        selected.getDescription(),
-                        result.getServiceItemIds()
-                );
-
-                bookingObservableList.setAll(bookingService.listAll());
-                AlertHelper.showInfo(lang.get("booking.updated"), lang.get("booking.updatedMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-            }
+            bookingObservableList.setAll(bookingService.listAll());
+            AlertHelper.showInfo(
+                    lang.get("booking.updated"),
+                    lang.get("booking.updatedMsg")
+            );
         });
     }
 }
