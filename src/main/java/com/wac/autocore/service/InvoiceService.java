@@ -82,20 +82,6 @@ public class InvoiceService {
             invoice.addLine(workOrderItem.getServiceName(), amount, discount);
         }
 
-        Money amountSum = Money.ZERO;
-        Money discountSum = Money.ZERO;
-        Money totalSum = Money.ZERO;
-
-        for (InvoiceLine invoiceLine : invoice.getLines()) {
-            amountSum = amountSum.add(invoiceLine.getAmount());
-            discountSum = discountSum.add(invoiceLine.getDiscount());
-            totalSum = totalSum.add(invoiceLine.getTotal());
-        }
-
-        invoice.setAmount(amountSum);
-        invoice.setDiscount(discountSum);
-        invoice.setTotalAmount(totalSum);
-
         return invoiceRepo.save(invoice);
     }
 

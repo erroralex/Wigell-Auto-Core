@@ -49,34 +49,20 @@ public class Invoice {
     public int getWorkOrderId() {
         return workOrderId;
     }
-    public void setWorkOrderId(int workOrderId) {
-        this.workOrderId = workOrderId;
-    }
 
     public LocalDate getInvoiceDate() {
         return invoiceDate;
-    }
-    public void setInvoiceDate(LocalDate invoiceDate) {
-        this.invoiceDate = invoiceDate;
     }
 
     public Money getAmount() {
         return amount;
     }
-    public void setAmount(Money amount) {
-        this.amount = amount;
-    }
 
     public Money getDiscount() {
         return discount;
     }
-    public void setDiscount(Money discount) {
-        this.discount = discount;
-    }
 
-    public void setTotalAmount(Money totalAmount) {
-        this.totalAmount = totalAmount;
-    }
+
     public Money getTotalAmount() {
         return totalAmount;
     }
@@ -84,16 +70,11 @@ public class Invoice {
     public boolean isPaid() {
         return paid;
     }
-    public void setPaid(boolean paid) {
-        this.paid = paid;
-    }
 
     public List<InvoiceLine> getLines() {
         return this.lines;
     }
-    public void setLines(List<InvoiceLine> lines) {
-        this.lines = lines;
-    }
+
 
     public void addLine(String serviceItemName, Money amount, Money discount) {
         InvoiceLine line = new InvoiceLine(this, serviceItemName, amount, discount);
