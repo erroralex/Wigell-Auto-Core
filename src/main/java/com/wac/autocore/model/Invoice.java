@@ -1,12 +1,14 @@
 package com.wac.autocore.model;
 
 import com.wac.autocore.data.MoneyConverter;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -72,9 +74,8 @@ public class Invoice {
     }
 
     public List<InvoiceLine> getLines() {
-        return this.lines;
+        return Collections.unmodifiableList(this.lines);
     }
-
 
     public void addLine(String serviceItemName, Money amount, Money discount) {
         InvoiceLine line = new InvoiceLine(this, serviceItemName, amount, discount);
@@ -82,6 +83,13 @@ public class Invoice {
         this.amount = this.amount.add(line.getAmount());
         this.discount = this.discount.add(line.getDiscount());
         this.totalAmount = this.totalAmount.add(line.getTotal());
+    }
+
+    public void markPaid() {
+        if (this.paid) {
+            throw new ValidationException("error.invoiceAlreadyPaid");
+        }
+        this.paid = true;
     }
 
     @Override

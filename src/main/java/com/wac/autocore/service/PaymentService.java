@@ -46,7 +46,7 @@ public class PaymentService {
         Payment payment = new Payment(invoiceId, invoice.getTotalAmount(), paymentType);
         payment.setSuccessful(true);
 
-        //invoice.setPaid(true);
+        invoice.markPaid();
         invoiceService.update(invoice);
 
         return paymentRepo.save(payment);
