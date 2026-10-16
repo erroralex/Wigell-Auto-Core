@@ -56,8 +56,12 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking create(@Positive int vehicleId,
-                          @Positive int mechanicId,
+    public Booking create(@NotNull(message = "error.vehicleSelect")
+                              @Positive(message = "error.vehicleSelect")
+                              Integer vehicleId,
+                          @NotNull(message = "error.mechanicSelect")
+                          @Positive(message = "error.mechanicSelect")
+                          Integer mechanicId,
                           @NotNull(message = "error.dateSelect") LocalDate date,
                           @NotNull(message = "error.startTimeSelect") LocalTime startTime,
                           @NotBlank(message="error.desc") String description,
@@ -88,13 +92,21 @@ public class BookingService {
     // Skapar en ny bokning från en tidigare med dagens tjänstepriser, utan att ändra originalet.
     // Återanvänder originalets mekaniker om mechanicId är null och kontrollerar dubbelbokning före sparandet.
     @Transactional
-    public BookingCopyResult createFromPrevious(int previousBookingId,
+    public BookingCopyResult createFromPrevious(@NotNull(message = "error.bookingNotFound")
+                                                    @Positive(message = "error.bookingNotFound")
+                                                    Integer previousBookingId,
+
                                                 @NotNull(message = "error.dateSelect") LocalDate date,
                                                 @NotNull(message = "error.startTimeSelect") LocalTime startTime,
-                                                @Positive Integer mechanicId,
-                                                @Positive Integer vehicleId,
+
+                                                @Positive(message = "error.mechanicSelect") Integer mechanicId,
+
+                                                @Positive(message = "error.vehicleSelect") Integer vehicleId,
+
                                                 String description,
-                                                List<@NotNull @Positive Integer> serviceItemIds) {
+                                                List<@NotNull(message = "error.serviceNotFound")
+                                                @Positive(message = "error.serviceNotFound")
+                                                        Integer> serviceItemIds) {
         Booking previous = findById(previousBookingId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Booking", previousBookingId, "error.bookingNotFound"
@@ -165,7 +177,9 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking update(int bookingId, int vehicleId, int mechanicId,
+    public Booking update(@NotNull @Positive Integer bookingId,
+                          @NotNull @Positive Integer vehicleId,
+                          @NotNull @Positive Integer mechanicId,
                           @NotNull(message = "error.dateSelect") LocalDate date,
                           @NotNull(message = "error.startTimeSelect") LocalTime startTime,
                           @NotBlank(message="error.desc") String description,
@@ -257,7 +271,7 @@ public class BookingService {
      * @throws ValidationException with {@code error.vehicleBooked} and the vehicle's
      *                             registration number if the vehicle is already booked
      */
-    private void checkVehicleAvailable(int vehicleId, LocalDate date, Integer excludedBookingId) {
+    private void checkVehicleAvailable(Integer vehicleId, LocalDate date, Integer excludedBookingId) {
         boolean booked = excludedBookingId == null
                 ? bookingRepository.existsByVehicleIdAndDate(vehicleId, date)
                 : bookingRepository.existsByVehicleIdAndDateAndIdNot(vehicleId, date, excludedBookingId);

@@ -1,5 +1,7 @@
 package com.wac.autocore.view.dialog;
 
+import com.wac.autocore.exception.handler.ErrorHandlerChain;
+import com.wac.autocore.exception.handler.ErrorReport;
 import com.wac.autocore.model.*;
 import com.wac.autocore.service.BookingPriceChange;
 import com.wac.autocore.service.BookingService;
@@ -39,6 +41,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
     private final Label errorLabel = new Label();
 
+    private final Booking previous;
+
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ServiceSelectorBox serviceSelector;
@@ -58,6 +62,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 servicePackageService.findAll());
 
         this.serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
+
+        this.previous = previous;
 
         errorLabel.getStyleClass().add("text-error");
 
@@ -162,98 +168,80 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         saveButton.getStyleClass().addAll("btn", "btn-primary");
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-
-            if (descriptionTextField.getText().isEmpty()
-                    && vehicleComboBox.getValue() == null
-                    && datePicker.getValue() == null
-                    && startTimeComboBox.getValue() == null
-                    && mechanicComboBox.getValue() == null
-                    && serviceSelector.isEmpty()) {
-                // Bytte ut tidigare checkbox-check mot ServiceSelectorBox: isEmpty() som hanterar valet av tjänster.
-                errorLabel.setText(lang.get("error.fields"));
-                vehicleComboBox.getStyleClass().add("input-error");
-                datePicker.getStyleClass().add("input-error");
-                startTimeComboBox.getStyleClass().add("input-error");
-                descriptionTextField.getStyleClass().add("input-error");
-                mechanicComboBox.getStyleClass().add("input-error");
-                serviceSelector.setError(true);
-                event.consume();
-                return;
-            }
-
-            if (vehicleComboBox.getValue() == null) {
-                errorLabel.setText(lang.get("error.vehicleSelect"));
-                vehicleComboBox.getStyleClass().add("input-error");
-                event.consume();
-                return;
-            }
-
-            if (datePicker.getValue() == null) {
-                errorLabel.setText(lang.get("error.dateSelect"));
-                datePicker.getStyleClass().add("input-error");
-                event.consume();
-                return;
-            }
-
-            if (startTimeComboBox.getValue() == null) {
-                errorLabel.setText(lang.get("error.startTimeSelect"));
-                startTimeComboBox.getStyleClass().add("input-error");
-                event.consume();
-                return;
-            }
-
-            if (descriptionTextField.getText().isEmpty()) {
-                errorLabel.setText(lang.get("error.desc"));
-                descriptionTextField.getStyleClass().add("input-error");
-                event.consume();
-                return;
-            }
-
-            if (mechanicComboBox.getValue() == null) {
-                errorLabel.setText(lang.get("error.mechanicSelect"));
-                event.consume();
-                return;
-            }
-
-            if (serviceSelector.isEmpty()) {
-                errorLabel.setText(lang.get("error.serviceSelect"));
-                serviceSelector.setError(true);
-                event.consume();
-                return;
-            }
-
+            resetFieldErrorState();
+            Vehicle vehicle = vehicleComboBox.getValue();
+            Mechanic mechanic = mechanicComboBox.getValue();
             LocalDate date = datePicker.getValue();
-            int vehicleId = vehicleComboBox.getValue().getId();
+            LocalTime startTime = startTimeComboBox.getValue();
+            String description = descriptionTextField.getText();
+            List<Integer> serviceIds = serviceSelector.getSelectedServiceIds();
 
-            if (bookingService.isVehicleBooked(vehicleId, date)) {
-                AlertHelper.showError(
-                        lang.get("error.booking"),
-                        lang.get("error.vehicleBooked",
-                                vehicleComboBox.getValue().getRegistrationNumber())
-                );
+            try {
+                if (previous == null) {
+                    bookingService.create(
+                            vehicle == null ? null : vehicle.getId(),
+                            mechanic == null ? null : mechanic.getId(),
+                            date, startTime, description, serviceIds
+                    );
+                } else {
+                    bookingService.createFromPrevious(
+                            previous.getId(), date, startTime,
+                            mechanic == null ? null : mechanic.getId(),
+                            vehicle == null ? null : vehicle.getId(),
+                            description, serviceIds);
+                }
+            } catch (RuntimeException e) {
+                ErrorReport report = ErrorHandlerChain.createDefault().resolve(e);
+                errorLabel.setText(lang.get(report.getMessageKey(), report.getMessageArgs()));
+                markFieldError(report.getMessageKey());
                 event.consume();
             }
         });
 
-        setResultConverter(buttonType -> {
-            if (buttonType == saveButtonType) {
+        setResultConverter(buttonType ->
+                buttonType == saveButtonType ? new Result() : null);
 
-                LocalTime startTime = startTimeComboBox.getValue();
-
-                List<Integer> serviceItemIds = serviceSelector.getSelectedServiceIds();
-
-                return new Result(
-                        vehicleComboBox.getValue().getId(),
-                        mechanicComboBox.getValue().getId(),
-                        datePicker.getValue(),
-                        startTime,
-                        descriptionTextField.getText(),
-                        serviceItemIds
-                );
-            }
-            return null;
-        });
     }
+
+    private void markFieldError(String key) {
+        switch (key) {
+            case "error.vehicleSelect":
+            case "error.vehicleBooked":
+            case "error.vehicleNotFound":
+                vehicleComboBox.getStyleClass().add("input-error");
+                break;
+            case "error.dateSelect":
+                datePicker.getStyleClass().add("input-error");
+                break;
+            case "error.startTimeSelect":
+                startTimeComboBox.getStyleClass().add("input-error");
+                break;
+            case "error.desc":
+                descriptionTextField.getStyleClass().add("input-error");
+                break;
+            case "error.mechanicSelect":
+            case "error.mechanicNotFound":
+            case "error.mechanicBusy":
+                mechanicComboBox.getStyleClass().add("input-error");
+                break;
+            case "error.serviceSelect":
+                serviceSelector.setError(true);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void resetFieldErrorState() {
+        errorLabel.setText("");
+        vehicleComboBox.getStyleClass().remove("input-error");
+        datePicker.getStyleClass().remove("input-error");
+        startTimeComboBox.getStyleClass().remove("input-error");
+        descriptionTextField.getStyleClass().remove("input-error");
+        mechanicComboBox.getStyleClass().remove("input-error");
+        serviceSelector.setError(false);
+    }
+
 
     private void inputEventListeners() {
         vehicleComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -308,46 +296,11 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         });
     }
 
+    /// Acts as a success marker.
+    /// Save handler calls the service first, if it fails, it consumes the event and the dialog stays open.
     public static class Result {
-        private final int vehicleId;
-        private final LocalDate date;
-        private final String description;
-        private final int mechanicId;
-        private final LocalTime startTime;
-        private final List<Integer> serviceItemIds;
 
-        public Result(int vehicleId, int mechanicId, LocalDate date, LocalTime startTime, String description, List<Integer> serviceItemIds) {
-
-            this.vehicleId = vehicleId;
-            this.mechanicId = mechanicId;
-            this.date = date;
-            this.startTime = startTime;
-            this.description = description;
-            this.serviceItemIds = serviceItemIds;
-        }
-
-        public int getVehicleId() {
-            return vehicleId;
-        }
-
-        public int getMechanicId() {
-            return mechanicId;
-        }
-
-        public LocalDate getDate() {
-            return date;
-        }
-
-        public LocalTime getStartTime() {
-            return startTime;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public List<Integer> getServiceItemIds() {
-            return serviceItemIds;
+        private Result() {
         }
     }
 }
