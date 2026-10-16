@@ -16,8 +16,6 @@ public class AdminServiceItemDialog extends Dialog<AdminServiceItemDialog.Result
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private Money savedPrice;
-
     private final ServiceItemService serviceItemService;
     private final ServiceItem serviceItem;
 
@@ -67,8 +65,7 @@ public class AdminServiceItemDialog extends Dialog<AdminServiceItemDialog.Result
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             try {
                 Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
-                ServiceItem updated = serviceItemService.updatePrice(serviceItem.getId(), newPrice);
-                savedPrice = updated.getPrice();
+                serviceItemService.updatePrice(serviceItem.getId(), newPrice);
             } catch (RuntimeException e) {
                 ErrorFacade.handle(e);
                 rejectPrice(event);
@@ -86,7 +83,6 @@ public class AdminServiceItemDialog extends Dialog<AdminServiceItemDialog.Result
 
     public static class Result {
         private Result() {
-
         }
     }
 }

@@ -300,16 +300,6 @@ public class WorkOrderView extends BaseView {
         return box;
     }
 
-    private void openQuickDraftDialog() {
-        QuickDraftWorkOrderDialog dialog =
-                new QuickDraftWorkOrderDialog(workOrderService, customerService, vehicleService);
-
-        dialog.showAndWait().ifPresent(draft -> {
-            refreshData();
-            selectWorkOrder(draft.getId());
-        });
-    }
-
     private void selectWorkOrder(int id) {
         masterData.stream()
                 .filter(workOrder -> workOrder.getId() == id)
@@ -403,6 +393,16 @@ public class WorkOrderView extends BaseView {
         dialog.showAndWait().ifPresent(result -> {
                 refreshAfterAction(selected.getId());
                 AlertHelper.showInfo(lang.get("workOrder.updated"), lang.get("workOrder.updatedMsg"));
+        });
+    }
+
+    private void openQuickDraftDialog() {
+        QuickDraftWorkOrderDialog dialog =
+                new QuickDraftWorkOrderDialog(workOrderService, customerService, vehicleService);
+
+        dialog.showAndWait().ifPresent(draft -> {
+            refreshData();
+            selectWorkOrder(draft.getId());
         });
     }
 }
