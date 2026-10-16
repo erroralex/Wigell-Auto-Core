@@ -101,14 +101,13 @@ public class CreateCustomerDialog {
         String email = getTrimmedValue(emailField);
 
         try {
+            resetFieldErrorState();
             Customer customer = customerService.create(name, phone, email);
             if (vipCheckBox.isSelected()) {
                 customerService.update(customer.getId(), name, phone, email, true);
             }
             return true;
         } catch (ConstraintViolationException e) {
-            ErrorFacade.handle(e);
-
             for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
                 String key = violation.getMessageTemplate()
                         .replace("{", "")
@@ -137,46 +136,6 @@ public class CreateCustomerDialog {
             return false;
         }
     }
-
-    /*private boolean saveCustomer() {
-        resetFieldErrorState();
-
-        String name = getTrimmedValue(nameField);
-        String phone = getTrimmedValue(phoneField);
-        String email = getTrimmedValue(emailField);
-
-        if (name.isEmpty()) {
-            markFieldError(nameField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.name")));
-            return false;
-        }
-
-        if (phone.isEmpty()) {
-            markFieldError(phoneField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.phone")));
-            return false;
-        }
-
-        if (!email.isEmpty() && !EMAIL_PATTERN.matcher(email).matches()) {
-            markFieldError(emailField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidEmail"));
-            return false;
-        }
-
-        try {
-            Customer customer = customerService.create(name, phone, email);
-            if (vipCheckBox.isSelected()) {
-                //customer.setVip(true);
-                customerService.update(customer.getId(),
-                        name, phone, email, true);
-            }
-        } catch (RuntimeException e) {
-            ErrorFacade.handle(e);
-            return false;
-        }
-
-        return true;
-    }*/
 
     private String getTrimmedValue(TextField field) {
         return field.getText() == null ? "" : field.getText().trim();
