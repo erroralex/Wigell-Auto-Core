@@ -1,8 +1,12 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.exception.handler.ErrorHandlerChain;
+import com.wac.autocore.exception.handler.ErrorReport;
 import com.wac.autocore.model.*;
 import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.WorkOrderService;
+import com.wac.autocore.view.WorkOrderView;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.component.CustomerVehiclePicker;
@@ -39,6 +43,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
     private final Map<Integer, Booking> bookingsById = new HashMap<>();
     private List<Vehicle> vehicles;
 
+    private final WorkOrderService workOrderService;
     private final ComboBox<WorkOrderType> typeCombo = new ComboBox<>();
     private final ComboBox<Booking> bookingCombo = new ComboBox<>();
     private final Label bookingLabel = new Label(lang.get("workOrder.field.booking"));
@@ -62,6 +67,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
                                  List<Booking> allBookings,
                                  List<WorkOrder> completedWorkOrders,
                                  List<ServiceItem> serviceItems,
+                                 WorkOrderService workOrderService,
                                  CustomerService customerService,
                                  VehicleService vehicleService) {
 
@@ -72,6 +78,8 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         for (Booking booking : allBookings) {
             bookingsById.put(booking.getId(), booking);
         }
+
+        this.workOrderService = workOrderService;
 
         setTitle(lang.get("workOrder.new"));
         setHeaderText(lang.get("workOrder.create"));
@@ -143,11 +151,37 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             WorkOrderType type = typeCombo.getValue();
             if (type == null) {
+                event.consume();
                 return;
             }
+
+
             try {
-                WorkOrder.requireProblemDescription(type, problemDescriptionArea.getText());
-            } catch (ValidationException e) {
+                //WorkOrder.requireProblemDescription(type, problemDescriptionArea.getText());
+                switch (type) {
+                    case PLANNED:
+                        workOrderService.createWorkOrder(
+                                bookingCombo.getValue().getId());
+                                break;
+                    case DROP_IN:
+                        workOrderService.createDropIn(
+                                picker.getSelectedVehicle().getId(),
+                                problemDescriptionArea.getText(),
+                                serviceSelector.getSelectedServiceIds()
+                        );
+                        break;
+                    case WARRANTY:
+                        workOrderService.createWarranty(
+                                originalWorkOrderCombo.getValue().getId(),
+                                problemDescriptionArea.getText()
+                        );
+                        break;
+                    default:
+                        throw new IllegalStateException(
+                                "Unknown work order type: " + type
+                        );
+                }
+            } catch (RuntimeException e) {
                 ErrorFacade.handle(e);
                 event.consume();
             }

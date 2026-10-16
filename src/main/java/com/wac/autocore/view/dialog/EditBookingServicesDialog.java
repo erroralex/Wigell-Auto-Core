@@ -1,8 +1,6 @@
 package com.wac.autocore.view.dialog;
 
 
-import com.wac.autocore.exception.handler.ErrorHandlerChain;
-import com.wac.autocore.exception.handler.ErrorReport;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
@@ -10,6 +8,7 @@ import com.wac.autocore.service.BookingService;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.component.ServiceSelectorBox;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
  */
 public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.Result> {
 
-    private final Label errorLabel = new Label();
     private final BookingService bookingService;
     private final Booking booking;
 
@@ -40,8 +38,6 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
     public EditBookingServicesDialog(Booking booking, BookingService bookingService) {
         this.booking = booking;
         this.bookingService = bookingService;
-
-        errorLabel.getStyleClass().add("text-error");
 
         // Initiera serviceSelector med alla tillgängliga tjänster
         serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
@@ -90,7 +86,6 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
-                errorLabel,
                 infoLabel,
                 new Separator(),
                 new Label(lang.get("table.serviceItems")), serviceSelector
@@ -102,7 +97,6 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            errorLabel.setText("");
             serviceSelector.setError(false);
 
             try {
@@ -116,18 +110,7 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
                         serviceSelector.getSelectedServiceIds()
                 );
             } catch(RuntimeException e) {
-                ErrorReport report = ErrorHandlerChain.createDefault().resolve(e);
-                errorLabel.setText(lang.get(
-                        report.getMessageKey(),
-                        report.getMessageArgs()
-                ));
-
-                if ("error.serviceSelect".equals(report.getMessageKey())
-                        || "error.serviceNotFound".equals(report.getMessageKey())
-                        || "error.serviceItem.invalidDuration".equals(report.getMessageKey())
-                ) {
-                    serviceSelector.setError(true);
-                }
+                ErrorFacade.handle(e);
                 event.consume();
             }
         });

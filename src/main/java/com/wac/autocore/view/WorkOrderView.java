@@ -274,6 +274,7 @@ public class WorkOrderView extends BaseView {
                 bookingService.listAll(),
                 workOrderService.findCompletedWorkOrders(),
                 serviceItemService.listAll(),
+                workOrderService,
                 customerService,
                 vehicleService
         );

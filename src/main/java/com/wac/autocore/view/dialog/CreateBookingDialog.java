@@ -1,5 +1,7 @@
 package com.wac.autocore.view.dialog;
 
+import com.sun.xml.bind.v2.runtime.reflect.opt.Const;
+import com.wac.autocore.exception.DomainException;
 import com.wac.autocore.exception.handler.ErrorHandlerChain;
 import com.wac.autocore.exception.handler.ErrorReport;
 import com.wac.autocore.model.*;
@@ -11,12 +13,15 @@ import com.wac.autocore.view.component.ServicePackageSelectorBox;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -39,7 +44,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     private final ComboBox<LocalTime> startTimeComboBox = new ComboBox<>();
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
-    private final Label errorLabel = new Label();
 
     private final Booking previous;
 
@@ -64,8 +68,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         this.serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
 
         this.previous = previous;
-
-        errorLabel.getStyleClass().add("text-error");
 
         setTitle(lang.get("booking.new"));
         setHeaderText(lang.get("booking.create"));
@@ -135,7 +137,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         contentBox = new VBox(12);
         contentBox.setPadding(new Insets(16));
         contentBox.getChildren().addAll(
-                errorLabel,
                 new Label(lang.get("table.vehicle")), vehicleComboBox,
                 new Label(lang.get("table.date")), datePicker,
                 new Label(lang.get("table.startTime")), startTimeComboBox,
@@ -190,10 +191,23 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                             vehicle == null ? null : vehicle.getId(),
                             description, serviceIds);
                 }
+            } catch (ConstraintViolationException e) {
+                for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
+                    String key = violation.getMessageTemplate()
+                            .replace("{", "")
+                            .replace("}", "");
+                    markFieldError(key);
+                }
+
+                ErrorFacade.handle(e);
+                event.consume();
+            } catch (DomainException e) {
+                markFieldError(e.getMessageKey());
+
+                ErrorFacade.handle(e);
+                event.consume();
             } catch (RuntimeException e) {
-                ErrorReport report = ErrorHandlerChain.createDefault().resolve(e);
-                errorLabel.setText(lang.get(report.getMessageKey(), report.getMessageArgs()));
-                markFieldError(report.getMessageKey());
+                ErrorFacade.handle(e);
                 event.consume();
             }
         });
@@ -233,7 +247,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     }
 
     private void resetFieldErrorState() {
-        errorLabel.setText("");
         vehicleComboBox.getStyleClass().remove("input-error");
         datePicker.getStyleClass().remove("input-error");
         startTimeComboBox.getStyleClass().remove("input-error");
