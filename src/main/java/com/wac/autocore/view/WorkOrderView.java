@@ -267,48 +267,6 @@ public class WorkOrderView extends BaseView {
         );
     }
 
-    // Dialogen låter användaren välja typ (planerad, drop-in eller reklamation) och skapa arbetsordern
-    private void openCreateWorkOrderDialog() {
-        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
-                workOrderService.findBookableBookings(),
-                bookingService.listAll(),
-                workOrderService.findCompletedWorkOrders(),
-                serviceItemService.listAll(),
-                workOrderService,
-                customerService,
-                vehicleService
-        );
-
-        dialog.showAndWait().ifPresent(result -> {
-            try {
-                switch (result.getType()) {
-                    case PLANNED:
-                        workOrderService.createWorkOrder(result.getBooking().getId());
-                        break;
-                    case DROP_IN:
-                        workOrderService.createDropIn(
-                                result.getVehicle().getId(),
-                                result.getProblemDescription(),
-                                result.getServiceItemIds()
-                        );
-                        break;
-                    case WARRANTY:
-                        workOrderService.createWarranty(
-                                result.getOriginalWorkOrder().getId(),
-                                result.getProblemDescription()
-                        );
-                        break;
-                    default:
-                        throw new IllegalStateException("Unknown work order type: " + result.getType());
-                }
-                refreshData();
-                AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-            }
-        });
-    }
-
     private HBox createButtonBar() {
         String btnPrimary = "btn-primary";
 
@@ -417,30 +375,34 @@ public class WorkOrderView extends BaseView {
         }
     }
 
+    // Dialogen låter användaren välja typ (planerad, drop-in eller reklamation) och skapa arbetsordern
+    private void openCreateWorkOrderDialog() {
+        CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
+                workOrderService.findBookableBookings(),
+                bookingService.listAll(),
+                workOrderService.findCompletedWorkOrders(),
+                serviceItemService.listAll(),
+                workOrderService,
+                customerService,
+                vehicleService
+        );
+
+        dialog.showAndWait().ifPresent(result -> {
+            refreshData();
+            AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
+        });
+    }
+
     private void openEditWorkOrderDialog() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
 
         if (selected == null) return;
 
-        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, serviceItemService.listAll(), mechanicService.listAll());
+        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, serviceItemService.listAll(), mechanicService.listAll(), workOrderService);
 
         dialog.showAndWait().ifPresent(result -> {
-            try {
-                workOrderService.updateWorkOrder(
-                        selected.getId(),
-                        result.getServiceItemIds(),
-                        result.getMechanic() == null ? null : result.getMechanic().getId(),
-                        result.getPlannedDate(),
-                        result.getCustomerInstructions(),
-                        result.getComments(),
-                        result.getChargeFlags()
-                );
                 refreshAfterAction(selected.getId());
                 AlertHelper.showInfo(lang.get("workOrder.updated"), lang.get("workOrder.updatedMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-                refreshAfterAction(selected.getId());
-            }
         });
     }
 }

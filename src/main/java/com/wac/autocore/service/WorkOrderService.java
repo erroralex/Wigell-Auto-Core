@@ -207,8 +207,9 @@ public class WorkOrderService {
     }
 
     public void updateWorkOrder(@Positive int id,
+                                @NotEmpty(message = "error.serviceSelect")
                                 List<@NotNull @Positive Integer> serviceItemIds,
-                                @Positive Integer mechanicId,
+                                @NotNull @Positive Integer mechanicId,
                                 LocalDate plannedDate,
                                 String customerInstructions,
                                 String comments,

@@ -4,22 +4,26 @@ import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderItem;
+import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ErrorFacade;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
+
+    private final WorkOrderService workOrderService;
 
     private final WorkOrder workOrder;
     private final ServiceSelectorBox serviceSelectorBox;
@@ -34,8 +38,10 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
-    public EditWorkOrderDialog(WorkOrder workOrder, List<ServiceItem> serviceItems, List<Mechanic> mechanics) {
+    public EditWorkOrderDialog(WorkOrder workOrder, List<ServiceItem> serviceItems, List<Mechanic> mechanics,
+                               WorkOrderService workOrderService) {
         this.workOrder = workOrder;
+        this.workOrderService= workOrderService;
 
         serviceSelectorBox = new ServiceSelectorBox(serviceItems);
 
@@ -62,27 +68,37 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
         }
         buildContent();
 
-        Button btnSave = (Button) getDialogPane().lookupButton(saveButtonType);
-        btnSave.disableProperty().bind(serviceSelectorBox.emptyProperty());
+        handleSaveButton();
+    }
 
-        setResultConverter(buttonType -> {
-            if (buttonType != saveButtonType) {
-                return null;
-            }
+    private void handleSaveButton() {
+        Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
 
+        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             Map<Integer, Boolean> flags = new HashMap<>();
-            chargeBoxes.forEach((id, cb) -> flags.put(id, cb.isSelected()));
+            chargeBoxes.forEach((id, checkBox) -> flags.put(id, checkBox.isSelected()));
 
-            return new Result(
-                    serviceSelectorBox.getSelectedServiceIds(),
-                    mechanicComboBox.getValue(),
-                    plannedDatePicker.getValue(),
-                    customerInstructionsArea.getText(),
-                    commentsArea.getText(),
-                    flags
-            );
+            try {
+                Mechanic mechanic = mechanicComboBox.getValue();
+
+                workOrderService.updateWorkOrder(
+                        workOrder.getId(),
+                        serviceSelectorBox.getSelectedServiceIds(),
+                        mechanic == null ? null : mechanic.getId(),
+                        plannedDatePicker.getValue(),
+                        customerInstructionsArea.getText(),
+                        commentsArea.getText(),
+                        flags
+                );
+            } catch (RuntimeException e){
+                ErrorFacade.handle(e);
+                event.consume();
+            }
         });
 
+
+        setResultConverter(buttonType ->
+                buttonType == saveButtonType ? new Result() : null);
     }
 
     private void setupFields(List<Mechanic> mechanics) {
@@ -156,48 +172,8 @@ public class EditWorkOrderDialog extends Dialog<EditWorkOrderDialog.Result> {
 
     public static class Result {
 
-        private final List<Integer> serviceItemIds;
-        private final Mechanic mechanic;
-        private final LocalDate plannedDate;
-        private final String customerInstructions;
-        private final String comments;
+        private Result() {
 
-        private final Map<Integer, Boolean> chargeFlags;
-
-        public Result(List<Integer> serviceItemIds, Mechanic mechanic,
-                      LocalDate plannedDate,
-                      String customerInstructions, String comments,
-                      Map<Integer, Boolean> chargeFlags) {
-            this.serviceItemIds = serviceItemIds;
-            this.mechanic = mechanic;
-            this.plannedDate = plannedDate;
-            this.customerInstructions = customerInstructions;
-            this.comments = comments;
-            this.chargeFlags = chargeFlags;
-        }
-
-        public List<Integer> getServiceItemIds() {
-            return serviceItemIds;
-        }
-
-        public Mechanic getMechanic() {
-            return mechanic;
-        }
-
-        public LocalDate getPlannedDate() {
-            return plannedDate;
-        }
-
-        public String getCustomerInstructions() {
-            return customerInstructions;
-        }
-
-        public String getComments() {
-            return comments;
-        }
-
-        public Map<Integer, Boolean> getChargeFlags() {
-            return chargeFlags;
         }
     }
 
