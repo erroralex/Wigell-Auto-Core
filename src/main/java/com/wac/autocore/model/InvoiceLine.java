@@ -35,7 +35,7 @@ public class InvoiceLine {
         this.invoice = invoice;
         this.serviceItemName = serviceItemName;
 
-        if (amount.isPositive()) {
+        if (amount.isNegative()) {
             throw new ValidationException("error.invoiceNegativeAmount");
         }
 

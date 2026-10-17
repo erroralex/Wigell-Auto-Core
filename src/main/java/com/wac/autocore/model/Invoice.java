@@ -87,7 +87,7 @@ public class Invoice {
 
     public void markPaid() {
         if (this.paid) {
-            throw new ValidationException("error.invoiceAlreadyPaid");
+            throw new ValidationException("error.invoiceAlreadyPaid", String.valueOf(this.id));
         }
         this.paid = true;
     }
