@@ -79,25 +79,8 @@ public class InvoiceService {
             if (customer.isVip())
                 discount = discount.add(new VipDiscount().calculateDiscount(amount));
 
-            discount = discount.min(amount);
-            Money total = amount.subtract(discount);
-
-            invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount, total));
+            invoice.addLine(workOrderItem.getServiceName(), amount, discount);
         }
-
-        Money amountSum = Money.ZERO;
-        Money discountSum = Money.ZERO;
-        Money totalSum = Money.ZERO;
-
-        for (InvoiceLine invoiceLine : invoice.getLines()) {
-            amountSum = amountSum.add(invoiceLine.getAmount());
-            discountSum = discountSum.add(invoiceLine.getDiscount());
-            totalSum = totalSum.add(invoiceLine.getTotal());
-        }
-
-        invoice.setAmount(amountSum);
-        invoice.setDiscount(discountSum);
-        invoice.setTotalAmount(totalSum);
 
         return invoiceRepo.save(invoice);
     }

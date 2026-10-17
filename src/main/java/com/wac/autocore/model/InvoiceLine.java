@@ -1,6 +1,7 @@
 package com.wac.autocore.model;
 
 import com.wac.autocore.data.MoneyConverter;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
@@ -30,59 +31,40 @@ public class InvoiceLine {
 
     protected InvoiceLine() {}
 
-    public InvoiceLine(Invoice invoice, String serviceItemName, Money amount, Money discount, Money total) {
+    InvoiceLine(Invoice invoice, String serviceItemName, Money amount, Money discount) {
         this.invoice = invoice;
         this.serviceItemName = serviceItemName;
+
+        if (amount.isNegative()) {
+            throw new ValidationException("error.invoiceNegativeAmount");
+        }
+
         this.amount = amount;
-        this.discount = discount;
-        this.total = total;
+        this.discount = discount.min(amount);
+        this.total = this.amount.subtract(this.discount);
     }
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public Invoice getInvoice() {
         return invoice;
-    }
-
-    public void setInvoice(Invoice invoice) {
-        this.invoice = invoice;
     }
 
     public String getServiceItemName() {
         return serviceItemName;
     }
 
-    public void setServiceItemName(String serviceItemName) {
-        this.serviceItemName = serviceItemName;
-    }
-
     public Money getAmount() {
         return amount;
-    }
-
-    public void setAmount(Money amount) {
-        this.amount = amount;
     }
 
     public Money getDiscount() {
         return discount;
     }
 
-    public void setDiscount(Money discount) {
-        this.discount = discount;
-    }
-
     public Money getTotal() {
         return this.total;
-    }
-
-    public void setTotal(Money total) {
-        this.total = total;
     }
 }
