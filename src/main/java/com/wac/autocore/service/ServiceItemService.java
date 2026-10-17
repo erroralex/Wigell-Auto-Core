@@ -1,7 +1,6 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
-import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -27,15 +26,10 @@ public class ServiceItemService {
     }
 
     @Transactional
-    public ServiceItem updatePrice(@Positive int id,
-                                   Money newPrice) {
-        if (newPrice == null || !newPrice.isPositive()) {
-            throw new ValidationException("error.serviceItem.invalidPrice");
-        }
-
+    public ServiceItem updatePrice(@Positive int id, Money newPrice) {
         ServiceItem item = serviceItemRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceItem.notFound"));
-        item.setPrice(newPrice);
+        item.changePrice(newPrice);
         return serviceItemRepo.save(item);
     }
 

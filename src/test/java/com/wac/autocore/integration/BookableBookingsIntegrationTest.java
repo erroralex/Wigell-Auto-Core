@@ -5,6 +5,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.repository.BookingRepository;
+import com.wac.autocore.service.BookingService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -17,16 +18,19 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * <b>BookableBookingsIntegrationTest</b>
  * <p>Ansvar: Bevisar att {@link BookingRepository#findBookable(BookingStatus, WorkOrderStatus)}mot en riktig SQLite-fil
- * returnerar bokningar som är {@code BOOKED} och som inte har någon aktiv arbetsorder.</p>
+ * returnerar bokningar som är {@code BOOKED} och som inte har någon aktiv arbetsorder, och att fordonskontrollen
+ * och listningen av aktiva bokningar i {@link BookingService} ignorerar avbokade bokningar.</p>
  * <p>Rader skrivs med SQL och inte via servicen, så att testet efterliknar data som redan
  * fanns i databasen och inte bara går tur och retur genom den egna koden.</p>
  */
@@ -34,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @DirtiesContext
 class BookableBookingsIntegrationTest {
+
+    private static final LocalDate BOOKING_DATE = LocalDate.of(2026, 11, 3);
 
     @TempDir
     static Path tempDir;
@@ -48,6 +54,8 @@ class BookableBookingsIntegrationTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private BookingRepository bookingRepository;
+    @Autowired
+    private BookingService bookingService;
 
     @Test
     @DisplayName("BOOKED booking without any work order is bookable")
@@ -95,11 +103,56 @@ class BookableBookingsIntegrationTest {
                 "BOOKED booking with cancelled work order should be bookable, got ids " + ids);
     }
 
-    private List<Integer> findBookableIds() {
-        return bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED)
-                .stream()
+    // ----- Avbokade bokningar -----
+
+    @Test
+    @DisplayName("Cancelled booking does not block its vehicle, an active booking does")
+    void cancelledBookingDoesNotBlockVehicle() {
+        int cancelledId = insertBooking(BookingStatus.CANCELLED);
+        int cancelledVehicle = vehicleOf(cancelledId);
+        int activeId = insertBooking(BookingStatus.BOOKED);
+        int activeVehicle = vehicleOf(activeId);
+
+        assertFalse(bookingService.isVehicleBooked(cancelledVehicle, BOOKING_DATE));
+        assertFalse(bookingRepository.existsByVehicleIdAndDateAndIdNotAndStatusNot(
+                cancelledVehicle, BOOKING_DATE, 0, BookingStatus.CANCELLED));
+        assertTrue(bookingService.isVehicleBooked(activeVehicle, BOOKING_DATE));
+        assertTrue(bookingRepository.existsByVehicleIdAndDateAndIdNotAndStatusNot(
+                activeVehicle, BOOKING_DATE, 0, BookingStatus.CANCELLED));
+        assertFalse(bookingRepository.existsByVehicleIdAndDateAndIdNotAndStatusNot(
+                activeVehicle, BOOKING_DATE, activeId, BookingStatus.CANCELLED),
+                "The booking itself should be excluded when it is updated");
+    }
+
+    @Test
+    @DisplayName("listActive hides cancelled bookings, listAll shows them")
+    void listActiveHidesCancelledBookings() {
+        int cancelledId = insertBooking(BookingStatus.CANCELLED);
+        int activeId = insertBooking(BookingStatus.BOOKED);
+
+        List<Integer> ids = idsOf(bookingService.listActive());
+        List<Integer> allIds = idsOf(bookingService.listAll());
+
+        assertTrue(ids.contains(activeId), "Active booking should be listed, got ids " + ids);
+        assertFalse(ids.contains(cancelledId), "Cancelled booking should be hidden, got ids " + ids);
+        assertTrue(allIds.contains(cancelledId), "listAll should include cancelled bookings, got ids " + allIds);
+    }
+
+    private static List<Integer> idsOf(List<Booking> bookings) {
+        return bookings.stream()
                 .map(Booking::getId)
                 .collect(Collectors.toList());
+    }
+
+    private int vehicleOf(int bookingId) {
+        Integer vehicleId = jdbcTemplate.queryForObject(
+                "SELECT vehicle_id FROM booking WHERE id = ?", Integer.class, bookingId);
+        assertNotNull(vehicleId);
+        return vehicleId;
+    }
+
+    private List<Integer> findBookableIds() {
+        return idsOf(bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED));
     }
 
     /* Skapar en bokning direkt i tabellen. vehicle_id och mechanic_id är NOT NULL,
@@ -112,7 +165,7 @@ class BookableBookingsIntegrationTest {
         jdbcTemplate.update(
                 "INSERT INTO booking (vehicle_id, mechanic_id, date, start_time, end_time, description, status) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                vehicleId, mechanicId, "2026-11-03", "08:00", "09:00", "Test booking", status.name());
+                vehicleId, mechanicId, BOOKING_DATE.toString(), "08:00", "09:00", "Test booking", status.name());
         Integer id = jdbcTemplate.queryForObject("SELECT MAX(id) FROM booking", Integer.class);
         assertNotNull(id, "Insert should have produced a booking id");
         return id;

@@ -11,12 +11,13 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-public class AdminServiceItemDialog extends Dialog<Money> {
+public class AdminServiceItemDialog extends Dialog<ServiceItem> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final ServiceItemService serviceItemService;
     private final ServiceItem serviceItem;
+    private ServiceItem savedItem;
 
     private final TextField priceTextField = new TextField();
     private final Label errorLabel = new Label();
@@ -69,26 +70,23 @@ public class AdminServiceItemDialog extends Dialog<Money> {
 
             try {
                 Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
-
-                if (!newPrice.isPositive()) {
-                    rejectPrice(event);
-                }
+                savedItem = serviceItemService.updatePrice(serviceItem.getId(), newPrice);
             } catch (ValidationException e) {
-               rejectPrice(event);
+                rejectPrice(event, e.getMessageKey());
             }
         });
 
         setResultConverter(buttonType -> {
             if (buttonType == saveButtonType) {
-                return DialogUtil.parseMoney(priceTextField.getText());
+                return savedItem;
             }
             return null;
         });
     }
 
     // Visar felmeddelandet och hindrar dialogen från att stängas
-    private void rejectPrice(ActionEvent event) {
-        errorLabel.setText(lang.get("error.serviceItem.invalidPrice"));
+    private void rejectPrice(ActionEvent event, String messageKey) {
+        errorLabel.setText(lang.get(messageKey));
         event.consume();
     }
 }

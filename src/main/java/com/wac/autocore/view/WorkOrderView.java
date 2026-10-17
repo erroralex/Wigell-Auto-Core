@@ -23,7 +23,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.IntConsumer;
 
@@ -133,17 +135,9 @@ public class WorkOrderView extends BaseView {
 
         // Regnummer räcker för att känna igen bilen vid disken
         TableColumn<WorkOrder, String> vehicleCol = new TableColumn<>(lang.get("table.vehicle"));
-        vehicleCol.setCellValueFactory(c -> {
-            Integer vehicleId = c.getValue().getVehicleId();
-            if (vehicleId == null) {
-                return new SimpleStringProperty(NO_VALUE);
-            }
-            Vehicle vehicle = vehiclesById.get(vehicleId);
-            String display = vehicle != null
-                    ? vehicle.getRegistrationNumber()
-                    : lang.get("common.unknownId", vehicleId);
-            return new SimpleStringProperty(display);
-        });
+        vehicleCol.setCellValueFactory(c ->
+                new SimpleStringProperty(vehicleName(c.getValue().getVehicleId()))
+        );
 
         TableColumn<WorkOrder, String> bookingCol = new TableColumn<>(lang.get("table.bookingTask"));
         bookingCol.setCellValueFactory(c -> {
@@ -159,17 +153,9 @@ public class WorkOrderView extends BaseView {
         });
 
         TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>(lang.get("table.mechanic"));
-        mechanicCol.setCellValueFactory(c -> {
-            Integer mechanicId = c.getValue().getMechanicId();
-            if (mechanicId == null) {
-                return new SimpleStringProperty(NO_VALUE);
-            }
-            Mechanic mechanic = mechanicsById.get(mechanicId);
-            String display = mechanic != null
-                    ? mechanic.getName()
-                    : lang.get("common.unknownId", mechanicId);
-            return new SimpleStringProperty(display);
-        });
+        mechanicCol.setCellValueFactory(c ->
+                new SimpleStringProperty(mechanicName(c.getValue().getMechanicId()))
+        );
 
         // Planerade ordrar saknar beskrivning; radbrytningar visas som mellanslag i tabellen
         TableColumn<WorkOrder, String> problemCol = new TableColumn<>(lang.get("table.problemDescription"));
@@ -280,28 +266,30 @@ public class WorkOrderView extends BaseView {
 
         dialog.showAndWait().ifPresent(result -> {
             try {
+                WorkOrderScheduleResult schedule;
                 switch (result.getType()) {
                     case PLANNED:
-                        workOrderService.createWorkOrder(result.getBooking().getId());
+                        schedule = workOrderService.createWorkOrder(result.getBooking().getId());
                         break;
                     case DROP_IN:
-                        workOrderService.createDropIn(
+                        schedule = WorkOrderScheduleResult.withoutConflicts(workOrderService.createDropIn(
                                 result.getVehicle().getId(),
                                 result.getProblemDescription(),
                                 result.getServiceItemIds()
-                        );
+                        ));
                         break;
                     case WARRANTY:
-                        workOrderService.createWarranty(
+                        schedule = WorkOrderScheduleResult.withoutConflicts(workOrderService.createWarranty(
                                 result.getOriginalWorkOrder().getId(),
                                 result.getProblemDescription()
-                        );
+                        ));
                         break;
                     default:
                         throw new IllegalStateException("Unknown work order type: " + result.getType());
                 }
-                refreshData();
+                refreshAfterAction(schedule.getWorkOrder().getId());
                 AlertHelper.showInfo(lang.get("workOrder.created"), lang.get("workOrder.createdMsg"));
+                warnAboutMechanicConflicts(schedule);
             } catch (RuntimeException e) {
                 ErrorFacade.handle(e);
             }
@@ -333,7 +321,7 @@ public class WorkOrderView extends BaseView {
         btnCancel.setOnAction(e -> cancelSelectedWorkOrder());
 
         btnReopen.getStyleClass().addAll("btn", btnPrimary);
-        btnReopen.setOnAction(e -> runAction(workOrderService::reopenWorkOrder, "workOrder.reopened", "workOrder.reopenedMsg"));
+        btnReopen.setOnAction(e -> reopenSelectedWorkOrder());
 
         HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
         box.setPadding(new Insets(15, 0, 0, 0));
@@ -416,30 +404,130 @@ public class WorkOrderView extends BaseView {
         }
     }
 
+    // En avbruten planerad order blir en ny order från bokningen. Den nya ordern markeras och skillnaderna
+    // mot den avbrutna visas. Övriga ordrar blir utkast, som tidigare.
+    private void reopenSelectedWorkOrder() {
+        WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        try {
+            WorkOrderReopenResult result = workOrderService.reopenWorkOrder(selected.getId());
+            int reopenedId = result.getWorkOrder().getId();
+            refreshAfterAction(reopenedId);
+            if (reopenedId == selected.getId()) {
+                AlertHelper.showInfo(lang.get("workOrder.reopened"), lang.get("workOrder.reopenedMsg"));
+            } else {
+                AlertHelper.showInfo(lang.get("workOrder.recreated"), recreatedMessage(reopenedId, result.getChanges()));
+            }
+            warnAboutMechanicConflicts(result.getSchedule());
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+            refreshAfterAction(selected.getId());
+        }
+    }
+
+    private String recreatedMessage(int workOrderId, List<WorkOrderChange> changes) {
+        StringBuilder sb = new StringBuilder(lang.get("workOrder.recreatedMsg", workOrderId));
+        if (!changes.isEmpty()) {
+            sb.append("\n\n").append(lang.get("workOrder.changesSinceCancelled"));
+            for (WorkOrderChange change : changes) {
+                sb.append("\n• ").append(describe(change));
+            }
+        }
+        return sb.toString();
+    }
+
+    // Texten per ändringstyp finns i språkfilerna som workOrder.change.<typ>
+    private String describe(WorkOrderChange change) {
+        String key = "workOrder.change." + change.getType().name();
+        switch (change.getType()) {
+            case VEHICLE_CHANGED:
+                return lang.get(key, vehicleName(change.getPreviousId()), vehicleName(change.getCurrentId()));
+            case MECHANIC_CHANGED:
+                return lang.get(key, mechanicName(change.getPreviousId()), mechanicName(change.getCurrentId()));
+            case DATE_CHANGED:
+                return lang.get(key, orNoValue(change.getPreviousDate()), orNoValue(change.getCurrentDate()));
+            case START_TIME_CHANGED:
+                return lang.get(key, orNoValue(change.getPreviousStartTime()), orNoValue(change.getCurrentStartTime()));
+            case PRICE_CHANGED:
+                return lang.get(key, change.getServiceName(),
+                        change.getPreviousItem().getAgreedPrice(), change.getCurrentItem().getAgreedPrice());
+            case DURATION_CHANGED:
+                return lang.get(key, change.getServiceName(),
+                        change.getPreviousItem().getDurationMinutes(), change.getCurrentItem().getDurationMinutes());
+            default:
+                return lang.get(key, change.getServiceName());
+        }
+    }
+
+    // ISO-format (2026-11-02, 08:00) som i resten av vyn. Ett saknat värde visas som NO_VALUE.
+    private static String orNoValue(Object value) {
+        return value == null ? NO_VALUE : value.toString();
+    }
+
+    private String vehicleName(Integer vehicleId) {
+        if (vehicleId == null) {
+            return NO_VALUE;
+        }
+        Vehicle vehicle = vehiclesById.get(vehicleId);
+        return vehicle != null ? vehicle.getRegistrationNumber() : lang.get("common.unknownId", vehicleId);
+    }
+
+    private String mechanicName(Integer mechanicId) {
+        if (mechanicId == null) {
+            return NO_VALUE;
+        }
+        Mechanic mechanic = mechanicsById.get(mechanicId);
+        return mechanic != null ? mechanic.getName() : lang.get("common.unknownId", mechanicId);
+    }
+
     private void openEditWorkOrderDialog() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
 
         if (selected == null) return;
 
-        EditWorkOrderDialog dialog = new EditWorkOrderDialog(selected, serviceItemService.listAll(), mechanicService.listAll());
+        openEditWorkOrderDialog(selected, selected.getPlannedStartTime());
+    }
 
-        dialog.showAndWait().ifPresent(result -> {
-            try {
-                workOrderService.updateWorkOrder(
-                        selected.getId(),
-                        result.getServiceItemIds(),
-                        result.getMechanic() == null ? null : result.getMechanic().getId(),
-                        result.getPlannedDate(),
-                        result.getCustomerInstructions(),
-                        result.getComments(),
-                        result.getChargeFlags()
-                );
-                refreshAfterAction(selected.getId());
-                AlertHelper.showInfo(lang.get("workOrder.updated"), lang.get("workOrder.updatedMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-                refreshAfterAction(selected.getId());
-            }
+    // Dialogen sparar själv och visar fel (t.ex. krock på en bekräftad order) utan att stängas.
+    // Ett sparat utkast kan ändå krocka, och då visas varningen här.
+    private void openEditWorkOrderDialog(WorkOrder workOrder, LocalTime startTime) {
+        EditWorkOrderDialog dialog = new EditWorkOrderDialog(
+                workOrder, serviceItemService.listAll(), mechanicService.listAll(), workOrderService, startTime);
+
+        dialog.showAndWait().ifPresent(schedule -> {
+            refreshAfterAction(workOrder.getId());
+            AlertHelper.showInfo(lang.get("workOrder.updated"), lang.get("workOrder.updatedMsg"));
+            warnAboutMechanicConflicts(schedule);
         });
+    }
+
+    // Gemensam varning för skapande, redigering och återöppning. Ordern är redan sparad som utkast;
+    // användaren väljer att ändra mekaniker/tid (dialogen öppnas med föreslagen tid) eller att behålla den.
+    private void warnAboutMechanicConflicts(WorkOrderScheduleResult schedule) {
+        if (schedule.getMechanicConflicts().isEmpty()) {
+            return;
+        }
+
+        WorkOrder workOrder = schedule.getWorkOrder();
+        StringBuilder sb = new StringBuilder(lang.get("workOrder.conflict.msg",
+                mechanicName(workOrder.getMechanicId()), workOrder.getPlannedDate()));
+        for (WorkOrder conflict : schedule.getMechanicConflicts()) {
+            sb.append("\n• ").append(lang.get("workOrder.conflict.item",
+                    String.valueOf(conflict.getId()), conflict.getPlannedStartTime(), conflict.getPlannedEndTime()));
+        }
+        sb.append("\n\n").append(schedule.getSuggestedStartTime()
+                .map(time -> lang.get("workOrder.conflict.suggestion", time))
+                .orElse(lang.get("workOrder.conflict.noSuggestion")));
+        sb.append("\n\n").append(lang.get("workOrder.conflict.draftSaved"));
+
+        boolean change = AlertHelper.showWarningChoice(lang.get("workOrder.conflict.title"), sb.toString(),
+                lang.get("btn.changeMechanicOrTime"), lang.get("btn.keep"));
+        if (change) {
+            openEditWorkOrderDialog(workOrder,
+                    schedule.getSuggestedStartTime().orElse(workOrder.getPlannedStartTime()));
+        }
     }
 }

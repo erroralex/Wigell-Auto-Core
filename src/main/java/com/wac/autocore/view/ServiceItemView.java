@@ -115,13 +115,7 @@ public class ServiceItemView extends BaseView {
         AdminServiceItemDialog dialog =
                 new AdminServiceItemDialog(serviceItemService, selected);
 
-        dialog.showAndWait().ifPresent(newPrice -> {
-
-            serviceItemService.updatePrice(
-                    selected.getId(),
-                    newPrice
-            );
-            serviceItemList.setAll(serviceItemService.listAll());
-        });
+        dialog.showAndWait().ifPresent(saved ->
+                serviceItemList.setAll(serviceItemService.listAll()));
     }
 }

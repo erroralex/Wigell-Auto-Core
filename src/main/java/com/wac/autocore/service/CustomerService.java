@@ -44,9 +44,7 @@ public class CustomerService {
     }
 
     public Customer update(@NotNull @Valid Customer customer) {
-        if (customer == null || customer.getId() <= 0 || !customerRepo.existsById(customer.getId())) {
-            throw new EntityNotFoundException("Customer", customer == null ? null : customer.getId());
-        }
+        requireExists(customer.getId());
 
         customer.setName(customer.getName().trim());
         customer.setPhone(customer.getPhone().trim());
@@ -56,9 +54,16 @@ public class CustomerService {
     }
 
     public void deleteById(Integer id) {
+        requireExists(id);
         customerRepo.deleteById(id);
     }
-    
+
+    private void requireExists(int id) {
+        if (!customerRepo.existsById(id)) {
+            throw new EntityNotFoundException("Customer", id);
+        }
+    }
+
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim();
     }

@@ -63,6 +63,20 @@ public class AlertHelper {
         return result.isPresent() && result.get().getButtonData() == ButtonBar.ButtonData.OK_DONE;
     }
 
+    // Visar en varning med två egna val och returnerar true om användaren valde det första
+    public static boolean showWarningChoice(String title, String message, String acceptText, String declineText) {
+        ButtonType accept = new ButtonType(acceptText, ButtonBar.ButtonData.OK_DONE);
+        ButtonType decline = new ButtonType(declineText, ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert alert = new Alert(Alert.AlertType.WARNING, "", accept, decline);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        DialogUtil.applyTheme(alert);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == accept;
+    }
+
     // Visar ett felmeddelande med utfällbar stack trace, för oväntade fel
     public static void showException(String title, String message, Exception e) {
         Alert alert = new Alert(Alert.AlertType.ERROR, "", okButton());

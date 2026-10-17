@@ -69,7 +69,8 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
         Mechanic mechanic = mechanicMap.get(booking.getMechanicId());
 
         String regNumber = vehicle != null ? vehicle.getRegistrationNumber() : "?";
-        String mechanicName = mechanic != null ? mechanic.getName() : "?";
+        String mechanicName = booking.getMechanicId() == null ? "-"
+                : mechanic != null ? mechanic.getName() : "?";
 
         String info = regNumber + " | " + mechanicName + " | " +
                 booking.getDate() + " " +

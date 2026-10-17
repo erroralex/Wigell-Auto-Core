@@ -345,7 +345,7 @@ class HistoricalPricingIntegrationTest {
             // Icke-VIP-kund, så att ingen VIP-rabatt påverkar fakturans belopp
             Customer customer = ctx.getBean(CustomerRepo.class).save(
                     new Customer("Test Kund", "070-0000000", "test@example.se"));
-            // Egen mekaniker per scenario, så att överlappskontrollen aldrig slår till
+            // Egen mekaniker per scenario, så att krockkontrollen vid bekräftelsen aldrig slår till
             Mechanic mechanic = ctx.getBean(MechanicRepository.class).save(
                     new Mechanic("Test Mekaniker", "070-0000001", "General service"));
             Vehicle vehicle = ctx.getBean(VehicleRepo.class).save(new Vehicle(
@@ -355,10 +355,11 @@ class HistoricalPricingIntegrationTest {
                     vehicle.getId(), mechanic.getId(), BOOKING_DATE, LocalTime.of(8, 0),
                     "Prisrevision", new ArrayList<>(ids.values()));
 
-            // Arbetsordern går hela vägen till COMPLETED, som en riktig fakturerbar order
-            WorkOrder workOrder = workOrders.createWorkOrder(booking.getId());
-            int workOrderId = workOrder.getId();
+            // Arbetsordern går hela vägen till COMPLETED, som en riktig fakturerbar order.
+            // Den skapas som utkast med bokningens föreslagna mekaniker och måste bekräftas före start.
+            int workOrderId = workOrders.createWorkOrder(booking.getId()).getWorkOrder().getId();
 
+            workOrders.confirmWorkOrder(workOrderId);
             workOrders.startWorkOrder(workOrderId);
             workOrders.completeWorkOrder(workOrderId);
 

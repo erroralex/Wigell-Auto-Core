@@ -1,10 +1,14 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
-import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.*;
-import com.wac.autocore.model.value.Money;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.BookingServiceItem;
+import com.wac.autocore.model.BookingStatus;
+import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -14,14 +18,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+// Samordnar bokningar. Servicen laddar data, anropar domänen och kontrollerar
+// regler som kräver andra bokningar (fordonet bokat samma dag; avbokade bokningar räknas inte).
+// Regler som bara rör en bokning ligger i {@link Booking}.
+// Mekanikern på en bokning är ett valfritt förslag och krockkontrolleras inte här;
+// mekanikern reserveras först på arbetsordern (se WorkOrderService).
 @Validated
 @Service
 public class BookingService {
@@ -45,234 +55,173 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
+    // Alla bokningar utom avbokade.
+    public List<Booking> listActive() {
+        return bookingRepository.findByStatusNot(BookingStatus.CANCELLED);
+    }
+
 
     public Optional<Booking> findById(int id) {
         return bookingRepository.findById(id);
     }
 
-
-    public List<Booking> findByMechanic(int mechanicId) {
-        return bookingRepository.findByMechanicId(mechanicId);
-    }
-
     @Transactional
     public Booking create(@Positive int vehicleId,
-                          @Positive int mechanicId,
-                          @NotNull(message = "error.dateSelect") LocalDate date,
-                          @NotNull(message = "error.startTimeSelect") LocalTime startTime,
-                          @NotBlank(message="error.desc") String description,
-                          @NotEmpty(message= "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
+                          @Positive Integer mechanicId,
+                          LocalDate date,
+                          LocalTime startTime,
+                          @NotBlank(message = "error.desc") String description,
+                          List<@NotNull @Positive Integer> serviceItemIds) {
+        Vehicle vehicle = requireVehicle(vehicleId);
+        requireSuggestedMechanic(mechanicId);
 
-        validateVehicleAndMechanic(vehicleId, mechanicId);
+        Booking booking = new Booking(vehicleId, mechanicId, date, startTime, description,
+                serviceItemRepository.requireAllById(serviceItemIds));
 
-        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(serviceItemIds);
-
-        int totalDuration = serviceItems.stream()
-                .mapToInt(ServiceItem::getEstimatedMinutes)
-                .sum();
-        LocalTime endTime = startTime.plusMinutes(totalDuration);
-
-        checkVehicleAvailable(vehicleId, date, null); //null bookingId eftersom bokningen inte är skapad.
-        // Använder den nya metoden för att kontrollera överlappning av mekanikerbokningar
-        checkMechanicOverlap(mechanicId, date, startTime, endTime, null);
-
-        Booking booking = new Booking(
-                vehicleId, mechanicId, date, startTime, endTime, description
-        );
-
-        serviceItems.forEach(booking::addServiceItem);
-
+        checkVehicleAvailable(booking, vehicle);
         return bookingRepository.save(booking);
     }
 
-    // Skapar en ny bokning från en tidigare med dagens tjänstepriser, utan att ändra originalet.
-    // Återanvänder originalets mekaniker om mechanicId är null och kontrollerar dubbelbokning före sparandet.
+    // Skapar en ny bokning med data från en tidigare bokning.
+    // Om mekaniker, fordon, beskrivning eller tjänster inte anges ärvs de från den tidigare bokningen.
     @Transactional
     public BookingCopyResult createFromPrevious(int previousBookingId,
-                                                @NotNull(message = "error.dateSelect") LocalDate date,
-                                                @NotNull(message = "error.startTimeSelect") LocalTime startTime,
+                                                LocalDate date,
+                                                LocalTime startTime,
                                                 @Positive Integer mechanicId,
                                                 @Positive Integer vehicleId,
                                                 String description,
                                                 List<@NotNull @Positive Integer> serviceItemIds) {
-        Booking previous = findById(previousBookingId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Booking", previousBookingId, "error.bookingNotFound"
-                ));
+        Booking previous = requireBooking(previousBookingId);
 
-        if (previous.getItems().isEmpty()) {
-            throw new ValidationException("error.serviceSelect");
+        int selectedVehicleId = vehicleId != null ? vehicleId : previous.getVehicleId();
+        Integer selectedMechanicId = mechanicId != null ? mechanicId : previous.getMechanicId();
+        Vehicle vehicle = requireVehicle(selectedVehicleId);
+        requireSuggestedMechanic(selectedMechanicId);
+
+        boolean inheritsServices = serviceItemIds == null || serviceItemIds.isEmpty();
+        boolean pureCopy = inheritsServices && vehicleId == null && mechanicId == null && description == null;
+
+        Booking copy;
+        if (pureCopy) {
+            copy = previous.copyAsNew(date, startTime, serviceItemRepository.findAll());
+        } else {
+            List<Integer> chosenIds = inheritsServices ? serviceItemIdsOf(previous) : serviceItemIds;
+            copy = new Booking(selectedVehicleId, selectedMechanicId, date, startTime,
+                    description != null ? description : previous.getDescription(),
+                    serviceItemRepository.requireAllById(chosenIds));
         }
 
-        int selectedMechanicId = mechanicId == null
-                ? previous.getMechanicId()
-                : mechanicId;
-        if (!mechanicRepository.existsById(selectedMechanicId)) {
-            throw new EntityNotFoundException("Mechanic", selectedMechanicId);
-        }
-
-        BookingPrototype prototype = previous;
-        Booking copy = prototype.copyAsNew(date, startTime);
-        copy.setMechanicId(selectedMechanicId);
-
-        if (vehicleId != null) copy.setVehicleId(vehicleId);
-        if (description != null) copy.setDescription(description);
-
-        if (copy.getDescription() == null || copy.getDescription().trim().isEmpty()) {
-            throw new ValidationException("error.desc");
-        }
-
-        List<Integer> wantedIds = (serviceItemIds == null || serviceItemIds.isEmpty())
-                ? previous.getItems().stream()
-                .map(BookingServiceItem::getServiceItemId)
-                .collect(Collectors.toList()) : serviceItemIds.stream().distinct().collect(Collectors.toList());
-
-        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(wantedIds);
-
-        Map<Integer, Money> oldPrices = previous.getItems().stream()
-                .collect(Collectors.toMap(
-                        BookingServiceItem::getServiceItemId,
-                        BookingServiceItem::getPriceAtBooking,
-                        (a, b) -> a));
-
-        List<BookingPriceChange> priceChanges = new ArrayList<>();
-        copy.getItems().clear();
-
-        for (ServiceItem serviceItem : serviceItems) {
-            Money oldPrice = oldPrices.get(serviceItem.getId());
-            if (oldPrice != null && oldPrice.compareTo(serviceItem.getPrice()) != 0) {
-                priceChanges.add(new BookingPriceChange(
-                        serviceItem.getId(),
-                        serviceItem.getName(),
-                        oldPrice,
-                        serviceItem.getPrice()));
-            }
-
-            copy.addServiceItem(serviceItem);
-        }
-
-        validateVehicleAndMechanic(copy.getVehicleId(), selectedMechanicId);
-
-        copy.setEndTime(startTime.plusMinutes(copy.getTotalDurationMinutes()));
-
-        checkVehicleAvailable(copy.getVehicleId(), date, null);
-        checkMechanicOverlap(
-                selectedMechanicId, date, startTime, copy.getEndTime(), null
-        );
+        checkVehicleAvailable(copy, vehicle);
 
         Booking savedBooking = bookingRepository.save(copy);
+
+        List<Integer> bookedIds = serviceItemIdsOf(copy);
+        List<BookingPriceChange> priceChanges = priceChanges(previous).stream()
+                .filter(change -> bookedIds.contains(change.getServiceItemId()))
+                .collect(Collectors.toList());
+
         return new BookingCopyResult(savedBooking, priceChanges);
     }
 
     @Transactional
-    public Booking update(int bookingId, int vehicleId, int mechanicId,
-                          @NotNull(message = "error.dateSelect") LocalDate date,
-                          @NotNull(message = "error.startTimeSelect") LocalTime startTime,
-                          @NotBlank(message="error.desc") String description,
-                          @NotEmpty(message = "error.serviceSelect") List<@NotNull @Positive Integer> serviceItemIds) {
+    public Booking update(int bookingId, int vehicleId, @Positive Integer mechanicId,
+                          LocalDate date,
+                          LocalTime startTime,
+                          @NotBlank(message = "error.desc") String description,
+                          List<@NotNull @Positive Integer> serviceItemIds) {
+        Booking booking = requireBooking(bookingId);
+        Vehicle vehicle = requireVehicle(vehicleId);
+        requireSuggestedMechanic(mechanicId);
 
-        Booking booking = findById(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId, "error.bookingNotFound"));
+        booking.update(vehicleId, mechanicId, date, startTime, description,
+                serviceItemRepository.requireAllById(serviceItemIds));
 
-        if (!BookingStatus.BOOKED.equals(booking.getStatus())) {
-            throw new ValidationException("error.bookingStarted");
-        }
-
-        validateVehicleAndMechanic(vehicleId, mechanicId);
-
-        List<ServiceItem> serviceItems = fetchValidServiceItemsByIds(serviceItemIds);
-
-        int totalDuration = serviceItems.stream()
-                .mapToInt(ServiceItem::getEstimatedMinutes)
-                .sum();
-        LocalTime endTime = startTime.plusMinutes(totalDuration);
-
-        checkVehicleAvailable(vehicleId, date, bookingId);
-
-        // Använder den nya metoden för att kontrollera överlappning av mekanikerbokningar,
-        // exkluderar den aktuella bokningen från kontrollen med excludedBookingId
-        checkMechanicOverlap(mechanicId, date, startTime, endTime, bookingId);
-
-        booking.setVehicleId(vehicleId);
-        booking.setMechanicId(mechanicId);
-        booking.setDate(date);
-        booking.setStartTime(startTime);
-        booking.setEndTime(endTime);
-        booking.setDescription(description);
-
-        List<Integer> oldServiceItemIds = booking.getItems().stream()
-                .map(BookingServiceItem::getServiceItemId)
-                .collect(Collectors.toList());
-
-
-        oldServiceItemIds.stream()
-                .filter(id -> !serviceItemIds.contains(id))
-                .forEach(booking::removeServiceItem);
-
-        serviceItems.stream()
-                .filter(serviceItem -> !oldServiceItemIds.contains(serviceItem.getId()))
-                .forEach(booking::addServiceItem);
-
+        // Om kontrollen nedan kastar rullar transaktionen tillbaka ändringen ovan.
+        checkVehicleAvailable(booking, vehicle);
         return bookingRepository.save(booking);
     }
 
-    // Metod för att kontrollera överlappning av mekanikerbokningar
-    private void checkMechanicOverlap(int mechanicId,
-                                      LocalDate date,
-                                      LocalTime startTime,
-                                      LocalTime endTime,
-                                      Integer excludedBookingId) {
-        List<Booking> mechanicBookingSameDay =
-                bookingRepository.findBookingByMechanicIdAndDate(mechanicId, date);
+    // Bokningen följer sin arbetsorder: datum, starttid och tjänster. Anropas av WorkOrderService i samma transaktion,
+    // så ett fel här (fordonet upptaget, midnatt) rullar tillbaka även orderns ändring.
+    @Transactional
+    public Booking followWorkOrder(int bookingId, LocalDate date, LocalTime startTime,
+                                   List<@NotNull @Positive Integer> serviceItemIds) {
+        Booking booking = requireBooking(bookingId);
+        Vehicle vehicle = requireVehicle(booking.getVehicleId());
 
-        boolean overlaps = mechanicBookingSameDay.stream()
-                .filter(b -> excludedBookingId == null
-                        || b.getId() != excludedBookingId)
-                .anyMatch(b -> b.getStartTime().isBefore(endTime)
-                && b.getEndTime().isAfter(startTime));
+        booking.applyWorkOrderPlan(date, startTime, serviceItemRepository.requireAllById(serviceItemIds));
 
-        if (overlaps) {
-            String mechanicName = mechanicRepository.findById(mechanicId)
-                    .map(Mechanic::getName)
-                    .orElse("Unknown");
+        checkVehicleAvailable(booking, vehicle);
+        return bookingRepository.save(booking);
+    }
 
-            throw new MechanicDoubleBookingException(
-                    mechanicName, date, startTime, endTime
-            );
+    // Bokningens status följer sin arbetsorder. Anropas av WorkOrderService i samma transaktion.
+    // En saknad bokning ger samma fel som när planen följer ordern, i stället för att tyst ignoreras.
+    @Transactional
+    public Booking followWorkOrderStatus(int bookingId, WorkOrderStatus workOrderStatus) {
+        Booking booking = requireBooking(bookingId);
+        booking.followWorkOrder(workOrderStatus);
+        return bookingRepository.save(booking);
+    }
 
+    // Mjuk borttagning: raden och bokningsnumret finns kvar, bara statusen ändras. Domänen avgör om det är tillåtet.
+    @Transactional
+    public Booking cancel(int bookingId) {
+        Booking booking = requireBooking(bookingId);
+        booking.cancel();
+        return bookingRepository.save(booking);
+    }
+
+    private void checkVehicleAvailable(Booking booking, Vehicle vehicle) {
+        if (bookingRepository.existsByVehicleIdAndDateAndIdNotAndStatusNot(
+                booking.getVehicleId(), booking.getDate(), booking.getId(), BookingStatus.CANCELLED)) {
+            throw new ValidationException("error.vehicleBooked", vehicle.getRegistrationNumber());
         }
     }
 
-    /**
-     * Checks whether the vehicle isn't already booked on the given date.
-     * <p>
-     * If excludedBookingId is null (creating a new booking), any booking for the
-     * vehicle on that date counts as a conflict.
-     * If it is set (updating an existing booking), that booking is ignored, so only
-     * other bookings for the vehicle on that date count as conflicts.
-     *
-     * @param vehicleId         the vehicle to check
-     * @param date              the date to check
-     * @param excludedBookingId the ID of the booking to ignore, or null if there is none
-     * @throws ValidationException with {@code error.vehicleBooked} and the vehicle's
-     *                             registration number if the vehicle is already booked
-     */
-    private void checkVehicleAvailable(int vehicleId, LocalDate date, Integer excludedBookingId) {
-        boolean booked = excludedBookingId == null
-                ? bookingRepository.existsByVehicleIdAndDate(vehicleId, date)
-                : bookingRepository.existsByVehicleIdAndDateAndIdNot(vehicleId, date, excludedBookingId);
+    private Booking requireBooking(int id) {
+        return bookingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Booking", id, "error.bookingNotFound"));
+    }
 
-        if (booked) {
-            String registration = vehicleRepo.findById(vehicleId)
-                    .map(Vehicle::getRegistrationNumber)
-                    .orElse("Unknown");
-            throw new ValidationException("error.vehicleBooked", registration);
+    private Vehicle requireVehicle(int id) {
+        return vehicleRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle", id));
+    }
+
+    // Förslaget är valfritt, men ett angivet id måste finnas så att ett skräp-id stoppas i appen och inte i databasen.
+    private void requireSuggestedMechanic(Integer id) {
+        if (id != null && !mechanicRepository.findById(id).isPresent()) {
+            throw new EntityNotFoundException("Mechanic", id);
         }
     }
 
+    private static List<Integer> serviceItemIdsOf(Booking booking) {
+        return booking.getItems().stream()
+                .map(BookingServiceItem::getServiceItemId)
+                .collect(Collectors.toList());
+    }
+
+    // Jämför varje rads avtalade pris med dagens katalogpris.
+    private List<BookingPriceChange> priceChanges(Booking booking) {
+        List<BookingPriceChange> changes = new ArrayList<>();
+        for (BookingServiceItem item : booking.getItems()) {
+            ServiceItem current = serviceItemRepository.requireById(item.getServiceItemId());
+            if (item.getPriceAtBooking().compareTo(current.getPrice()) != 0) {
+                changes.add(new BookingPriceChange(
+                        item.getServiceItemId(),
+                        current.getName(),
+                        item.getPriceAtBooking(),
+                        current.getPrice()
+                ));
+            }
+        }
+        return changes;
+    }
 
     public boolean isVehicleBooked(int vehicleId, LocalDate date) {
-        return bookingRepository.existsByVehicleIdAndDate(vehicleId, date);
+        return bookingRepository.existsByVehicleIdAndDateAndStatusNot(vehicleId, date, BookingStatus.CANCELLED);
     }
 
     public List<ServiceItem> listAllServiceItems() {
@@ -293,76 +242,11 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<Integer> listServiceItemIds(int id) {
-        Booking booking = findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Booking", id, "error.bookingNotFound"));
-
-        return booking.getItems().stream()
-                .map(BookingServiceItem::getServiceItemId)
-                .collect(Collectors.toList());
+        return serviceItemIdsOf(requireBooking(id));
     }
 
     @Transactional(readOnly = true)
     public List<BookingPriceChange> findPriceChanges(int id) {
-        Booking previous = findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Booking", id, "error.bookingNotFound"
-                ));
-
-        List<BookingPriceChange> changes = new ArrayList<>();
-
-        for (BookingServiceItem item : previous.getItems()) {
-            int serviceId = item.getServiceItemId();
-
-            ServiceItem current = findServiceItemById(serviceId)
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "ServiceItem", serviceId, "error.serviceNotFound"
-                    ));
-
-            if (item.getPriceAtBooking().compareTo(current.getPrice()) != 0) {
-                changes.add(new BookingPriceChange(
-                        serviceId,
-                        current.getName(),
-                        item.getPriceAtBooking(),
-                        current.getPrice()
-                ));
-            }
-
-        }
-        return changes;
+        return priceChanges(requireBooking(id));
     }
-
-    private List<ServiceItem> fetchValidServiceItemsByIds(List<Integer> serviceItemIds) {
-        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            throw new ValidationException("error.serviceSelect");
-        }
-
-        List<ServiceItem> serviceItems = new ArrayList<>();
-        for (Integer id : new LinkedHashSet<>(serviceItemIds)) {
-            if (id == null || id <= 0) {
-                throw new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound");
-            }
-
-            ServiceItem serviceItem = findServiceItemById(id)
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "ServiceItem", id, "error.serviceNotFound"));
-            serviceItems.add(serviceItem);
-        }
-
-        if (serviceItems.stream()
-                .anyMatch(serviceItem -> serviceItem.getEstimatedMinutes() <= 0)) {
-            throw new ValidationException("error.serviceItem.invalidDuration");
-        }
-
-        return serviceItems;
-    }
-
-    private void validateVehicleAndMechanic(int vehicleId, int mechanicId) {
-        if (vehicleId <= 0 || !vehicleRepo.existsById(vehicleId)) {
-            throw new EntityNotFoundException("Vehicle", vehicleId);
-        }
-        if (mechanicId <= 0 || !mechanicRepository.existsById(mechanicId)) {
-            throw new EntityNotFoundException("Mechanic", mechanicId);
-        }
-    }
-
 }
