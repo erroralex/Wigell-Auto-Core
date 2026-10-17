@@ -125,5 +125,7 @@ public class CustomerView extends BaseView {
         if (dialog.showAndWait()) {
             refreshData();
         }
+
+
     }
 }

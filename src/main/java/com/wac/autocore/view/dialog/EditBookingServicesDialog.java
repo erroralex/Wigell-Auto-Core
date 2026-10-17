@@ -15,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -96,7 +97,7 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
     private void handleInput() {
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
 
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
+        /*saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             serviceSelector.setError(false);
 
             try {
@@ -113,15 +114,22 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
                 ErrorFacade.handle(e);
                 event.consume();
             }
-        });
+        });*/
 
         setResultConverter(buttonType ->
-                buttonType == saveButtonType ? new Result() : null);
+                buttonType == saveButtonType ? new Result(serviceSelector.getSelectedServiceIds())
+                : null);
     }
 
     public static class Result {
-        private Result() {
+        private final List<Integer> serviceItemIds;
 
+        public Result(List<Integer> serviceItemIds) {
+            this.serviceItemIds = serviceItemIds;
+        }
+
+        public List<Integer> getServiceItemIds() {
+            return serviceItemIds;
         }
     }
 }

@@ -20,17 +20,18 @@ import java.util.Objects;
 
 /**
  * <b>ServicePackageDialog</b>
- * <p>Ansvar: Skapa eller redigera ett servicepaket. Samma dialog för båda lägena; läget väljs med
- * fabriksmetoderna {@link #forCreate} och {@link #forEdit} (<b>Factory Method</b>).</p>
- * <p>Sparar via ServicePackageService när Spara trycks. Vid fel visas felet via ErrorFacade
- * och dialogen förblir öppen, så att användaren kan rätta utan att förlora det som skrivits.</p>
+ * <p>Ansvar: Samla in och returnera uppgifter för att skapa eller redigera ett servicepaket.
+ * Läget väljs med fabriksmetoderna {@link #forCreate} och {@link #forEdit}
+ * (<b>Factory Method</b>).</p>
+ * <p>Dialogen hanterar endast inmatning och returnerar uppgifterna via {@link Result}.
+ * Sparande och felhantering sköts av den anropande vyn.</p>
  * <p>Tjänster väljs med {@link ServiceSelectorBox}, som bygger på MultiSelectListView.</p>
  */
-public class ServicePackageDialog extends Dialog<ServicePackage> {
+public class ServicePackageDialog extends Dialog<ServicePackageDialog.Result> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private final ServicePackageService servicePackageService;
+
     private final ServicePackage existingServicePackage;
 
     private final TextField nameField = new TextField();
@@ -44,30 +45,25 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
 
     // Fabriksmetoder:
     public static ServicePackageDialog forCreate(
-            ServicePackageService servicePackageService,
             List<ServiceItem> availableServices) {
 
-        return new ServicePackageDialog(servicePackageService, availableServices, null);
+        return new ServicePackageDialog(availableServices, null);
     }
 
     public static ServicePackageDialog forEdit(
-            ServicePackageService servicePackageService,
             List<ServiceItem> availableServices,
             ServicePackage existingServicePackage) {
 
         return new ServicePackageDialog(
-                servicePackageService,
                 availableServices,
                 Objects.requireNonNull(existingServicePackage, "existingServicePackage")
         );
     }
 
     private ServicePackageDialog(
-            ServicePackageService servicePackageService,
             List<ServiceItem> availableServices,
             ServicePackage existingServicePackage) {
 
-        this.servicePackageService = servicePackageService;
         this.existingServicePackage = existingServicePackage;
         this.serviceSelector = new ServiceSelectorBox(availableServices);
 
@@ -83,7 +79,19 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
         }
         setupSaveButton();
 
-        setResultConverter(buttonType -> buttonType == saveButtonType ? savedServicePackage : null);
+        setResultConverter(buttonType -> {
+            if (buttonType != saveButtonType) {
+                return null;
+            }
+
+            String description = trim(descriptionArea.getText());
+            return new Result(
+                    isEdit() ? existingServicePackage.getId() : null,
+                    trim(nameField.getText()),
+                    description.isEmpty() ? null : description,
+                    serviceSelector.getSelectedServiceIds()
+            );
+        });
     }
 
     private boolean isEdit() {
@@ -122,18 +130,9 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
                 () -> trim(nameField.getText()).isEmpty() || serviceSelector.isEmpty(),
                 nameField.textProperty(), serviceSelector.emptyProperty());
         saveButton.disableProperty().bind(invalid);
-
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            try {
-                savedServicePackage = save();
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-                event.consume();
-            }
-        });
     }
 
-    private ServicePackage save() {
+ /*   private ServicePackage save() {
         String name = trim(nameField.getText());
         String description = trim(descriptionArea.getText());
         List<Integer> serviceIds = serviceSelector.getSelectedServiceIds();
@@ -143,9 +142,38 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
             return servicePackageService.update(existingServicePackage.getId(), name, descriptionOrNull, serviceIds);
         }
         return servicePackageService.create(name, descriptionOrNull, serviceIds);
-    }
+    }*/
 
     private static String trim(String text) {
         return text == null ? "" : text.trim();
+    }
+
+    public static final class Result {
+        private final Integer id;
+        private final String name;
+        private final String description;
+        private final List<Integer> serviceItemIds;
+
+        public Result(Integer id, String name, String description, List<Integer> serviceItemIds) {
+            this.id = id;
+            this.name = name;
+            this.description = description;
+            this.serviceItemIds = new ArrayList<>(serviceItemIds);
+        }
+
+        public Integer getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+        public List<Integer> getServiceItemIds() {
+            return new ArrayList<>(serviceItemIds);
+        }
     }
 }

@@ -168,7 +168,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
         saveButton.getStyleClass().addAll("btn", "btn-primary");
 
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
+        /*saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             resetFieldErrorState();
             Vehicle vehicle = vehicleComboBox.getValue();
             Mechanic mechanic = mechanicComboBox.getValue();
@@ -210,14 +210,28 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                 ErrorFacade.handle(e);
                 event.consume();
             }
+        });*/
+
+        setResultConverter(buttonType -> {
+            if (buttonType != saveButtonType) {
+                return null;
+            }
+
+            Vehicle vehicle = vehicleComboBox.getValue();
+            Mechanic mechanic = mechanicComboBox.getValue();
+
+            return new Result(
+                    vehicle.getId(),
+                    mechanic == null ? null : mechanic.getId(),
+                    datePicker.getValue(),
+                    startTimeComboBox.getValue(),
+                    descriptionTextField.getText(),
+                    serviceSelector.getSelectedServiceIds()
+            );
         });
-
-        setResultConverter(buttonType ->
-                buttonType == saveButtonType ? new Result() : null);
-
     }
 
-    private void markFieldError(String key) {
+   /* private void markFieldError(String key) {
         switch (key) {
             case "error.vehicleSelect":
             case "error.vehicleBooked":
@@ -254,7 +268,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         mechanicComboBox.getStyleClass().remove("input-error");
         serviceSelector.setError(false);
     }
-
+*/
 
     private void inputEventListeners() {
         vehicleComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -312,8 +326,44 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
     /// Acts as a success marker.
     /// Save handler calls the service first, if it fails, it consumes the event and the dialog stays open.
     public static class Result {
+        private final int vehicleId;
+        private final Integer mechanicId;
+        private final LocalDate date;
+        private final LocalTime startTime;
+        private final String description;
+        private final List<Integer> serviceItemIds;
 
-        private Result() {
+        private Result(int vehicleId,
+                       Integer mechanicId,
+                       LocalDate date,
+                       LocalTime startTime,
+                       String description,
+                       List<Integer> serviceItemIds) {
+            this.vehicleId = vehicleId;
+            this.mechanicId = mechanicId;
+            this.date = date;
+            this.startTime = startTime;
+            this.description = description;
+            this.serviceItemIds = serviceItemIds;
+        }
+
+        public int getVehicleId() {
+            return vehicleId;
+        }
+        public Integer getMechanicId() {
+            return mechanicId;
+        }
+        public LocalDate getDate() {
+            return date;
+        }
+        public LocalTime getStartTime() {
+            return startTime;
+        }
+        public String getDescription() {
+            return description;
+        }
+        public List<Integer> getServiceItemIds() {
+            return serviceItemIds;
         }
     }
 }

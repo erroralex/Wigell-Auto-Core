@@ -120,9 +120,9 @@ public class ServicePackageView extends BaseView {
         deleteButton.disableProperty().bind(noSelection);
 
         createButton.setOnAction(event -> openDialog(
-                ServicePackageDialog.forCreate(servicePackageService, serviceItemService.listAll())));
+                ServicePackageDialog.forCreate(serviceItemService.listAll())));
         editButton.setOnAction(event -> openDialog(
-                ServicePackageDialog.forEdit(servicePackageService, serviceItemService.listAll(), selectedPackage())));
+                ServicePackageDialog.forEdit(serviceItemService.listAll(), selectedPackage())));
         deleteButton.setOnAction(event -> deleteSelected());
 
         HBox bar = new HBox(15, createButton, editButton, deleteButton);
@@ -136,7 +136,26 @@ public class ServicePackageView extends BaseView {
     }
 
     private void openDialog(ServicePackageDialog dialog) {
-        dialog.showAndWait().ifPresent(saved -> refresh());
+        dialog.showAndWait().ifPresent(result -> {
+            try {
+                if (result.getId() == null) {
+                    servicePackageService.create(
+                            result.getName(),
+                            result.getDescription(),
+                            result.getServiceItemIds());
+                } else {
+                    servicePackageService.update(
+                            result.getId(),
+                            result.getName(),
+                            result.getDescription(),
+                            result.getServiceItemIds()
+                    );
+                }
+                refresh();
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+            }
+        });
     }
 
     private void deleteSelected() {

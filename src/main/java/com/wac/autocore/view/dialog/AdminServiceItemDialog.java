@@ -19,6 +19,8 @@ public class AdminServiceItemDialog extends Dialog<AdminServiceItemDialog.Result
     private final ServiceItemService serviceItemService;
     private final ServiceItem serviceItem;
 
+    private Money parsedPrice;
+
     private final TextField priceTextField = new TextField();
 
     private final ButtonType saveButtonType =
@@ -59,21 +61,20 @@ public class AdminServiceItemDialog extends Dialog<AdminServiceItemDialog.Result
     }
 
     private void handleInput() {
-        Button saveButton =
-                (Button) getDialogPane().lookupButton(saveButtonType);
+        Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
 
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             try {
-                Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
-                serviceItemService.updatePrice(serviceItem.getId(), newPrice);
-            } catch (RuntimeException e) {
+                parsedPrice = DialogUtil.parseMoney(priceTextField.getText());
+            } catch (ValidationException e) {
                 ErrorFacade.handle(e);
                 rejectPrice(event);
             }
         });
+        Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
 
         setResultConverter(buttonType ->
-            buttonType == saveButtonType ? new Result() : null);
+            buttonType == saveButtonType ? new Result(newPrice) : null);
     }
 
     // Visar felmeddelandet och hindrar dialogen från att stängas
@@ -82,7 +83,14 @@ public class AdminServiceItemDialog extends Dialog<AdminServiceItemDialog.Result
     }
 
     public static class Result {
-        private Result() {
+        private final Money newPrice;
+
+        public Result(Money newPrice) {
+            this.newPrice = newPrice;
+        }
+
+        public Money getNewPrice() {
+            return newPrice;
         }
     }
 }

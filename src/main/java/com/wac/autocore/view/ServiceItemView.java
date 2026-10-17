@@ -7,6 +7,7 @@ import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.dialog.AdminServiceItemDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -117,8 +118,13 @@ public class ServiceItemView extends BaseView {
                 new AdminServiceItemDialog(serviceItemService, selected);
 
         dialog.showAndWait().ifPresent(newPrice -> {
-            serviceItemList.setAll(serviceItemService.listAll());
-            AlertHelper.showInfo(lang.get("serviceItem.updatedPriceConfirm"), lang.get("serviceItem.updatedMsg"));
+            try {
+                serviceItemService.updatePrice(selected.getId(), dialog.getResult().getNewPrice());
+                serviceItemList.setAll(serviceItemService.listAll());
+                AlertHelper.showInfo(lang.get("serviceItem.updatedPriceConfirm"), lang.get("serviceItem.updatedMsg"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+            }
         });
     }
 }

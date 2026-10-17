@@ -187,8 +187,24 @@ public class BookingView extends BaseView {
         CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService);
 
         dialog.showAndWait().ifPresent(result -> {
+            try {
+                bookingService.create(
+                        result.getVehicleId(),
+                        result.getMechanicId(),
+                        result.getDate(),
+                        result.getStartTime(),
+                        result.getDescription(),
+                        result.getServiceItemIds()
+                );
+
                 bookingObservableList.setAll(bookingService.listAll());
-                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
+                AlertHelper.showInfo(
+                        lang.get("booking.created"),
+                        lang.get("booking.createdMsg")
+                );
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+            }
         });
     }
 
@@ -202,8 +218,33 @@ public class BookingView extends BaseView {
         CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService, selected);
 
         dialog.showAndWait().ifPresent(result -> {
-            bookingObservableList.setAll(bookingService.listAll());
-            AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
+            try {
+                if (result.getMechanicId() == null) {
+                    bookingService.create(
+                            result.getVehicleId(),
+                            null,
+                            result.getDate(),
+                            result.getStartTime(),
+                            result.getDescription(),
+                            result.getServiceItemIds()
+                    );
+                } else {
+                    bookingService.createFromPrevious(
+                            selected.getId(),
+                            result.getDate(),
+                            result.getStartTime(),
+                            result.getMechanicId(),
+                            result.getVehicleId(),
+                            result.getDescription(),
+                            result.getServiceItemIds()
+                    );
+                }
+
+                bookingObservableList.setAll(bookingService.listAll());
+                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+            }
         });
     }
 
@@ -224,6 +265,18 @@ public class BookingView extends BaseView {
         EditBookingServicesDialog dialog = new EditBookingServicesDialog(selected, bookingService);
 
         dialog.showAndWait().ifPresent(result -> {
+            try {
+                bookingService.update(selected.getId(),
+                        selected.getVehicleId(),
+                        selected.getMechanicId(),
+                        selected.getDate(),
+                        selected.getStartTime(),
+                        selected.getDescription(),
+                        result.getServiceItemIds());
+            } catch (RuntimeException e) {
+                ErrorFacade.handle(e);
+                return;
+            }
 
             bookingObservableList.setAll(bookingService.listAll());
             AlertHelper.showInfo(
