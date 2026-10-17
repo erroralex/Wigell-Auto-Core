@@ -6,6 +6,7 @@ import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.repository.PaymentRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Validated
 @Service
+@Transactional
 public class PaymentService {
 
     private final PaymentRepo paymentRepo;
@@ -39,14 +41,10 @@ public class PaymentService {
         Invoice invoice = invoiceService.findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Invoice", invoiceId));
 
-        if (invoice.isPaid()) {
-            throw new ValidationException("error.invoiceAlreadyPaid", String.valueOf(invoiceId));
-        }
 
-        Payment payment = new Payment(invoiceId, invoice.getTotalAmount(), paymentType);
-        payment.setSuccessful(true);
+        Payment payment = Payment.successful(invoiceId, invoice.getTotalAmount(), paymentType);
 
-        invoice.setPaid(true);
+        invoice.markPaid();
         invoiceService.update(invoice);
 
         return paymentRepo.save(payment);
