@@ -46,7 +46,7 @@ public class ServicePackageService {
     }
 
     public ServicePackage create(@NotBlank(message = "error.servicePackage.nameRequired") String name,
-                                 @NotBlank(message = "error.desc") String description,
+                                 String description,
                                  @NotEmpty(message = "error.servicePackage.noServices") List<@Positive Integer> serviceItemIds) {
         List<ServiceItem> services = serviceItemRepository.requireAllById(serviceItemIds);
         ServicePackage servicePackage = ServicePackage.create(name, description, services);
@@ -58,7 +58,7 @@ public class ServicePackageService {
 
     public ServicePackage update(@Positive @NotNull(message = "error.servicePackage.nullValue") Integer id,
                                  @NotBlank(message = "error.servicePackage.nameRequired")String name,
-                                 @NotBlank(message = "error.desc")String description,
+                                 String description,
                                  @NotEmpty(message = "error.servicePackage.noServices") List<Integer> serviceItemIds) {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
