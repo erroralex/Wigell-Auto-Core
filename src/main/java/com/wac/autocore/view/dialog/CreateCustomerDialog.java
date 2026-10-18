@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  * <b>CreateCustomerDialog</b>
  * <p>Ansvar: Dialog för att skapa en ny kund.</p>
  */
-public class CreateCustomerDialog {
+public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final LanguageManager lang = LanguageManager.getInstance();
@@ -47,9 +47,9 @@ public class CreateCustomerDialog {
         dialog.setResultConverter(buttonType -> buttonType == saveButtonType);
     }
 
-    public boolean showAndWait() {
+   /* public boolean showAndWait() {
         return dialog.showAndWait().orElse(false);
-    }
+    }*/
 
     private void configureFields() {
         nameField.setPromptText(lang.get("table.name"));
@@ -68,11 +68,13 @@ public class CreateCustomerDialog {
         saveButton.getStyleClass().addAll("btn", "btn-primary");
         cancelButton.getStyleClass().addAll("btn", "btn-secondary");
 
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
+        handleInput();
+
+     /*   saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             if (!saveCustomer()) {
                 event.consume();
             }
-        });
+        });*/
     }
 
     private GridPane createContent() {
@@ -92,14 +94,30 @@ public class CreateCustomerDialog {
         return grid;
     }
 
+    private void handleInput() {
+
+        setResultConverter(buttonType -> {
+            if (buttonType != saveButtonType) {
+                return null;
+            }
+
+            return new Result(
+                    nameField.getText(),
+                    phoneField.getText(),
+                    emailField.getText());
+        });
+    }
+
     private boolean saveCustomer() {
         resetFieldErrorState();
 
-        String name = getTrimmedValue(nameField);
-        String phone = getTrimmedValue(phoneField);
-        String email = getTrimmedValue(emailField);
 
-        if (name.isEmpty()) {
+
+        /*String name = getTrimmedValue(nameField);
+        String phone = getTrimmedValue(phoneField);
+        String email = getTrimmedValue(emailField);*/
+
+        /*if (name.isEmpty()) {
             markFieldError(nameField);
             AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.name")));
             return false;
@@ -127,7 +145,7 @@ public class CreateCustomerDialog {
             ErrorFacade.handle(e);
             return false;
         }
-
+*/
         return true;
     }
 
@@ -144,6 +162,28 @@ public class CreateCustomerDialog {
     private void markFieldError(TextField field) {
         if (!field.getStyleClass().contains("input-error")) {
             field.getStyleClass().add("input-error");
+        }
+    }
+
+    public static class Result {
+        private final String name;
+        private final String phone;
+        private final String email;
+
+        public Result(String name, String phone, String email) {
+            this.name = name;
+            this.phone = phone;
+            this.email = email;
+        }
+
+        public String getName() {
+            return name;
+        }
+        public String phone() {
+            return phone;
+        }
+        public String getEmail() {
+            return email;
         }
     }
 
