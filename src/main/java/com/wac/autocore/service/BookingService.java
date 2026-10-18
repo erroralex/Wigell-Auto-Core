@@ -66,8 +66,8 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking create(@Positive int vehicleId,
-                          @Positive Integer mechanicId,
+    public Booking create(@Positive @NotNull(message="error.booking.noSelectedVehicle") Integer vehicleId,
+                          @Positive (message="error.booking.noSelectedMechanic") Integer mechanicId,
                           LocalDate date,
                           LocalTime startTime,
                           @NotBlank(message = "error.desc") String description,
