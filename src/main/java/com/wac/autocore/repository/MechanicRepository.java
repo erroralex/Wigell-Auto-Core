@@ -10,6 +10,4 @@ public interface MechanicRepository extends org.springframework.data.repository.
     List<Mechanic> findAll();
     Optional<Mechanic> findById(Integer id);
     Mechanic save(Mechanic mechanic);
-    boolean existsById(Integer id);
-    void deleteById(Integer id);
 }

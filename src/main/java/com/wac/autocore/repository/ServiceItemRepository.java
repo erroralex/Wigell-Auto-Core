@@ -13,8 +13,6 @@ public interface ServiceItemRepository extends org.springframework.data.reposito
     List<ServiceItem> findAll();
     Optional<ServiceItem> findById(Integer id);
     ServiceItem save(ServiceItem serviceItem);
-    boolean existsById(Integer id);
-    void deleteById(Integer id);
 
     // Enda platsen som slår upp en vald tjänst; ett okänt id ger samma felnyckel överallt.
     default ServiceItem requireById(int id) {

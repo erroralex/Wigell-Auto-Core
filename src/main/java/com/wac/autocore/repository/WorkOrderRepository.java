@@ -25,6 +25,7 @@ public interface WorkOrderRepository extends org.springframework.data.repository
     List<WorkOrder> findByMechanicId(int mechanicId);
     List<WorkOrder> findByMechanicIdAndPlannedDate(int mechanicId, LocalDate plannedDate);
 
+
     boolean existsByBookingIdAndStatusNot(int bookingId, WorkOrderStatus status);
 
     @Query("SELECT w FROM WorkOrder w WHERE w.status = 'COMPLETED' " +

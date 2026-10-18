@@ -141,3 +141,5 @@ java -jar target/autocore-2.0.0.jar --spring.profiles.active=headless --headless
 - Samma scenario körs som integrationstest i `HeadlessDropInScenarioIntegrationTest`.
 
 **Windows:** visas `å`, `ä` och `ö` fel i konsolen, kör `chcp 65001` först.
+
+
