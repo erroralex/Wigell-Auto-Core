@@ -1,8 +1,21 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.model.*;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.WorkOrderChange;
+import com.wac.autocore.model.WorkOrderItem;
+import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.model.value.Money;
-import com.wac.autocore.service.*;
+import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.service.VehicleService;
+import com.wac.autocore.service.WorkOrderReopenResult;
+import com.wac.autocore.service.WorkOrderScheduleResult;
+import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateWorkOrderDialog;
 import com.wac.autocore.view.dialog.EditWorkOrderDialog;
 import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
@@ -27,6 +40,7 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.IntConsumer;
 
 /**
@@ -56,13 +70,13 @@ public class WorkOrderView extends BaseView {
     private final MechanicService mechanicService;
     private final ServiceItemService serviceItemService;
 
-    private final Button btnStart = new Button(lang.get("btn.start"));
-    private final Button btnComplete = new Button(lang.get("btn.complete"));
-    private final Button btnCreate = new Button(lang.get("btn.createNew"));
     private final Button btnQuickDraft = new Button(lang.get("btn.quickDraft"));
     private final Button btnConfirm = new Button(lang.get("btn.confirm"));
+    private final Button btnStart = new Button(lang.get("btn.start"));
+    private final Button btnComplete = new Button(lang.get("btn.complete"));
     private final Button btnCancel = new Button(lang.get("btn.cancel"));
     private final Button btnReopen = new Button(lang.get("btn.reopen"));
+    private final Button btnCreate = new Button(lang.get("btn.createNew"));
     private final Button btnEdit = new Button(lang.get("btn.edit"));
 
     public WorkOrderView(WorkOrderService workOrderService,
@@ -140,17 +154,9 @@ public class WorkOrderView extends BaseView {
         );
 
         TableColumn<WorkOrder, String> bookingCol = new TableColumn<>(lang.get("table.bookingTask"));
-        bookingCol.setCellValueFactory(c -> {
-            Integer bookingId = c.getValue().getBookingId();
-            if (bookingId == null) {
-                return new SimpleStringProperty(NO_VALUE);
-            }
-            Booking booking = bookingsById.get(bookingId);
-            String display = booking != null
-                    ? booking.getDescription()
-                    : lang.get("common.unknownId", bookingId);
-            return new SimpleStringProperty(display);
-        });
+        bookingCol.setCellValueFactory(c ->
+                new SimpleStringProperty(displayName(c.getValue().getBookingId(), bookingsById, Booking::getDescription))
+        );
 
         TableColumn<WorkOrder, String> mechanicCol = new TableColumn<>(lang.get("table.mechanic"));
         mechanicCol.setCellValueFactory(c ->
@@ -297,31 +303,14 @@ public class WorkOrderView extends BaseView {
     }
 
     private HBox createButtonBar() {
-        String btnPrimary = "btn-primary";
-
-        btnStart.getStyleClass().addAll("btn", btnPrimary);
-        btnStart.setOnAction(event -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
-
-        btnComplete.getStyleClass().addAll("btn", btnPrimary);
-        btnComplete.setOnAction(event -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
-
-        btnCreate.getStyleClass().addAll("btn", btnPrimary);
-        btnCreate.setOnAction(event -> openCreateWorkOrderDialog());
-
-        btnQuickDraft.getStyleClass().addAll("btn", btnPrimary);
-        btnQuickDraft.setOnAction(event -> openQuickDraftDialog());
-
-        btnEdit.getStyleClass().addAll("btn", btnPrimary);
-        btnEdit.setOnAction(event -> openEditWorkOrderDialog());
-
-        btnConfirm.getStyleClass().addAll("btn", btnPrimary);
-        btnConfirm.setOnAction(e -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
-
-        btnCancel.getStyleClass().addAll("btn", btnPrimary);
-        btnCancel.setOnAction(e -> cancelSelectedWorkOrder());
-
-        btnReopen.getStyleClass().addAll("btn", btnPrimary);
-        btnReopen.setOnAction(e -> reopenSelectedWorkOrder());
+        setupButton(btnQuickDraft, this::openQuickDraftDialog);
+        setupButton(btnConfirm, () -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
+        setupButton(btnStart, () -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
+        setupButton(btnComplete, () -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
+        setupButton(btnCancel, this::cancelSelectedWorkOrder);
+        setupButton(btnReopen, this::reopenSelectedWorkOrder);
+        setupButton(btnCreate, this::openCreateWorkOrderDialog);
+        setupButton(btnEdit, this::openEditWorkOrderDialog);
 
         HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
         box.setPadding(new Insets(15, 0, 0, 0));
@@ -385,9 +374,6 @@ public class WorkOrderView extends BaseView {
     private void refreshAfterAction(int workOrderId) {
         refreshData();
         selectWorkOrder(workOrderId);
-        WorkOrder current = workOrderTable.getSelectionModel().getSelectedItem();
-        updateButtonStates(workOrderTable.getSelectionModel().getSelectedItem());
-        showJobs(current);
     }
 
     private void cancelSelectedWorkOrder() {
@@ -468,19 +454,20 @@ public class WorkOrderView extends BaseView {
     }
 
     private String vehicleName(Integer vehicleId) {
-        if (vehicleId == null) {
-            return NO_VALUE;
-        }
-        Vehicle vehicle = vehiclesById.get(vehicleId);
-        return vehicle != null ? vehicle.getRegistrationNumber() : lang.get("common.unknownId", vehicleId);
+        return displayName(vehicleId, vehiclesById, Vehicle::getRegistrationNumber);
     }
 
     private String mechanicName(Integer mechanicId) {
-        if (mechanicId == null) {
+        return displayName(mechanicId, mechanicsById, Mechanic::getName);
+    }
+
+    // Visar ett id från en uppslagstabell: null → NO_VALUE, okänt id → common.unknownId, annars display-värdet
+    private <T> String displayName(Integer id, Map<Integer, T> byId, Function<? super T, String> display) {
+        if (id == null) {
             return NO_VALUE;
         }
-        Mechanic mechanic = mechanicsById.get(mechanicId);
-        return mechanic != null ? mechanic.getName() : lang.get("common.unknownId", mechanicId);
+        T item = byId.get(id);
+        return item != null ? display.apply(item) : lang.get("common.unknownId", id);
     }
 
     private void openEditWorkOrderDialog() {
@@ -529,5 +516,11 @@ public class WorkOrderView extends BaseView {
             openEditWorkOrderDialog(workOrder,
                     schedule.getSuggestedStartTime().orElse(workOrder.getPlannedStartTime()));
         }
+    }
+
+    // Samma stil för alla knappar i verktygsraden
+    private void setupButton(Button button, Runnable action) {
+        button.getStyleClass().addAll("btn", "btn-primary");
+        button.setOnAction(event -> action.run());
     }
 }
