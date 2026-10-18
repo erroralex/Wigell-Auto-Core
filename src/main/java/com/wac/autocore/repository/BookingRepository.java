@@ -3,7 +3,6 @@ package com.wac.autocore.repository;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.WorkOrderStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,7 +10,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface BookingRepository extends JpaRepository<Booking, Integer> {
+@org.springframework.stereotype.Repository
+public interface BookingRepository extends org.springframework.data.repository.Repository<Booking, Integer> {
+
+    List<Booking> findAll();
+    Optional<Booking> findById(Integer id);
+    <S extends Booking> S save(S booking);
+
     // Bokningar där mekanikern är föreslagen. Mekanikerns reserverade tid finns på arbetsordern.
     List<Booking> findByMechanicId(int id);
 

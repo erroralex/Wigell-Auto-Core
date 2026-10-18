@@ -141,3 +141,21 @@ java -jar target/autocore-2.0.0.jar --spring.profiles.active=headless --headless
 - Samma scenario körs som integrationstest i `HeadlessDropInScenarioIntegrationTest`.
 
 **Windows:** visas `å`, `ä` och `ö` fel i konsolen, kör `chcp 65001` först.
+
+
+## Lagringsbyte (Storage Change)
+
+Om vi någon gång behöver byta lagringsteknik (t.ex. från SQLite till PostgreSQL, MongoDB eller ett externt API), krävs följande:
+
+1. **Repository-paketet** (`com.wac.autocore.repository`):
+   Implementationerna byts ut. Eftersom alla repositories nu ärver `org.springframework.data.repository.Repository` och bara deklarerar de metoder som används, är det enkelt att skriva en ny implementation (t.ex. en MongoDB-implementation) utan att röra tjänsterna.
+
+2. **Entity-mappningen** (`com.wac.autocore.model`):
+   JPA-annotationerna (`@Entity`, `@Column`, `@Id`, `@Enumerated`, etc.) måste bytas mot motsvarande annotationer för den nya tekniken (t.ex. `@Document` för MongoDB). Detta är en medveten trade-off: vi har valt att ha JPA-annotationer direkt på domänentiteterna för att slippa en extra mappningsklass, men det innebär att entiteterna måste röras vid ett lagringsbyte.
+
+**Vad som INTE behöver ändras:**
+- Tjänstelagret (`WorkOrderService`, `BookingService`, etc.) — de är oberoende av lagringen och anropar bara repository-interfacen.
+- Domänlogiken (t.ex. `WorkOrder.transitionTo`, `Invoice.calculateTotals`) — den ligger i modellen och påverkas inte.
+
+**Beviset:**
+`WorkOrderLifecycleInMemoryTest` visar att hela livscykeln kan köras utan databas genom att byta ut repository-implementationerna mot in-memory-versioner i testkoden.

@@ -1,12 +1,14 @@
 package com.wac.autocore.repository;
 
 import com.wac.autocore.model.Invoice;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-import javax.validation.constraints.Positive;
+import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface InvoiceRepo extends JpaRepository<Invoice, Integer> {
-    boolean existsByWorkOrderId(@Positive int workOrderId);
+@org.springframework.stereotype.Repository
+public interface InvoiceRepo extends org.springframework.data.repository.Repository<Invoice, Integer> {
+    List<Invoice> findAll();
+    Optional<Invoice> findById(Integer id);
+    <S extends Invoice> S save(S invoice);
+    boolean existsByWorkOrderId(int workOrderId);
 }

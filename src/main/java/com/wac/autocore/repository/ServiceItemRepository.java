@@ -2,14 +2,17 @@ package com.wac.autocore.repository;
 
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.ServiceItem;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface ServiceItemRepository extends JpaRepository<ServiceItem, Integer> {
+@org.springframework.stereotype.Repository
+public interface ServiceItemRepository extends org.springframework.data.repository.Repository<ServiceItem, Integer> {
+
+    List<ServiceItem> findAll();
+    Optional<ServiceItem> findById(Integer id);
+    ServiceItem save(ServiceItem serviceItem);
 
     // Enda platsen som slår upp en vald tjänst; ett okänt id ger samma felnyckel överallt.
     default ServiceItem requireById(int id) {
