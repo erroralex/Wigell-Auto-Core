@@ -89,7 +89,7 @@ public class BookingService {
                                                 LocalDate date,
                                                 LocalTime startTime,
                                                 @Positive Integer mechanicId,
-                                                @Positive Integer vehicleId,
+                                                @Positive @NotNull(message="error.vehicleSelect") Integer vehicleId,
                                                 String description,
                                                 List<@NotNull @Positive Integer> serviceItemIds) {
         Booking previous = requireBooking(previousBookingId);
@@ -125,7 +125,9 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking update(int bookingId, int vehicleId, @Positive Integer mechanicId,
+    public Booking update(@Positive @NotNull(message="error.noBooking")Integer bookingId,
+                          @Positive @NotNull(message="error.vehicleSelect") Integer vehicleId,
+                          @Positive Integer mechanicId,
                           LocalDate date,
                           LocalTime startTime,
                           @NotBlank(message = "error.desc") String description,
@@ -145,7 +147,8 @@ public class BookingService {
     // Bokningen följer sin arbetsorder: datum, starttid och tjänster. Anropas av WorkOrderService i samma transaktion,
     // så ett fel här (fordonet upptaget, midnatt) rullar tillbaka även orderns ändring.
     @Transactional
-    public Booking followWorkOrder(int bookingId, LocalDate date, LocalTime startTime,
+    public Booking followWorkOrder(@Positive @NotNull(message="error.noBooking") Integer bookingId,
+                                   LocalDate date, LocalTime startTime,
                                    List<@NotNull @Positive Integer> serviceItemIds) {
         Booking booking = requireBooking(bookingId);
         Vehicle vehicle = requireVehicle(booking.getVehicleId());
@@ -159,7 +162,7 @@ public class BookingService {
     // Bokningens status följer sin arbetsorder. Anropas av WorkOrderService i samma transaktion.
     // En saknad bokning ger samma fel som när planen följer ordern, i stället för att tyst ignoreras.
     @Transactional
-    public Booking followWorkOrderStatus(int bookingId, WorkOrderStatus workOrderStatus) {
+    public Booking followWorkOrderStatus(@Positive @NotNull(message="error.noBooking") Integer bookingId, WorkOrderStatus workOrderStatus) {
         Booking booking = requireBooking(bookingId);
         booking.followWorkOrder(workOrderStatus);
         return bookingRepository.save(booking);
@@ -167,7 +170,7 @@ public class BookingService {
 
     // Mjuk borttagning: raden och bokningsnumret finns kvar, bara statusen ändras. Domänen avgör om det är tillåtet.
     @Transactional
-    public Booking cancel(int bookingId) {
+    public Booking cancel(@Positive @NotNull(message="error.noBooking") Integer bookingId) {
         Booking booking = requireBooking(bookingId);
         booking.cancel();
         return bookingRepository.save(booking);
@@ -180,12 +183,12 @@ public class BookingService {
         }
     }
 
-    private Booking requireBooking(int id) {
+    private Booking requireBooking(@Positive @NotNull(message="error.noBooking") Integer id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", id, "error.bookingNotFound"));
     }
 
-    private Vehicle requireVehicle(int id) {
+    private Vehicle requireVehicle(Integer id) {
         return vehicleRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Vehicle", id));
     }
@@ -220,7 +223,7 @@ public class BookingService {
         return changes;
     }
 
-    public boolean isVehicleBooked(int vehicleId, LocalDate date) {
+    public boolean isVehicleBooked(Integer vehicleId, LocalDate date) {
         return bookingRepository.existsByVehicleIdAndDateAndStatusNot(vehicleId, date, BookingStatus.CANCELLED);
     }
 
@@ -241,7 +244,7 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<Integer> listServiceItemIds(int id) {
+    public List<Integer> listServiceItemIds(Integer id) {
         return serviceItemIdsOf(requireBooking(id));
     }
 
