@@ -9,6 +9,7 @@ import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
@@ -39,7 +40,7 @@ public class InvoiceService {
         this.customerService = customerService;
     }
 
-    public Invoice create(@Positive int workOrderId,
+    public Invoice create(@Positive @NotNull(message="error.invoice.noWorkOrder") Integer workOrderId,
                           @Pattern(
                                   regexp = "^(?:[A-Z]+\\d+)?$",
                                   message = "error.discountCode.invalidFormat"

@@ -30,13 +30,13 @@ public class MechanicService {
         return mechanicRepository.findAll();
     }
 
-    public Optional<Mechanic> findById(int id) {
+    public Optional<Mechanic> findById(Integer id) {
         return mechanicRepository.findById(id);
     }
 
     // Upptagen just nu = en arbetsorder som reserverar mekanikern pågår enligt planerad tid (regeln ligger i WorkOrder).
     // Bokningens mekaniker är bara ett förslag och räknas inte.
-    public boolean isBusyNow(int mechanicId) {
+    public boolean isBusyNow(Integer mechanicId) {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         return workOrderRepository.findByMechanicIdAndPlannedDate(mechanicId, today).stream()

@@ -29,11 +29,11 @@ public class CustomerService {
         return customerRepo.findAll();
     }
 
-    public Optional<Customer> findById(Integer id) {
+    public Optional<Customer> findById(@Positive @NotNull(message="error.customerNull") Integer id) {
         return customerRepo.findById(id);
     }
 
-    public boolean existsById(Integer id) {
+    public boolean existsById(@Positive @NotNull(message="error.customerNull") Integer id) {
         return customerRepo.existsById(id);
     }
 
