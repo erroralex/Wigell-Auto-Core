@@ -2,7 +2,6 @@ package com.wac.autocore.repository;
 
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -15,16 +14,17 @@ import java.util.Optional;
  * <p>Ansvar: Databasåtkomst för arbetsordrar. Spring Data genererar implementationen
  * utifrån metodnamnen, så inga SQL-frågor behöver skrivas för hand.</p>
  */
-@Repository
-public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
+@org.springframework.stereotype.Repository
+public interface WorkOrderRepository extends org.springframework.data.repository.Repository<WorkOrder, Integer> {
+
+    List<WorkOrder> findAll();
+    Optional<WorkOrder> findById(Integer id);
+    <S extends WorkOrder> S save(S workOrder);
 
     List<WorkOrder> findByStatus(WorkOrderStatus status);
     List<WorkOrder> findByMechanicId(int mechanicId);
-    // Kandidater för mekanikerns krockkontroll. Status filtreras i domänen (WorkOrder.collidesWith), så regeln finns på ett ställe.
     List<WorkOrder> findByMechanicIdAndPlannedDate(int mechanicId, LocalDate plannedDate);
-    Optional<WorkOrder> findByBookingId(int bookingId);
-    boolean existsByBookingId(int bookingId);
-    // Bokningen ses som upptagen genom att ha en aktiv order. Avbrutna ordrar räknas inte, så bokningen kan få en ny order.
+
     boolean existsByBookingIdAndStatusNot(int bookingId, WorkOrderStatus status);
 
     @Query("SELECT w FROM WorkOrder w WHERE w.status = 'COMPLETED' " +
