@@ -319,7 +319,6 @@ public class BookingView extends BaseView {
         dialog.showAndWait().ifPresent(result -> {
 
             try {
-
                 bookingService.update(
                         selected.getId(),
                         selected.getVehicleId(),

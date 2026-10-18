@@ -80,15 +80,15 @@ public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
 
     public static class Result {
 
-        private final int invoiceId;
+        private final Integer invoiceId;
         private final String paymentType;
 
-        public Result(int invoiceId, String paymentType) {
+        public Result(Integer invoiceId, String paymentType) {
             this.invoiceId = invoiceId;
             this.paymentType = paymentType;
         }
 
-        public int getInvoiceId() {
+        public Integer getInvoiceId() {
             return invoiceId;
         }
 

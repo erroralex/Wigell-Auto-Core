@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import java.util.List;
@@ -31,7 +32,7 @@ public class PaymentService {
         return paymentRepo.findAll();
     }
 
-    public Payment processPayment(@Positive Integer invoiceId,
+    public Payment processPayment(@Positive @NotNull(message="error.payment.noInvoiceId") Integer invoiceId,
                                   @NotBlank(message="error.payment.emptyPaymentType")
                                   @Pattern(
                                           regexp = "^(CARD|SWISH|CASH)$",

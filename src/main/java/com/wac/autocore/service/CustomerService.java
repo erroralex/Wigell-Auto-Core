@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,11 +29,11 @@ public class CustomerService {
         return customerRepo.findAll();
     }
 
-    public Optional<Customer> findById(Integer id) {
+    public Optional<Customer> findById(@Positive @NotNull(message="error.customerNull") Integer id) {
         return customerRepo.findById(id);
     }
 
-    public boolean existsById(Integer id) {
+    public boolean existsById(@Positive @NotNull(message="error.customerNull") Integer id) {
         return customerRepo.existsById(id);
     }
 
@@ -53,12 +54,12 @@ public class CustomerService {
         return customerRepo.save(customer);
     }
 
-    public void deleteById(Integer id) {
+    public void deleteById(@Positive @NotNull(message="error.customerNull") Integer id) {
         requireExists(id);
         customerRepo.deleteById(id);
     }
 
-    private void requireExists(int id) {
+    private void requireExists(Integer id) {
         if (!customerRepo.existsById(id)) {
             throw new EntityNotFoundException("Customer", id);
         }

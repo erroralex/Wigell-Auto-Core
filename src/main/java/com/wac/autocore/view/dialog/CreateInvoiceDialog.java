@@ -84,10 +84,10 @@ public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
 
     public static class Result {
 
-        private final int workOrderId;
+        private final Integer workOrderId;
         private final String discountCode;
 
-        public Result(int workOrderId, String discountCode) {
+        public Result(Integer workOrderId, String discountCode) {
             this.workOrderId = workOrderId;
             this.discountCode = discountCode;
         }

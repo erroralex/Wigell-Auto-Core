@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Optional;
@@ -45,8 +46,8 @@ public class ServicePackageService {
     }
 
     public ServicePackage create(@NotBlank(message = "error.servicePackage.nameRequired") String name,
-                                 @NotBlank(message = "error.desc") String description,
-                                 @NotEmpty(message = "error.servicePackage.noServices") List<Integer> serviceItemIds) {
+                                 String description,
+                                 @NotEmpty(message = "error.servicePackage.noServices") List<@Positive Integer> serviceItemIds) {
         List<ServiceItem> services = serviceItemRepository.requireAllById(serviceItemIds);
         ServicePackage servicePackage = ServicePackage.create(name, description, services);
         if (packageRepository.existsByNameIgnoreCase(servicePackage.getName())) {
@@ -55,9 +56,9 @@ public class ServicePackageService {
         return packageRepository.save(servicePackage);
     }
 
-    public ServicePackage update(@Positive int id,
+    public ServicePackage update(@Positive @NotNull(message = "error.servicePackage.nullValue") Integer id,
                                  @NotBlank(message = "error.servicePackage.nameRequired")String name,
-                                 @NotBlank(message = "error.desc")String description,
+                                 String description,
                                  @NotEmpty(message = "error.servicePackage.noServices") List<Integer> serviceItemIds) {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
@@ -75,7 +76,7 @@ public class ServicePackageService {
         return packageRepository.save(servicePackage);
     }
 
-    public void delete(@Positive int id) {
+    public void delete(@Positive @NotNull(message = "error.servicePackage.nullValue") Integer id) {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
         packageRepository.delete(servicePackage);

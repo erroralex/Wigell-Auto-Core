@@ -3,6 +3,7 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
+import com.wac.autocore.view.util.AlertHelper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -123,6 +124,7 @@ public class CustomerView extends BaseView {
     private void openCreateCustomerDialog() {
         CreateCustomerDialog dialog = new CreateCustomerDialog(customerService);
         if (dialog.showAndWait()) {
+            AlertHelper.showInfo("customer.created", "customer.createdMsg");
             refreshData();
         }
     }
