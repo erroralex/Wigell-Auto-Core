@@ -2,17 +2,16 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.BookingService;
+import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.component.ServiceSelectorBox;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
  */
 public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.Result> {
 
-    private final BookingService bookingService;
     private final Booking booking;
 
     private final Label infoLabel = new Label();
@@ -32,12 +30,11 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
-    public EditBookingServicesDialog(Booking booking, BookingService bookingService) {
+    public EditBookingServicesDialog(Booking booking, List<ServiceItem> serviceItems, Vehicle vehicle, Mechanic mechanic) {
         this.booking = booking;
-        this.bookingService = bookingService;
 
         // Initiera serviceSelector med alla tillgängliga tjänster
-        serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
+        serviceSelector = new ServiceSelectorBox(serviceItems);
 
         serviceSelector.selectServiceIds(
                 booking.getItems().stream()
@@ -52,21 +49,13 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
-        buildInfoLabel();
+        buildInfoLabel(vehicle, mechanic);
 
         setContent();
         handleInput();
     }
 
-    private void buildInfoLabel() {
-        Map<Integer, Vehicle> vehicleMap = bookingService.listAllVehicles().stream()
-                .collect(Collectors.toMap(Vehicle::getId, v -> v));
-
-        Map<Integer, Mechanic> mechanicMap = bookingService.listAllMechanics().stream()
-                .collect(Collectors.toMap(Mechanic::getId, m -> m));
-
-        Vehicle vehicle = vehicleMap.get(booking.getVehicleId());
-        Mechanic mechanic = mechanicMap.get(booking.getMechanicId());
+    private void buildInfoLabel(Vehicle vehicle, Mechanic mechanic) {
 
         String regNumber = vehicle != null ? vehicle.getRegistrationNumber() : "?";
         String mechanicName = booking.getMechanicId() == null ? "-"
