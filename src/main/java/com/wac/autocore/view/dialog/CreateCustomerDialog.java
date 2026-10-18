@@ -22,9 +22,8 @@ import java.util.regex.Pattern;
  * <b>CreateCustomerDialog</b>
  * <p>Ansvar: Dialog för att skapa en ny kund.</p>
  */
-public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
+public class CreateCustomerDialog {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final CustomerService customerService;
@@ -47,9 +46,9 @@ public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
         dialog.setResultConverter(buttonType -> buttonType == saveButtonType);
     }
 
-   /* public boolean showAndWait() {
+    public boolean showAndWait() {
         return dialog.showAndWait().orElse(false);
-    }*/
+    }
 
     private void configureFields() {
         nameField.setPromptText(lang.get("table.name"));
@@ -68,13 +67,11 @@ public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
         saveButton.getStyleClass().addAll("btn", "btn-primary");
         cancelButton.getStyleClass().addAll("btn", "btn-secondary");
 
-        handleInput();
-
-     /*   saveButton.addEventFilter(ActionEvent.ACTION, event -> {
+        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             if (!saveCustomer()) {
                 event.consume();
             }
-        });*/
+        });
     }
 
     private GridPane createContent() {
@@ -94,28 +91,14 @@ public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
         return grid;
     }
 
-    private void handleInput() {
-
-        setResultConverter(buttonType -> {
-            if (buttonType != saveButtonType) {
-                return null;
-            }
-
-            return new Result(
-                    nameField.getText(),
-                    phoneField.getText(),
-                    emailField.getText());
-        });
-    }
-
     private boolean saveCustomer() {
         resetFieldErrorState();
 
 
 
-        /*String name = getTrimmedValue(nameField);
+        String name = getTrimmedValue(nameField);
         String phone = getTrimmedValue(phoneField);
-        String email = getTrimmedValue(emailField);*/
+        String email = getTrimmedValue(emailField);
 
         /*if (name.isEmpty()) {
             markFieldError(nameField);
@@ -133,7 +116,7 @@ public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
             markFieldError(emailField);
             AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidEmail"));
             return false;
-        }
+        }*/
 
         try {
             Customer customer = customerService.create(name, phone, email);
@@ -145,7 +128,6 @@ public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
             ErrorFacade.handle(e);
             return false;
         }
-*/
         return true;
     }
 
@@ -165,7 +147,7 @@ public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
         }
     }
 
-    public static class Result {
+    /*public static class Result {
         private final String name;
         private final String phone;
         private final String email;
@@ -185,6 +167,6 @@ public class CreateCustomerDialog extends Dialog<CreateCustomerDialog.Result>{
         public String getEmail() {
             return email;
         }
-    }
+    }*/
 
 }
