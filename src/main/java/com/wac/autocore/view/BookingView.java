@@ -4,8 +4,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.BookingService;
-import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.service.*;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
@@ -40,6 +39,9 @@ public class BookingView extends BaseView {
 
     private final BookingService bookingService;
     private final ServicePackageService servicePackageService;
+    private final VehicleService vehicleService;
+    private final MechanicService mechanicService;
+    private final ServiceItemService serviceItemService;
 
     private final ObservableList<Booking> bookingObservableList;
 
@@ -55,15 +57,24 @@ public class BookingView extends BaseView {
     private final Button btnCancelBooking = new Button(lang.get("btn.cancelBooking"));
     private final CheckBox showCancelled = new CheckBox(lang.get("booking.showCancelled"));
 
-    public BookingView(BookingService bookingService, ServicePackageService servicePackageService) {
+    public BookingView(
+            BookingService bookingService,
+            ServicePackageService servicePackageService,
+            VehicleService vehicleService,
+            MechanicService mechanicService,
+            ServiceItemService serviceItemService
+    ) {
         this.bookingService = bookingService;
         this.servicePackageService = servicePackageService;
+        this.vehicleService = vehicleService;
+        this.mechanicService = mechanicService;
+        this.serviceItemService = serviceItemService;
         this.bookingObservableList = FXCollections.observableArrayList(bookingService.listActive());
 
-        vehicleMap = bookingService.listAllVehicles()
+        vehicleMap = vehicleService.findAll()
                 .stream()
                 .collect(Collectors.toMap(Vehicle::getId, vehicle -> vehicle));
-        mechanicMap = bookingService.listAllMechanics()
+        mechanicMap = mechanicService.listAll()
                 .stream()
                 .collect(Collectors.toMap(Mechanic::getId, mechanic -> mechanic));
 
