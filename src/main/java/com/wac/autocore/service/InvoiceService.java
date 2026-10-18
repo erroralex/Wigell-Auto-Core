@@ -7,6 +7,7 @@ import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.InvoiceRepo;
 import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotNull;
@@ -23,6 +24,7 @@ import java.util.Optional;
  */
 @Validated
 @Service
+@Transactional
 public class InvoiceService {
 
     private final InvoiceRepo invoiceRepo;
@@ -59,7 +61,7 @@ public class InvoiceService {
         }
 
         if (invoiceRepo.existsByWorkOrderId(workOrderId)) {
-            throw new ValidationException("error.invoice.alreadyExists", String.valueOf(workOrderId));
+            throw new ValidationException("error.invoice.alreadyInvoiced", String.valueOf(workOrderId));
         }
 
         Vehicle vehicle = vehicleService.findById(vehicleId)
