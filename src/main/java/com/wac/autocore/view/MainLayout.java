@@ -1,6 +1,14 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.service.*;
+import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.InvoiceService;
+import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.PaymentService;
+import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.service.VehicleService;
+import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;

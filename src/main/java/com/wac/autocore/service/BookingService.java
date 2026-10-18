@@ -5,7 +5,6 @@ import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingServiceItem;
 import com.wac.autocore.model.BookingStatus;
-import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.model.WorkOrderStatus;
@@ -225,22 +224,6 @@ public class BookingService {
 
     public boolean isVehicleBooked(Integer vehicleId, LocalDate date) {
         return bookingRepository.existsByVehicleIdAndDateAndStatusNot(vehicleId, date, BookingStatus.CANCELLED);
-    }
-
-    public List<ServiceItem> listAllServiceItems() {
-        return serviceItemRepository.findAll();
-    }
-
-    public Optional<ServiceItem> findServiceItemById(int id) {
-        return serviceItemRepository.findById(id);
-    }
-
-    public List<Mechanic> listAllMechanics() {
-        return mechanicRepository.findAll();
-    }
-
-    public List<Vehicle> listAllVehicles() {
-        return vehicleRepo.findAll();
     }
 
     @Transactional(readOnly = true)
