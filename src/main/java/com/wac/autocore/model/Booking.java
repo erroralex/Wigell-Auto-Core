@@ -226,7 +226,10 @@ public class Booking {
     }
 
     public void followWorkOrder(WorkOrderStatus workOrderStatus) {
-        status = BookingStatus.forWorkOrder(workOrderStatus);
+        if (status == BookingStatus.CANCELLED) {
+            throw new BookingLockedException(id, status);
+        }
+        status =  BookingStatus.forWorkOrder(workOrderStatus);
     }
 
     @Override
