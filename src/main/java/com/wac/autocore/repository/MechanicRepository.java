@@ -1,9 +1,15 @@
 package com.wac.autocore.repository;
 
 import com.wac.autocore.model.Mechanic;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface MechanicRepository extends JpaRepository<Mechanic, Integer> {
+import java.util.List;
+import java.util.Optional;
+
+@org.springframework.stereotype.Repository
+public interface MechanicRepository extends org.springframework.data.repository.Repository<Mechanic, Integer> {
+    List<Mechanic> findAll();
+    Optional<Mechanic> findById(Integer id);
+    Mechanic save(Mechanic mechanic);
+    boolean existsById(Integer id);
+    void deleteById(Integer id);
 }
