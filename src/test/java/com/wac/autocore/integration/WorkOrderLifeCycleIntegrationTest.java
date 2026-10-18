@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>WorkOrderLifecycleInMemoryTest</b>
@@ -95,6 +95,24 @@ class WorkOrderLifeCycleIntegrationTest {
         order = workOrder(workOrderId);
         assertEquals(WorkOrderStatus.COMPLETED, order.getStatus());
         assertEquals(BookingStatus.COMPLETED, booking(bookingId).getStatus());
+    }
+
+    // Ett återöppnat utkast äger fortfarande planen, så bokningen ska förbli låst och följa ordern.
+    // Bara en avbruten order släpper bokningen (BOOKED).
+    @Test
+    @DisplayName("Reopening a confirmed work order makes it a draft and keeps its booking locked")
+    void reopenConfirmedOrder_keepsBookingLocked() {
+        int workOrderId = workOrderService.createWorkOrder(bookingId).getWorkOrder().getId();
+        workOrderService.confirmWorkOrder(workOrderId);
+
+        workOrderService.reopenWorkOrder(workOrderId);
+
+        WorkOrder order = workOrder(workOrderId);
+        Booking booking = booking(bookingId);
+        assertEquals(WorkOrderStatus.DRAFT, order.getStatus());
+        assertTrue(order.getStatus().isEditable(), "The reopened draft should be editable");
+        assertEquals(BookingStatus.WORK_ORDER_CREATED, booking.getStatus());
+        assertFalse(booking.getStatus().isEditable(), "The booking should stay locked while the order owns the plan");
     }
 
     private WorkOrder workOrder(int id) {
