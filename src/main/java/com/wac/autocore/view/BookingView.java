@@ -81,8 +81,6 @@ public class BookingView extends BaseView {
         initializeTable();
 
         initView();
-
-
     }
 
     @Override
@@ -325,7 +323,15 @@ public class BookingView extends BaseView {
             return;
         }
 
-        EditBookingServicesDialog dialog = new EditBookingServicesDialog(selected, bookingService);
+        Vehicle vehicle = vehicleMap.get(selected.getVehicleId());
+        Mechanic suggestedMechanic = mechanicMap.get(selected.getMechanicId());
+
+        EditBookingServicesDialog dialog = new EditBookingServicesDialog(
+                selected,
+                serviceItemService.listAll(),
+                vehicle,
+                suggestedMechanic
+        );
 
         dialog.showAndWait().ifPresent(result -> {
 
