@@ -1,15 +1,16 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.model.*;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingPriceChange;
 import com.wac.autocore.service.BookingService;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.component.ServicePackageSelectorBox;
 import com.wac.autocore.view.component.ServiceSelectorBox;
-import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -47,19 +48,21 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     private VBox contentBox;
 
-    public CreateBookingDialog(BookingService bookingService, ServicePackageService servicePackageService) {
-        this(bookingService, servicePackageService, null);
-    }
-
-    public CreateBookingDialog(BookingService bookingService,
-                               ServicePackageService servicePackageService,
-                               Booking previous) {
+    // previous kan vara null
+    public CreateBookingDialog(
+            BookingService bookingService,
+            ServicePackageService servicePackageService,
+            List<Vehicle> vehicles,
+            List<Mechanic> mechanics,
+            List<ServiceItem> serviceItems,
+            Booking previous
+    ) {
         this.bookingService = bookingService;
 
         this.servicePackageSelector = new ServicePackageSelectorBox(
                 servicePackageService.findAll());
 
-        this.serviceSelector = new ServiceSelectorBox(bookingService.listAllServiceItems());
+        this.serviceSelector = new ServiceSelectorBox(serviceItems);
 
         setTitle(lang.get("booking.new"));
         setHeaderText(lang.get("booking.create"));
@@ -68,8 +71,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
-        vehicleComboBox.getItems().addAll(bookingService.listAllVehicles());
-        mechanicComboBox.getItems().addAll(bookingService.listAllMechanics());
+        vehicleComboBox.getItems().addAll(vehicles);
+        mechanicComboBox.getItems().addAll(mechanics);
         populateStartTimes();
 
         setContent();
@@ -196,8 +199,11 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             public String toString(Vehicle v) {
                 return v == null ? "" : v.getRegistrationNumber() + " - " + v.getBrand() + " " + v.getModel();
             }
+
             @Override
-            public Vehicle fromString(String s) { return null; }
+            public Vehicle fromString(String s) {
+                return null;
+            }
         });
 
         mechanicComboBox.setConverter(new StringConverter<Mechanic>() {
@@ -205,8 +211,11 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             public String toString(Mechanic m) {
                 return m == null ? "" : m.getName();
             }
+
             @Override
-            public Mechanic fromString(String s) { return null; }
+            public Mechanic fromString(String s) {
+                return null;
+            }
         });
     }
 

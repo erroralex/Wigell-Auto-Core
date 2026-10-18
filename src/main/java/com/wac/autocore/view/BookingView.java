@@ -16,11 +16,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -28,7 +24,7 @@ import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -100,14 +96,14 @@ public class BookingView extends BaseView {
         bookingTableView.setEditable(false);
         bookingTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<Booking, Number> bookingIdColumn =      new TableColumn<>(lang.get("table.bookingId"));
-        TableColumn<Booking, String> regIdColumn =          new TableColumn<>(lang.get("table.regNumber"));
-        TableColumn<Booking, LocalDate> dateColumn =        new TableColumn<>(lang.get("table.date"));
-        TableColumn<Booking, String> descriptionColumn =    new TableColumn<>(lang.get("table.desc"));
-        TableColumn<Booking, String> statusColumn =         new TableColumn<>(lang.get("table.status"));
-        TableColumn<Booking, String> mechanicColumn =       new TableColumn<>(lang.get("table.suggestedMechanic"));
-        TableColumn<Booking, LocalTime> startTimeColumn =   new TableColumn<>(lang.get("table.startTime"));
-        TableColumn<Booking, LocalTime> endTimeColumn =     new TableColumn<>(lang.get("table.endTime"));
+        TableColumn<Booking, Number> bookingIdColumn = new TableColumn<>(lang.get("table.bookingId"));
+        TableColumn<Booking, String> regIdColumn = new TableColumn<>(lang.get("table.regNumber"));
+        TableColumn<Booking, LocalDate> dateColumn = new TableColumn<>(lang.get("table.date"));
+        TableColumn<Booking, String> descriptionColumn = new TableColumn<>(lang.get("table.desc"));
+        TableColumn<Booking, String> statusColumn = new TableColumn<>(lang.get("table.status"));
+        TableColumn<Booking, String> mechanicColumn = new TableColumn<>(lang.get("table.suggestedMechanic"));
+        TableColumn<Booking, LocalTime> startTimeColumn = new TableColumn<>(lang.get("table.startTime"));
+        TableColumn<Booking, LocalTime> endTimeColumn = new TableColumn<>(lang.get("table.endTime"));
 
         bookingIdColumn.setCellValueFactory(cellData ->
                 new SimpleIntegerProperty(cellData.getValue().getId()));
@@ -149,10 +145,10 @@ public class BookingView extends BaseView {
 
         bookingTableView.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldVal, newVal) -> {
-            boolean none = newVal == null;
-            btnEditServices.setDisable(none);
-            btnCopyBooking.setDisable(none);
-            btnCancelBooking.setDisable(none || newVal.getStatus() != BookingStatus.BOOKED);
+                    boolean none = newVal == null;
+                    btnEditServices.setDisable(none);
+                    btnCopyBooking.setDisable(none);
+                    btnCancelBooking.setDisable(none || newVal.getStatus() != BookingStatus.BOOKED);
                 }
         );
     }
@@ -246,17 +242,17 @@ public class BookingView extends BaseView {
     }
 
     private void openCreateBookingDialog() {
-        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService);
+        CreateBookingDialog dialog = newBookingDialog(null);
 
         dialog.showAndWait().ifPresent(result -> {
             try {
                 bookingService.create(
-                    result.getVehicleId(),
-                    result.getMechanicId(),
-                    result.getDate(),
-                    result.getStartTime(),
-                    result.getDescription(),
-                    result.getServiceItemIds()
+                        result.getVehicleId(),
+                        result.getMechanicId(),
+                        result.getDate(),
+                        result.getStartTime(),
+                        result.getDescription(),
+                        result.getServiceItemIds()
                 );
 
                 refreshBookings();
@@ -274,7 +270,7 @@ public class BookingView extends BaseView {
             return;
         }
 
-        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService, selected);
+        CreateBookingDialog dialog = newBookingDialog(selected);
 
         dialog.showAndWait().ifPresent(result -> {
             try {
@@ -303,7 +299,7 @@ public class BookingView extends BaseView {
 
                 refreshBookings();
                 AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
-            } catch(RuntimeException e) {
+            } catch (RuntimeException e) {
                 ErrorFacade.handle(e);
             }
         });
@@ -352,5 +348,16 @@ public class BookingView extends BaseView {
                 ErrorFacade.handle(e);
             }
         });
+    }
+
+    // Hjälpmetod. previous kan vara null och ger då en tom dialog
+    private CreateBookingDialog newBookingDialog(Booking previous) {
+        return new CreateBookingDialog(
+                bookingService,
+                servicePackageService,
+                vehicleService.findAll(),
+                mechanicService.listAll(),
+                serviceItemService.listAll(),
+                previous);
     }
 }
