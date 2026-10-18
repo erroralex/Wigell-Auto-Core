@@ -1,9 +1,11 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.InvoiceRepo;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -11,6 +13,7 @@ import java.util.Optional;
 
 import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -97,5 +100,31 @@ class InvoiceServiceTest {
         when(workOrder.getVehicleId()).thenReturn(5);
         when(workOrder.getItems()).thenReturn(Arrays.asList(items));
         when(workOrderService.findById(1)).thenReturn(Optional.of(workOrder));
+    }
+
+    @Test
+    @DisplayName("An unfinished work order cannot be invoiced")
+    void workOrderNotCompletedThrows() {
+        WorkOrder workOrder = mock(WorkOrder.class);
+        when(workOrder.getStatus()).thenReturn(WorkOrderStatus.IN_PROGRESS);
+        when(workOrder.getVehicleId()).thenReturn(5);
+        when(workOrderService.findById(1)).thenReturn(Optional.of(workOrder));
+
+        ValidationException ex = assertThrows(ValidationException.class,
+                () -> invoiceService.create(1, null));
+
+        assertEquals("error.invoice.workOrderNotCompleted", ex.getMessageKey());
+    }
+
+    @Test
+    @DisplayName("A work order can only be invoiced once")
+    void alreadyInvoicedWorkOrderThrows() {
+        givenWorkOrderWithPrices("100");
+        when(invoiceRepo.existsByWorkOrderId(1)).thenReturn(true);
+
+        ValidationException ex = assertThrows(ValidationException.class,
+                () -> invoiceService.create(1, null));
+
+        assertEquals("error.invoice.alreadyInvoiced", ex.getMessageKey());
     }
 }
