@@ -7,10 +7,29 @@ import com.wac.autocore.exception.WorkOrderLockedException;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.model.value.TimeSlot;
 
-import javax.persistence.*;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * <b>WorkOrder</b>
@@ -65,16 +84,21 @@ public abstract class WorkOrder {
         this.items.addAll(items);
     }
 
-    private void transitionTo(WorkOrderStatus next) {
+    // Statusregeln kontrolleras först: en otillåten övergång är fel, oavsett vad ordern innehåller.
+    private void requireCanChangeTo(WorkOrderStatus next) {
         if (!this.status.canChangeTo(next)) {
             throw new IllegalStatusTransitionException(this.status, next);
         }
+    }
+
+    private void transitionTo(WorkOrderStatus next) {
+        requireCanChangeTo(next);
         this.status = next;
     }
 
     public void confirm() {
-        validateCommon();
-        validateTypeSpecific();
+        requireCanChangeTo(WorkOrderStatus.CONFIRMED);
+        requireReadyForWork();
         transitionTo(WorkOrderStatus.CONFIRMED);
     }
 
@@ -106,7 +130,10 @@ public abstract class WorkOrder {
     protected void validateTypeSpecific() {
     } // Intentionally empty.
 
+    // Samma krav som vid bekräftelsen. En bekräftad order som tappat t.ex. mekaniker får inte påbörjas.
     public void start() {
+        requireCanChangeTo(WorkOrderStatus.IN_PROGRESS);
+        requireReadyForWork();
         transitionTo(WorkOrderStatus.IN_PROGRESS);
     }
 
@@ -120,6 +147,21 @@ public abstract class WorkOrder {
 
     public void reopen() {
         transitionTo(WorkOrderStatus.DRAFT);
+    }
+
+    // En bekräftad order ska alltid vara komplett. Anropas efter redigering.
+    // Ett utkast får vara ofullständigt. Vill man ta bort uppgifter återöppnas ordern som utkast först.
+    public void requireCompleteIfConfirmed() {
+        if (status == WorkOrderStatus.CONFIRMED) {
+            requireReadyForWork();
+        }
+    }
+
+    // Enda stället som avgör om ordern har det som krävs för att arbetet ska kunna genomföras.
+    // Template Method: gemensamma krav här, typens egna krav i validateTypeSpecific().
+    private void requireReadyForWork() {
+        validateCommon();
+        validateTypeSpecific();
     }
 
     public void setItemChargeable(int serviceItemId, boolean chargeable) {

@@ -1,8 +1,15 @@
 package com.wac.autocore.unit;
 
+import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.exception.WorkOrderLockedException;
-import com.wac.autocore.model.*;
+import com.wac.autocore.model.DropInWorkOrder;
+import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.WarrantyWorkOrder;
+import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.WorkOrderItem;
+import com.wac.autocore.model.WorkOrderStatus;
+import com.wac.autocore.model.WorkOrderType;
 import com.wac.autocore.model.value.Money;
 import org.junit.jupiter.api.Test;
 
@@ -12,11 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -196,6 +199,45 @@ public class WorkOrderTest {
         );
 
         assertEquals("Validation failed: " + "error.workOrder.missingProblemDescription", exception.getMessage());
+    }
+
+    @Test
+    void startThrows_WhenConfirmedOrderHasLostItsMechanic() {
+        TestWorkOrder workOrder = new TestWorkOrder(1, 1);
+        workOrder.addItem(createService(1, Money.of(899)));
+        workOrder.confirm();
+
+        workOrder.setMechanicId(null);
+
+        assertThrows(ValidationException.class, workOrder::start);
+        assertEquals(WorkOrderStatus.CONFIRMED, workOrder.getStatus());
+    }
+
+    @Test
+    void requireCompleteIfConfirmed_allowsIncompleteDraft() {
+        TestWorkOrder draft = new TestWorkOrder(1, null);
+
+        draft.requireCompleteIfConfirmed(); // ska inte kasta
+
+        assertEquals(WorkOrderStatus.DRAFT, draft.getStatus());
+    }
+
+    @Test
+    void requireCompleteIfConfirmed_throwsForIncompleteConfirmedOrder() {
+        TestWorkOrder workOrder = new TestWorkOrder(1, 1);
+        workOrder.addItem(createService(1, Money.of(899)));
+        workOrder.confirm();
+        workOrder.setMechanicId(null);
+
+        assertThrows(ValidationException.class, workOrder::requireCompleteIfConfirmed);
+    }
+
+    @Test
+    void startThrowsStatusTransition_beforeValidation_WhenOrderIsCancelled() {
+        TestWorkOrder workOrder = new TestWorkOrder(1, null); // ofullständigt utkast
+        workOrder.cancel();
+
+        assertThrows(IllegalStatusTransitionException.class, workOrder::start);
     }
 
     private ServiceItem createService(int id, Money price) {

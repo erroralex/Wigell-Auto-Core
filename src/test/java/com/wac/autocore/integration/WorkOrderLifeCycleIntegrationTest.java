@@ -1,11 +1,22 @@
 package com.wac.autocore.integration;
 
-import com.wac.autocore.model.*;
+import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.BookingStatus;
+import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.WorkOrderScheduleResult;
 import com.wac.autocore.service.WorkOrderService;
-import com.wac.autocore.testsupport.*;
+import com.wac.autocore.testsupport.InMemoryBookingRepository;
+import com.wac.autocore.testsupport.InMemoryMechanicRepository;
+import com.wac.autocore.testsupport.InMemoryServiceItemRepository;
+import com.wac.autocore.testsupport.InMemoryVehicleRepo;
+import com.wac.autocore.testsupport.InMemoryWorkOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +26,7 @@ import java.time.LocalTime;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * <b>WorkOrderLifecycleInMemoryTest</b>
@@ -95,6 +107,24 @@ class WorkOrderLifeCycleIntegrationTest {
         order = workOrder(workOrderId);
         assertEquals(WorkOrderStatus.COMPLETED, order.getStatus());
         assertEquals(BookingStatus.COMPLETED, booking(bookingId).getStatus());
+    }
+
+    @Test
+    @DisplayName("A confirmed work order cannot be edited to lose its mechanic")
+    void confirmedOrder_cannotLoseMechanic() {
+        int workOrderId = workOrderService.createWorkOrder(bookingId).getWorkOrder().getId();
+        workOrderService.confirmWorkOrder(workOrderId);
+        WorkOrder order = workOrder(workOrderId);
+        int serviceItemId = order.getItems().get(0).getServiceItemId();
+
+        assertThrows(ValidationException.class, () -> workOrderService.updateWorkOrder(
+                workOrderId,
+                Collections.singletonList(serviceItemId),
+                null,                                   // mekanikern tas bort
+                order.getPlannedDate(),
+                order.getPlannedStartTime(),
+                null, null,
+                Collections.<Integer, Boolean>emptyMap()));
     }
 
     private WorkOrder workOrder(int id) {
