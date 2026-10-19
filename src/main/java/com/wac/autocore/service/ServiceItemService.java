@@ -1,14 +1,18 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
-import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.ServiceItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
+@Validated
 @Service
 public class ServiceItemService {
 
@@ -23,13 +27,10 @@ public class ServiceItemService {
     }
 
     @Transactional
-    public ServiceItem updatePrice(int id, double newPrice) {
-        if (newPrice <= 0) {
-            throw new ValidationException("error.serviceItem.invalidPrice");
-        }
+    public ServiceItem updatePrice(@Positive @NotNull(message="error.serviceItem.serviceItemNull") Integer id, Money newPrice) {
         ServiceItem item = serviceItemRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceItem.notFound"));
-        item.setPrice(newPrice);
+        item.changePrice(newPrice);
         return serviceItemRepo.save(item);
     }
 

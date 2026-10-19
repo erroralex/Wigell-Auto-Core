@@ -1,6 +1,15 @@
 package com.wac.autocore.view;
 
-import com.wac.autocore.service.*;
+import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.InvoiceService;
+import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.PaymentService;
+import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.service.VehicleService;
+import com.wac.autocore.service.WorkOrderService;
+import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 
@@ -60,11 +69,11 @@ public class MainLayout extends BorderPane {
             case HOME:              return new HomeView();
             case CUSTOMERS:         return new CustomerView(customerService);
             case VEHICLES:          return new VehicleView(customerService, vehicleService);
-            case BOOKINGS:          return new BookingView(bookingService, servicePackageService);
+            case BOOKINGS:          return new BookingView(bookingService, servicePackageService, vehicleService, mechanicService, serviceItemService);
             case SERVICE_ITEMS:     return new ServiceItemView(serviceItemService);
             case SERVICE_PACKAGES:  return new ServicePackageView(servicePackageService, serviceItemService);
-            case MECHANICS:         return new MechanicView(mechanicService);
-            case WORK_ORDERS:       return new WorkOrderView(workOrderService, customerService, vehicleService);
+            case MECHANICS:         return new MechanicView(mechanicService, vehicleService);
+            case WORK_ORDERS:       return new WorkOrderView(workOrderService, customerService, vehicleService, bookingService, mechanicService, serviceItemService);
             case INVOICES:          return new InvoiceView(invoiceService, workOrderService);
             case PAYMENTS:          return new PaymentView(invoiceService, paymentService);
             default:                throw new IllegalStateException("Unknown NavigationItem: " + item);

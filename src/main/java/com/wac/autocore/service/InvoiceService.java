@@ -1,11 +1,18 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.InvoiceRepo;
 import com.wac.autocore.service.discount.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +22,9 @@ import java.util.Optional;
  * <p>Ansvar: Skapar och hämtar fakturor. Beloppet räknas från arbetsorderns avtalade priser,
  * som frystes vid bokningen, och aldrig från tjänstekatalogens nuvarande priser.</p>
  */
+@Validated
 @Service
+@Transactional
 public class InvoiceService {
 
     private final InvoiceRepo invoiceRepo;
@@ -33,16 +42,26 @@ public class InvoiceService {
         this.customerService = customerService;
     }
 
-    public Invoice create(int workOrderId, String discountCode) {
+    public Invoice create(@Positive @NotNull(message="error.invoice.noWorkOrder") Integer workOrderId,
+                          @Pattern(
+                                  regexp = "^(?:[A-Z]+\\d+)?$",
+                                  message = "error.discountCode.invalidFormat"
+                          ) String discountCode) {
 
-        WorkOrder workOrder = workOrderService.findById(workOrderId);
-        if (workOrder == null) {
-            throw new EntityNotFoundException("WorkOrder", workOrderId);
-        }
+        WorkOrder workOrder = workOrderService.findById(workOrderId)
+                .orElseThrow(() -> new EntityNotFoundException("WorkOrder", workOrderId));
 
         Integer vehicleId = workOrder.getVehicleId();
         if (vehicleId == null) {
             throw new EntityNotFoundException("Vehicle", "none on WorkOrder " + workOrderId);
+        }
+
+        if (workOrder.getStatus() != WorkOrderStatus.COMPLETED) {
+            throw new ValidationException("error.invoice.workOrderNotCompleted");
+        }
+
+        if (invoiceRepo.existsByWorkOrderId(workOrderId)) {
+            throw new ValidationException("error.invoice.alreadyInvoiced", String.valueOf(workOrderId));
         }
 
         Vehicle vehicle = vehicleService.findById(vehicleId)
@@ -56,32 +75,15 @@ public class InvoiceService {
 
         // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
         for (WorkOrderItem workOrderItem : workOrder.getItems()) {
-            double amount = workOrderItem.isChargeable() ? workOrderItem.getAgreedPrice() : 0;
+            Money amount = workOrderItem.getChargedAmount();
 
-            double discount = strategy.calculateDiscount(amount);
+            Money discount = strategy.calculateDiscount(amount);
 
             if (customer.isVip())
-                discount += new VipDiscount().calculateDiscount(amount);
+                discount = discount.add(new VipDiscount().calculateDiscount(amount));
 
-            discount = Math.min(discount, amount);
-            double total = amount - discount;
-
-            invoice.addLine(new InvoiceLine(invoice, workOrderItem.getServiceName(), amount, discount, total));
+            invoice.addLine(workOrderItem.getServiceName(), amount, discount);
         }
-
-        double amountSum = 0;
-        double discountSum = 0;
-        double totalSum = 0;
-
-        for (InvoiceLine invoiceLine : invoice.getLines()) {
-            amountSum += invoiceLine.getAmount();
-            discountSum += invoiceLine.getDiscount();
-            totalSum += invoiceLine.getTotal();
-        }
-
-        invoice.setAmount(amountSum);
-        invoice.setDiscount(discountSum);
-        invoice.setTotalAmount(totalSum);
 
         return invoiceRepo.save(invoice);
     }

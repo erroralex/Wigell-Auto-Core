@@ -12,7 +12,7 @@ import java.util.List;
  * <p>Ansvar: En arbetsorder för en planerad bokning. Ordern bär en kopia av bokningens tjänster
  * ({@link WorkOrderItem}) med namn, avtalat pris och tid, så att verkstaden vet vilka jobb
  * som ska utföras och fakturan kan tas fram utan att läsa tjänstekatalogen.</p>
- * <p>Skapas bara via {@link #createFrom(Booking)}. Jobben ändras inte efter att ordern skapats.</p>
+ * <p>Skapas bara via {@link #createFrom(Booking)}, som ett utkast. Jobben ändras inte efter att ordern skapats.</p>
  */
 @Entity
 @DiscriminatorValue("PLANNED")
@@ -25,12 +25,13 @@ public class PlannedWorkOrder extends WorkOrder {
         super(bookingId, vehicleId, mechanicId, items);
     }
 
-    /* Fabriksmetod. Skapar en planerad arbetsorder från en bokning. Fordonet, mekanikern och
+    /* Fabriksmetod. Skapar en planerad arbetsorder från en bokning. Fordonet, datum, starttid och
      * alla tjänsterader kopieras, med priser och tider som de avtalades vid bokningen.
-     * Ordern bekräftas direkt, så att den alltid lämnar fabriken validerad och i status CONFIRMED. */
+     * Bokningens föreslagna mekaniker (kan saknas) blir förval. Ordern blir ett utkast och
+     * reserverar mekanikern först när den bekräftas. */
     public static PlannedWorkOrder createFrom(Booking booking) {
         if (booking == null || booking.getItems().isEmpty()) {
-            throw new ValidationException("error.workOrderNoServices");
+            throw new ValidationException("error.workOrder.bookingHasNoServices");
         }
 
         List<WorkOrderItem> copiedItems = new ArrayList<>();
@@ -38,9 +39,10 @@ public class PlannedWorkOrder extends WorkOrder {
             copiedItems.add(WorkOrderItem.from(bookingLine));
         }
 
-        PlannedWorkOrder workOrder = new PlannedWorkOrder(
-                booking.getId(), booking.getVehicleId(), booking.getMechanicId(), copiedItems);
-        workOrder.confirm();
+        PlannedWorkOrder workOrder = new PlannedWorkOrder(booking.getId(), booking.getVehicleId(),
+                booking.getMechanicId(), copiedItems);
+        workOrder.setPlannedDate(booking.getDate());
+        workOrder.setPlannedStartTime(booking.getStartTime());
         return workOrder;
     }
 
@@ -52,7 +54,14 @@ public class PlannedWorkOrder extends WorkOrder {
     @Override
     protected void validateTypeSpecific() {
         if (getBookingId() == null) {
-            throw new ValidationException("error.workOrderMissingBooking");
+            throw new ValidationException("error.workOrder.missingBooking");
+        }
+        // Kundens tid måste finnas innan mekanikern kan reserveras. Samma nycklar som bokningen.
+        if (getPlannedDate() == null) {
+            throw new ValidationException("error.dateSelect");
+        }
+        if (getPlannedStartTime() == null) {
+            throw new ValidationException("error.startTimeSelect");
         }
     }
 }

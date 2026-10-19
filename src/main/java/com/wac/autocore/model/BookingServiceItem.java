@@ -1,17 +1,13 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.data.MoneyConverter;
 import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.model.value.Money;
 
 import javax.persistence.*;
 
-/**
- * <b>BookingServiceItem</b>
- * <p>Ansvar: En tjänsterad på en bokning. Namn, pris och tidsåtgång kopieras från
- * {@link ServiceItem} när raden skapas och ändras aldrig efter det, så att en senare
- * ändring i tjänstekatalogen inte påverkar det som avtalades vid bokningen.</p>
- * <p>Skapas via {@link #snapshotOf(ServiceItem)} och kopplas till bokningen av
- * {@link Booking#addServiceItem(ServiceItem)}.</p>
- */
+// Samordnar bokningar.
+// Servicen laddar data, anropar domänen och kontrollerar regler.
 @Entity
 @Table(name = "booking_service_item", uniqueConstraints = {
         @UniqueConstraint(
@@ -37,7 +33,8 @@ public class BookingServiceItem {
     private String serviceName;
 
     @Column(name = "price_at_booking", nullable = false)
-    private double priceAtBooking;
+    @Convert(converter = MoneyConverter.class)
+    private Money priceAtBooking;
 
     @Column(name = "duration_minutes", nullable = false)
     private int durationMinutes;
@@ -46,7 +43,7 @@ public class BookingServiceItem {
 
     private BookingServiceItem(int serviceItemId,
                                String serviceName,
-                               double priceAtBooking,
+                               Money priceAtBooking,
                                int durationMinutes) {
         this.serviceItemId = serviceItemId;
         this.serviceName = serviceName;
@@ -65,19 +62,6 @@ public class BookingServiceItem {
                 serviceItem.getPrice(),
                 serviceItem.getEstimatedMinutes()
         );
-    }
-
-    // Skapar en ny instans av BookingServiceItem med samma värden, men utan det gamla id:t.
-    // Används när man vill duplicera en tjänsterad för en ny bokning.
-    // Kopierar tillfälligt priset, Servicelagret hämtar sedan dagens pris och tidsåtgång från ServiceItem.
-    BookingServiceItem copyAsNew() {
-        return new BookingServiceItem(
-                serviceItemId,
-                serviceName,
-                priceAtBooking,
-                durationMinutes
-        );
-
     }
 
     void setBooking(Booking booking) {
@@ -101,7 +85,7 @@ public class BookingServiceItem {
     }
 
     /** Price frozen at booking time. */
-    public double getPriceAtBooking() {
+    public Money getPriceAtBooking() {
         return priceAtBooking;
     }
 

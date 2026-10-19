@@ -1,7 +1,7 @@
 package com.wac.autocore.view.component;
 
 import com.wac.autocore.model.ServicePackage;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;

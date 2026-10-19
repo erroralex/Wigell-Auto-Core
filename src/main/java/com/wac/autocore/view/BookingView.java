@@ -1,10 +1,14 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
@@ -17,16 +21,18 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +43,9 @@ public class BookingView extends BaseView {
 
     private final BookingService bookingService;
     private final ServicePackageService servicePackageService;
+    private final VehicleService vehicleService;
+    private final MechanicService mechanicService;
+    private final ServiceItemService serviceItemService;
 
     private final ObservableList<Booking> bookingObservableList;
 
@@ -49,24 +58,33 @@ public class BookingView extends BaseView {
     private final Button btnCreate = new Button(lang.get("btn.createNew"));
     private final Button btnEditServices = new Button(lang.get("btn.edit"));
     private final Button btnCopyBooking = new Button(lang.get("btn.newBookingFromThis"));
+    private final Button btnCancelBooking = new Button(lang.get("btn.cancelBooking"));
+    private final CheckBox showCancelled = new CheckBox(lang.get("booking.showCancelled"));
 
-    public BookingView(BookingService bookingService, ServicePackageService servicePackageService) {
+    public BookingView(
+            BookingService bookingService,
+            ServicePackageService servicePackageService,
+            VehicleService vehicleService,
+            MechanicService mechanicService,
+            ServiceItemService serviceItemService
+    ) {
         this.bookingService = bookingService;
         this.servicePackageService = servicePackageService;
-        this.bookingObservableList = FXCollections.observableArrayList(bookingService.listAll());
+        this.vehicleService = vehicleService;
+        this.mechanicService = mechanicService;
+        this.serviceItemService = serviceItemService;
+        this.bookingObservableList = FXCollections.observableArrayList(bookingService.listActive());
 
-        vehicleMap = bookingService.listAllVehicles()
+        vehicleMap = vehicleService.findAll()
                 .stream()
                 .collect(Collectors.toMap(Vehicle::getId, vehicle -> vehicle));
-        mechanicMap = bookingService.listAllMechanics()
+        mechanicMap = mechanicService.listAll()
                 .stream()
                 .collect(Collectors.toMap(Mechanic::getId, mechanic -> mechanic));
 
         initializeTable();
 
         initView();
-
-
     }
 
     @Override
@@ -86,14 +104,14 @@ public class BookingView extends BaseView {
         bookingTableView.setEditable(false);
         bookingTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<Booking, Number> bookingIdColumn =      new TableColumn<>(lang.get("table.bookingId"));
-        TableColumn<Booking, String> regIdColumn =          new TableColumn<>(lang.get("table.regNumber"));
-        TableColumn<Booking, LocalDate> dateColumn =        new TableColumn<>(lang.get("table.date"));
-        TableColumn<Booking, String> descriptionColumn =    new TableColumn<>(lang.get("table.desc"));
-        TableColumn<Booking, String> statusColumn =         new TableColumn<>(lang.get("table.status"));
-        TableColumn<Booking, String> mechanicColumn =       new TableColumn<>(lang.get("table.mechanic"));
-        TableColumn<Booking, LocalTime> startTimeColumn =   new TableColumn<>(lang.get("table.startTime"));
-        TableColumn<Booking, LocalTime> endTimeColumn =     new TableColumn<>(lang.get("table.endTime"));
+        TableColumn<Booking, Number> bookingIdColumn = new TableColumn<>(lang.get("table.bookingId"));
+        TableColumn<Booking, String> regIdColumn = new TableColumn<>(lang.get("table.regNumber"));
+        TableColumn<Booking, LocalDate> dateColumn = new TableColumn<>(lang.get("table.date"));
+        TableColumn<Booking, String> descriptionColumn = new TableColumn<>(lang.get("table.desc"));
+        TableColumn<Booking, String> statusColumn = new TableColumn<>(lang.get("table.status"));
+        TableColumn<Booking, String> mechanicColumn = new TableColumn<>(lang.get("table.suggestedMechanic"));
+        TableColumn<Booking, LocalTime> startTimeColumn = new TableColumn<>(lang.get("table.startTime"));
+        TableColumn<Booking, LocalTime> endTimeColumn = new TableColumn<>(lang.get("table.endTime"));
 
         bookingIdColumn.setCellValueFactory(cellData ->
                 new SimpleIntegerProperty(cellData.getValue().getId()));
@@ -135,14 +153,27 @@ public class BookingView extends BaseView {
 
         bookingTableView.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldVal, newVal) -> {
-            boolean none = newVal == null;
-            btnEditServices.setDisable(none);
-            btnCopyBooking.setDisable(none);
+                    boolean none = newVal == null;
+                    btnEditServices.setDisable(none);
+                    btnCopyBooking.setDisable(none);
+                    btnCancelBooking.setDisable(none || newVal.getStatus() != BookingStatus.BOOKED);
                 }
         );
     }
 
-    private String fetchMechanic(int mechanicId) {
+    // Avbokade bokningar döljs tills kryssrutan markeras. Filtret ligger i servicen, vyn väljer bara vilken lista den visar.
+    private void refreshBookings() {
+        bookingObservableList.setAll(showCancelled.isSelected()
+                ? bookingService.listAll()
+                : bookingService.listActive());
+    }
+
+    // Förslaget är valfritt, så en bokning utan förslag visar ett tomt fält.
+    private String fetchMechanic(Integer mechanicId) {
+        if (mechanicId == null) {
+            return "";
+        }
+
         Mechanic mechanic = mechanicMap.get(mechanicId);
 
         if (mechanic != null) {
@@ -177,27 +208,62 @@ public class BookingView extends BaseView {
         btnCopyBooking.setOnAction(e -> openCopyBookingDialog());
         btnCopyBooking.setDisable(true);
 
-        HBox hBox = new HBox(15, btnCreate, btnEditServices, btnCopyBooking);
+        btnCancelBooking.getStyleClass().addAll("btn", btnPrimary);
+        btnCancelBooking.setOnAction(e -> cancelSelectedBooking());
+        btnCancelBooking.setDisable(true);
+
+        showCancelled.setOnAction(e -> refreshBookings());
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox hBox = new HBox(15, btnCreate, btnEditServices, btnCopyBooking, btnCancelBooking, spacer, showCancelled);
         hBox.setPadding(new Insets(15, 0, 0, 0));
         hBox.setAlignment(Pos.CENTER_LEFT);
         return hBox;
     }
 
+    private void cancelSelectedBooking() {
+        Booking selected = bookingTableView.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        boolean confirmed = AlertHelper.showWarningChoice(
+                lang.get("booking.cancelConfirmTitle"),
+                lang.get("booking.cancelConfirmMsg", selected.getId()),
+                lang.get("btn.cancelBooking"),
+                lang.get("btn.keep"));
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            bookingService.cancel(selected.getId());
+            refreshBookings();
+            AlertHelper.showInfo(lang.get("booking.cancelled"), lang.get("booking.cancelledMsg"));
+        } catch (RuntimeException e) {
+            ErrorFacade.handle(e);
+        }
+    }
+
     private void openCreateBookingDialog() {
-        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService);
+        CreateBookingDialog dialog = newBookingDialog(null);
 
         dialog.showAndWait().ifPresent(result -> {
             try {
                 bookingService.create(
-                    result.getVehicleId(),
-                    result.getMechanicId(),
-                    result.getDate(),
-                    result.getStartTime(),
-                    result.getDescription(),
-                    result.getServiceItemIds()
+                        result.getVehicleId(),
+                        result.getMechanicId(),
+                        result.getDate(),
+                        result.getStartTime(),
+                        result.getDescription(),
+                        result.getServiceItemIds()
                 );
 
-                bookingObservableList.setAll(bookingService.listAll());
+                refreshBookings();
                 AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
             } catch (RuntimeException e) {
                 ErrorFacade.handle(e);
@@ -212,23 +278,36 @@ public class BookingView extends BaseView {
             return;
         }
 
-        CreateBookingDialog dialog = new CreateBookingDialog(bookingService, servicePackageService, selected);
+        CreateBookingDialog dialog = newBookingDialog(selected);
 
         dialog.showAndWait().ifPresent(result -> {
             try {
-                bookingService.createFromPrevious(
-                        selected.getId(),
-                        result.getDate(),
-                        result.getStartTime(),
-                        result.getMechanicId(),
-                        result.getVehicleId(),
-                        result.getDescription(),
-                        result.getServiceItemIds()
-                );
+                // createFromPrevious tolkar mechanicId == null som "ärv förslaget". Har användaren rensat förslaget
+                // skapas bokningen i stället med create, som ger samma resultat (dagens priser) men utan förslag.
+                if (result.getMechanicId() == null) {
+                    bookingService.create(
+                            result.getVehicleId(),
+                            null,
+                            result.getDate(),
+                            result.getStartTime(),
+                            result.getDescription(),
+                            result.getServiceItemIds()
+                    );
+                } else {
+                    bookingService.createFromPrevious(
+                            selected.getId(),
+                            result.getDate(),
+                            result.getStartTime(),
+                            result.getMechanicId(),
+                            result.getVehicleId(),
+                            result.getDescription(),
+                            result.getServiceItemIds()
+                    );
+                }
 
-                bookingObservableList.setAll(bookingService.listAll());
+                refreshBookings();
                 AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
-            } catch(RuntimeException e) {
+            } catch (RuntimeException e) {
                 ErrorFacade.handle(e);
             }
         });
@@ -240,7 +319,7 @@ public class BookingView extends BaseView {
         if (selected == null)
             return;
 
-        if (!Booking.STATUS_BOOKED.equals(selected.getStatus())) {
+        if (!selected.getStatus().isEditable()) {
             AlertHelper.showError(
                     lang.get("error.title"),
                     lang.get("error.bookingStarted")
@@ -248,12 +327,19 @@ public class BookingView extends BaseView {
             return;
         }
 
-        EditBookingServicesDialog dialog = new EditBookingServicesDialog(selected, bookingService);
+        Vehicle vehicle = vehicleMap.get(selected.getVehicleId());
+        Mechanic suggestedMechanic = mechanicMap.get(selected.getMechanicId());
+
+        EditBookingServicesDialog dialog = new EditBookingServicesDialog(
+                selected,
+                serviceItemService.listAll(),
+                vehicle,
+                suggestedMechanic
+        );
 
         dialog.showAndWait().ifPresent(result -> {
 
             try {
-
                 bookingService.update(
                         selected.getId(),
                         selected.getVehicleId(),
@@ -264,11 +350,22 @@ public class BookingView extends BaseView {
                         result.getServiceItemIds()
                 );
 
-                bookingObservableList.setAll(bookingService.listAll());
+                refreshBookings();
                 AlertHelper.showInfo(lang.get("booking.updated"), lang.get("booking.updatedMsg"));
             } catch (RuntimeException e) {
                 ErrorFacade.handle(e);
             }
         });
+    }
+
+    // Hjälpmetod. previous kan vara null och ger då en tom dialog
+    private CreateBookingDialog newBookingDialog(Booking previous) {
+        return new CreateBookingDialog(
+                bookingService,
+                servicePackageService,
+                vehicleService.findAll(),
+                mechanicService.listAll(),
+                serviceItemService.listAll(),
+                previous);
     }
 }

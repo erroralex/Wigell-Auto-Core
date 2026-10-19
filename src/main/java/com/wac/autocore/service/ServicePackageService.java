@@ -8,8 +8,12 @@ import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.ServicePackageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
-import java.util.ArrayList;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +22,7 @@ import java.util.Optional;
  * <p>Ansvar: skapa, ändra, ta bort och läsa servicepaket.</p>
  * <p>Regler som kräver databasen ligger här: att tjänsterna finns och att namnet är unikt. Regler om paketet i sig ligger i ServicePackage.</p>
  */
+@Validated
 @Service
 @Transactional
 public class ServicePackageService {
@@ -40,8 +45,10 @@ public class ServicePackageService {
         return packageRepository.findById(id);
     }
 
-    public ServicePackage create(String name, String description, List<Integer> serviceItemIds) {
-        List<ServiceItem> services = loadServices(serviceItemIds);
+    public ServicePackage create(@NotBlank(message = "error.servicePackage.nameRequired") String name,
+                                 String description,
+                                 @NotEmpty(message = "error.servicePackage.noServices") List<@Positive Integer> serviceItemIds) {
+        List<ServiceItem> services = serviceItemRepository.requireAllById(serviceItemIds);
         ServicePackage servicePackage = ServicePackage.create(name, description, services);
         if (packageRepository.existsByNameIgnoreCase(servicePackage.getName())) {
             throw new ValidationException("error.servicePackage.nameTaken", servicePackage.getName());
@@ -49,11 +56,14 @@ public class ServicePackageService {
         return packageRepository.save(servicePackage);
     }
 
-    public ServicePackage update(int id, String name, String description, List<Integer> serviceItemIds) {
+    public ServicePackage update(@Positive @NotNull(message = "error.servicePackage.nullValue") Integer id,
+                                 @NotBlank(message = "error.servicePackage.nameRequired")String name,
+                                 String description,
+                                 @NotEmpty(message = "error.servicePackage.noServices") List<Integer> serviceItemIds) {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
 
-        List<ServiceItem> services = loadServices(serviceItemIds);
+        List<ServiceItem> services = serviceItemRepository.requireAllById(serviceItemIds);
 
         String newName = name != null ? name.trim() : null;
         if (newName != null && !newName.isEmpty()
@@ -66,21 +76,9 @@ public class ServicePackageService {
         return packageRepository.save(servicePackage);
     }
 
-    public void delete(int id) {
+    public void delete(@Positive @NotNull(message = "error.servicePackage.nullValue") Integer id) {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
         packageRepository.delete(servicePackage);
-    }
-
-    private List<ServiceItem> loadServices(List<Integer> serviceItemIds) {
-        if (serviceItemIds == null || serviceItemIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<ServiceItem> serviceItems = new ArrayList<>();
-        for (Integer id : serviceItemIds) {
-            serviceItems.add(serviceItemRepository.findById(id).orElseThrow(() ->
-                    new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound")));
-        }
-        return serviceItems;
     }
 }

@@ -1,18 +1,17 @@
 package com.wac.autocore.view.util;
 
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.model.value.MoneyFormat;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.AutoCoreApp;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.stage.Screen;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
 import javafx.scene.Node;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Region;
 
 /**
@@ -210,6 +209,48 @@ public class DialogUtil {
         if (owner != null && alert.getOwner() == null) {
             alert.initOwner(owner);
         }
+    }
+
+    // Formaterar ett belopp med två decimaler enligt aktuellt språk, utan tusentalsavgränsare
+    public static String formatMoney(Money money) {
+        return formatMoney(money, MoneyFormat.Style.PLAIN);
+    }
+
+    public static String formatMoney(Money money, MoneyFormat.Style style) {
+        return MoneyFormat.format(money, LanguageManager.getInstance().getLocale(), style);
+    }
+
+    // Tolkar inmatat belopp, både komma och punkt accepteras
+    public static Money parseMoney(String text) {
+        return MoneyFormat.parse(text);
+    }
+
+    // Fabrik för att inte tabellen ska visa Money-objektets toString(), utan formaterad text.
+    // formatMoney(item, GROUPED) använder locale och två decimaler.
+    public static <S> void configureMoneyColumn(TableColumn<S, Money> col) {
+        configureMoneyColumn(col, false);
+    }
+
+    // Med withCurrency visas beloppet som i fakturan, t.ex. 1097,50 kr. Valutatexten kommer från språkbundeln.
+    public static <S> void configureMoneyColumn(TableColumn<S, Money> col, boolean withCurrency) {
+        col.setCellFactory(c -> new TableCell<S, Money>() {
+            {
+                setAlignment(Pos.CENTER_RIGHT);
+            }
+
+            @Override
+            protected void updateItem(Money item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                } else if (withCurrency) {
+                    setText(LanguageManager.getInstance().get("format.price", item));
+                } else {
+                    setText(formatMoney(item, MoneyFormat.Style.GROUPED));
+                }
+            }
+        });
     }
 
 }

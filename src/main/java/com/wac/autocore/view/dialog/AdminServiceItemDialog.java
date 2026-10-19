@@ -1,7 +1,9 @@
 package com.wac.autocore.view.dialog;
 
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.event.ActionEvent;
@@ -9,12 +11,13 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-public class AdminServiceItemDialog extends Dialog<Double> {
+public class AdminServiceItemDialog extends Dialog<ServiceItem> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final ServiceItemService serviceItemService;
     private final ServiceItem serviceItem;
+    private ServiceItem savedItem;
 
     private final TextField priceTextField = new TextField();
     private final Label errorLabel = new Label();
@@ -40,7 +43,7 @@ public class AdminServiceItemDialog extends Dialog<Double> {
 
         errorLabel.getStyleClass().add("text-error");
 
-        priceTextField.setText(String.valueOf(serviceItem.getPrice()));
+        priceTextField.setText(DialogUtil.formatMoney(serviceItem.getPrice()));
 
         setContent();
         handleInput();
@@ -66,31 +69,24 @@ public class AdminServiceItemDialog extends Dialog<Double> {
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
 
             try {
-                double newPrice = Double.parseDouble(
-                        priceTextField.getText().replace(',', '.')
-                );
-
-                if (newPrice <= 0) {
-                    rejectPrice(event);
-                }
-            } catch (NumberFormatException e) {
-               rejectPrice(event);
+                Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
+                savedItem = serviceItemService.updatePrice(serviceItem.getId(), newPrice);
+            } catch (ValidationException e) {
+                rejectPrice(event, e.getMessageKey());
             }
         });
 
         setResultConverter(buttonType -> {
             if (buttonType == saveButtonType) {
-                return Double.parseDouble(
-                        priceTextField.getText().replace(',', '.')
-                );
+                return savedItem;
             }
             return null;
         });
     }
 
     // Visar felmeddelandet och hindrar dialogen från att stängas
-    private void rejectPrice(ActionEvent event) {
-        errorLabel.setText(lang.get("error.serviceItem.invalidPrice"));
+    private void rejectPrice(ActionEvent event, String messageKey) {
+        errorLabel.setText(lang.get(messageKey));
         event.consume();
     }
 }

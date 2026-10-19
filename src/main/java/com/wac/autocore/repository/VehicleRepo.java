@@ -1,14 +1,12 @@
 package com.wac.autocore.repository;
 
 import com.wac.autocore.model.Vehicle;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface VehicleRepo extends JpaRepository<Vehicle, Integer> {
+@org.springframework.stereotype.Repository
+public interface VehicleRepo extends org.springframework.data.repository.Repository<Vehicle, Integer> {
 
     List<Vehicle> findByCustomerId(int customerId);
 
@@ -16,4 +14,13 @@ public interface VehicleRepo extends JpaRepository<Vehicle, Integer> {
 
     Optional<Vehicle> findByRegistrationNumber(String registrationNumber);
 
+    List<Vehicle> findAll();
+
+    Optional<Vehicle> findById(Integer id);
+
+    <S extends Vehicle> S save(S vehicle);
+
+    boolean existsById(Integer id);
+
+    void deleteById(Integer id);
 }

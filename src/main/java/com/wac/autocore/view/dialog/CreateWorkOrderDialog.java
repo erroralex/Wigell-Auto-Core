@@ -1,12 +1,9 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.*;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.component.CustomerVehiclePicker;
 import com.wac.autocore.view.component.ServiceSelectorBox;
@@ -18,48 +15,23 @@ import javafx.beans.binding.StringBinding;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * <b>CreateWorkOrderDialog</b>
- * <p>Ansvar: Dialog för att skapa en arbetsorder av någon av typerna planerad, drop-in
- * eller reklamation. Vilka fält som visas styrs av vald typ. För drop-in kan användaren
- * även registrera en ny kund eller ett nytt fordon via de befintliga dialogerna.
+ * <p>Ansvar: Dialog för att skapa en arbetsorder av någon av typerna i {@link WorkOrderType}.
+ * Vilka fält som visas, vad som saknas och vilket resultat som byggs registreras per typ.
+ * För drop-in kan användaren även registrera en ny kund eller ett nytt fordon via de befintliga dialogerna.
  * Själva arbetsordern skapas av vyn utifrån {@link Result}.</p>
- * <p>Kund och fordon väljs via {@link CustomerVehiclePicker}</p>
+ * <p>Kund och fordon väljs via {@link CustomerVehiclePicker}. Regeln för problembeskrivning
+ * kommer från domänen, så dialogen visar samma fel som modellen kastar.</p>
  */
 public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> {
-
-    public enum Type {
-        PLANNED(false),
-        DROP_IN(true),
-        WARRANTY(true);
-
-        private final boolean needsProblemDescription;
-
-        Type(boolean needsProblemDescription) {
-            this.needsProblemDescription = needsProblemDescription;
-        }
-
-        public boolean needsProblemDescription() {
-            return needsProblemDescription;
-        }
-    }
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -67,7 +39,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
     private final Map<Integer, Booking> bookingsById = new HashMap<>();
     private List<Vehicle> vehicles;
 
-    private final ComboBox<Type> typeCombo = new ComboBox<>();
+    private final ComboBox<WorkOrderType> typeCombo = new ComboBox<>();
     private final ComboBox<Booking> bookingCombo = new ComboBox<>();
     private final Label bookingLabel = new Label(lang.get("workOrder.field.booking"));
     private final Label problemDescriptionLabel = new Label(lang.get("workOrder.problemDescription"));
@@ -81,6 +53,10 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ServiceSelectorBox serviceSelector;
     private final CustomerVehiclePicker picker;
+
+    private final Map<WorkOrderType, List<Node>> fieldsByType = new EnumMap<>(WorkOrderType.class);
+    private final Map<WorkOrderType, Supplier<String>> hintByType = new EnumMap<>(WorkOrderType.class);
+    private final Map<WorkOrderType, Supplier<Result>> resultByType = new EnumMap<>(WorkOrderType.class);
 
     public CreateWorkOrderDialog(List<Booking> bookings,
                                  List<Booking> allBookings,
@@ -111,16 +87,12 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         hintLabel.getStyleClass().add("text-secondary");
         hintLabel.setWrapText(true);
 
-        // Fält som hör till respektive typ. Ny typ = ny rad här.
-        Map<Type, List<Node>> fieldsByType = new EnumMap<>(Type.class);
-        fieldsByType.put(Type.PLANNED, Arrays.asList(bookingLabel, bookingCombo));
-        fieldsByType.put(Type.DROP_IN, Arrays.asList(picker, problemDescriptionLabel, problemDescriptionArea, serviceLabel, serviceSelector));
-        fieldsByType.put(Type.WARRANTY, Arrays.asList(originalWorkOrderLabel, originalWorkOrderCombo, problemDescriptionLabel, problemDescriptionArea));
+        registerTypes();
 
-        typeCombo.getItems().addAll(Type.values());
+        typeCombo.getItems().addAll(WorkOrderType.values());
 
         typeCombo.setMaxWidth(Double.MAX_VALUE);
-        typeCombo.setConverter(StringConverterUtil.display(CreateWorkOrderDialog::typeLabel));
+        typeCombo.setConverter(StringConverterUtil.display(type -> lang.get(type.getMessageKey())));
 
         typeCombo.valueProperty().addListener((observable, oldType, newType) -> {
             for (List<Node> nodes : fieldsByType.values()) {
@@ -131,7 +103,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
             }
         });
 
-        typeCombo.setValue(Type.PLANNED);
+        typeCombo.setValue(WorkOrderType.PLANNED);
 
         bookingCombo.getItems().addAll(bookings);
         bookingCombo.setPromptText(lang.get("workOrder.field.booking"));
@@ -166,15 +138,17 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         saveButton.getStyleClass().addAll("btn", "btn-primary");
         cancelButton.getStyleClass().addAll("btn", "btn-secondary");
 
+        // Domänen avgör om problembeskrivningen räcker. Vid fel visas domänens meddelande
+        // och dialogen hålls öppen så att användaren inte förlorar det som fyllts i.
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            Type type = typeCombo.getValue();
-            String description = problemDescriptionArea.getText();
-
-            if (type != null && type.needsProblemDescription()
-                    && (description == null || description.trim().isEmpty())) {
-                ErrorFacade.handle(
-                        new ValidationException("error.workOrder.missingProblemDescription")
-                );
+            WorkOrderType type = typeCombo.getValue();
+            if (type == null) {
+                return;
+            }
+            try {
+                WorkOrder.requireProblemDescription(type, problemDescriptionArea.getText());
+            } catch (ValidationException e) {
+                ErrorFacade.handle(e);
                 event.consume();
             }
         });
@@ -202,21 +176,48 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
             if (buttonType != saveButtonType) {
                 return null;
             }
-
-            switch (typeCombo.getValue()) {
-                case PLANNED:
-                    return Result.planned(bookingCombo.getValue());
-                case DROP_IN:
-                    return Result.dropIn(picker.getSelectedVehicle(),
-                            problemDescriptionArea.getText(),
-                            serviceSelector.getSelectedServiceIds());
-                case WARRANTY:
-                    return Result.warranty(originalWorkOrderCombo.getValue(),
-                            problemDescriptionArea.getText());
-                default:
-                    throw new IllegalStateException("Unknown work order type: " + typeCombo.getValue());
-            }
+            return resultByType.get(typeCombo.getValue()).get();
         });
+    }
+
+    // Allt som skiljer typerna åt i dialogen. Ny typ = ett nytt block här.
+    private void registerTypes() {
+        fieldsByType.put(WorkOrderType.PLANNED, Arrays.asList(bookingLabel, bookingCombo));
+        hintByType.put(WorkOrderType.PLANNED,
+                () -> bookingCombo.getValue() == null ? "workOrder.hint.selectBooking" : null);
+        resultByType.put(WorkOrderType.PLANNED,
+                () -> Result.planned(bookingCombo.getValue()));
+
+        fieldsByType.put(WorkOrderType.DROP_IN, Arrays.asList(picker, problemDescriptionLabel, problemDescriptionArea, serviceLabel, serviceSelector));
+        hintByType.put(WorkOrderType.DROP_IN,
+                () -> picker.missingSelectionKeyBinding().get());
+        resultByType.put(WorkOrderType.DROP_IN,
+                () -> Result.dropIn(picker.getSelectedVehicle(),
+                        problemDescriptionArea.getText(),
+                        serviceSelector.getSelectedServiceIds()));
+
+        fieldsByType.put(WorkOrderType.WARRANTY, Arrays.asList(originalWorkOrderLabel, originalWorkOrderCombo, problemDescriptionLabel, problemDescriptionArea));
+        hintByType.put(WorkOrderType.WARRANTY, () -> {
+            if (originalWorkOrderCombo.getItems().isEmpty()) {
+                return "workOrder.hint.noCompleted";
+            }
+            return originalWorkOrderCombo.getValue() == null ? "workOrder.hint.selectOriginal" : null;
+        });
+        resultByType.put(WorkOrderType.WARRANTY,
+                () -> Result.warranty(originalWorkOrderCombo.getValue(),
+                        problemDescriptionArea.getText()));
+
+        requireAllTypesRegistered();
+    }
+
+    private void requireAllTypesRegistered() {
+        for (WorkOrderType type : WorkOrderType.values()) {
+            if (!fieldsByType.containsKey(type)
+                    || !hintByType.containsKey(type)
+                    || !resultByType.containsKey(type)) {
+                throw new IllegalStateException("Work order type not registered in dialog: " + type);
+            }
+        }
     }
 
     // Visar eller döljer noder och tar bort dem ur layouten när de är dolda.
@@ -229,43 +230,17 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
 
     // Returnerar översättningsnyckel för det som saknas, eller null när typen går att spara.
     private String missingSelectionKey() {
-        Type type = typeCombo.getValue();
+        WorkOrderType type = typeCombo.getValue();
         if (type == null) {
             return "workOrder.hint.selectType";
         }
-
-        switch (type) {
-            case PLANNED:
-                return bookingCombo.getValue() == null ? "workOrder.hint.selectBooking" : null;
-            case DROP_IN:
-                return picker.missingSelectionKeyBinding().get();
-            case WARRANTY:
-                if (originalWorkOrderCombo.getItems().isEmpty()) {
-                    return "workOrder.hint.noCompleted";
-                }
-                return originalWorkOrderCombo.getValue() == null ? "workOrder.hint.selectOriginal" : null;
-            default:
-                return "workOrder.hint.selectType";
-        }
+        return hintByType.get(type).get();
     }
 
     private void indexVehicles() {
         vehiclesById.clear();
         for (Vehicle vehicle : vehicles) {
             vehiclesById.put(vehicle.getId(), vehicle);
-        }
-    }
-
-    private static String typeLabel(Type type) {
-        switch (type) {
-            case PLANNED:
-                return lang.get("workOrder.type.planned");
-            case DROP_IN:
-                return lang.get("workOrder.type.dropIn");
-            case WARRANTY:
-                return lang.get("workOrder.type.warranty");
-            default:
-                throw new IllegalArgumentException("Unknown work order type: " + type);
         }
     }
 
@@ -290,7 +265,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
     }
 
     public static class Result {
-        private final Type type;
+        private final WorkOrderType type;
         private final Booking booking;
         private final Vehicle vehicle;
         private final WorkOrder originalWorkOrder;
@@ -298,7 +273,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         private final List<Integer> serviceItemIds;
 
         // Fabriker i stället för konstruktor: varje typ har olika obligatoriska fält.
-        private Result(Type type,
+        private Result(WorkOrderType type,
                        Booking booking,
                        Vehicle vehicle,
                        WorkOrder originalWorkOrder,
@@ -313,18 +288,18 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         }
 
         public static Result planned(Booking booking) {
-            return new Result(Type.PLANNED, booking, null, null, null, Collections.emptyList());
+            return new Result(WorkOrderType.PLANNED, booking, null, null, null, Collections.emptyList());
         }
 
         public static Result dropIn(Vehicle vehicle, String problemDescription, List<Integer> serviceItemIds) {
-            return new Result(Type.DROP_IN, null, vehicle, null, problemDescription, serviceItemIds);
+            return new Result(WorkOrderType.DROP_IN, null, vehicle, null, problemDescription, serviceItemIds);
         }
 
         public static Result warranty(WorkOrder original, String problemDescription) {
-            return new Result(Type.WARRANTY, null, null, original, problemDescription, Collections.emptyList());
+            return new Result(WorkOrderType.WARRANTY, null, null, original, problemDescription, Collections.emptyList());
         }
 
-        public Type getType() {
+        public WorkOrderType getType() {
             return type;
         }
 

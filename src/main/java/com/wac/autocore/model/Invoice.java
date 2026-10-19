@@ -1,10 +1,14 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.data.MoneyConverter;
+import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.model.value.Money;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -17,9 +21,15 @@ public class Invoice {
 
     private int workOrderId;
     private LocalDate invoiceDate;
-    private double amount;
-    private double discount = 0.0;
-    private double totalAmount;
+
+    @Convert(converter = MoneyConverter.class)
+    private Money amount = Money.ZERO;
+
+    @Convert(converter = MoneyConverter.class)
+    private Money discount = Money.ZERO;
+
+    @Convert(converter = MoneyConverter.class)
+    private Money totalAmount = Money.ZERO;
 
     @Type(type = "org.hibernate.type.NumericBooleanType")
     private boolean paid = false;
@@ -42,39 +52,20 @@ public class Invoice {
         return workOrderId;
     }
 
-    public void setWorkOrderId(int workOrderId) {
-        this.workOrderId = workOrderId;
-    }
-
     public LocalDate getInvoiceDate() {
         return invoiceDate;
     }
 
-    public void setInvoiceDate(LocalDate invoiceDate) {
-        this.invoiceDate = invoiceDate;
-    }
-
-    public double getAmount() {
+    public Money getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public double getDiscount() {
+    public Money getDiscount() {
         return discount;
     }
 
-    public void setDiscount(double discount) {
-        this.discount = discount;
-    }
 
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public double getTotalAmount() {
+    public Money getTotalAmount() {
         return totalAmount;
     }
 
@@ -82,20 +73,23 @@ public class Invoice {
         return paid;
     }
 
-    public void setPaid(boolean paid) {
-        this.paid = paid;
-    }
-
     public List<InvoiceLine> getLines() {
-        return this.lines;
+        return Collections.unmodifiableList(this.lines);
     }
 
-    public void setLines(List<InvoiceLine> lines) {
-        this.lines = lines;
-    }
-
-    public void addLine(InvoiceLine line) {
+    public void addLine(String serviceItemName, Money amount, Money discount) {
+        InvoiceLine line = new InvoiceLine(this, serviceItemName, amount, discount);
         this.lines.add(line);
+        this.amount = this.amount.add(line.getAmount());
+        this.discount = this.discount.add(line.getDiscount());
+        this.totalAmount = this.totalAmount.add(line.getTotal());
+    }
+
+    public void markPaid() {
+        if (this.paid) {
+            throw new ValidationException("error.invoiceAlreadyPaid", String.valueOf(this.id));
+        }
+        this.paid = true;
     }
 
     @Override
@@ -108,4 +102,5 @@ public class Invoice {
                 " | Total: " + totalAmount + " SEK" +
                 " | Paid: " + (paid ? "Yes" : "No");
     }
+
 }

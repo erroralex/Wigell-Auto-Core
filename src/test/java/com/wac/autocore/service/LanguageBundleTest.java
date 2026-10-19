@@ -1,5 +1,9 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.model.BookingStatus;
+import com.wac.autocore.model.WorkOrderChangeType;
+import com.wac.autocore.model.WorkOrderStatus;
+import com.wac.autocore.view.NavigationItem;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -42,18 +46,9 @@ class LanguageBundleTest {
     // lang.get("nyckel" / lang.bind("nyckel" - fångar bara bokstavliga nycklar
     private static final Pattern KEY_USAGE = Pattern.compile("lang\\.(?:get|bind)\\(\\s*\"([^\"]+)\"");
 
-    // Nycklar som byggs dynamiskt i koden (prefix + värde från databasen) och inte hittas av KEY_USAGE
-    private static final String[] DYNAMIC_KEYS = {
-            "booking.status.BOOKED", "booking.status.COMPLETED", "booking.status.CANCELLED",
-            "booking.status.WORK_ORDER_CREATED", "booking.status.IN_PROGRESS",
-            "workOrder.status.CONFIRMED", "workOrder.status.IN_PROGRESS", "workOrder.status.COMPLETED",
+    // Payment type är en String, inte en enum, så nycklarna kan inte härledas från en enum.
+    private static final String[] PAYMENT_TYPE_KEYS = {
             "payment.type.CARD", "payment.type.SWISH", "payment.type.CASH"
-    };
-
-    // Nycklar som används utanför lang.get/bind, t.ex. via NavigationItem.getKey()
-    private static final String[] INDIRECT_KEYS = {
-            "nav.home", "nav.customers", "nav.vehicles", "nav.bookings", "nav.serviceItems",
-            "nav.mechanics", "nav.workOrders", "nav.invoices", "nav.payments"
     };
 
     private static Properties load(String path) throws IOException {
@@ -81,7 +76,6 @@ class LanguageBundleTest {
 
     @Test
     void fallbackFileIsEnglish() throws IOException {
-        // messages.properties ska vara en exakt kopia av den engelska filen
         assertEquals(load(EN), load(BASE), "messages.properties differs from messages_en.properties");
     }
 
@@ -101,7 +95,6 @@ class LanguageBundleTest {
             Properties properties = load(file);
             for (String key : properties.stringPropertyNames()) {
                 String value = properties.getProperty(key);
-                // U+FFFD = tecken som inte kunde läsas, "Ã" = UTF-8 läst som ISO-8859-1
                 assertTrue(!value.contains("\uFFFD") && !value.contains("\u00C3"),
                         file + " has a broken character in key: " + key + " -> " + value);
             }
@@ -122,7 +115,6 @@ class LanguageBundleTest {
                 } catch (IllegalArgumentException e) {
                     fail(file + " has an invalid pattern in key: " + key + " -> " + e.getMessage());
                 }
-                // I texter med {0} måste apostrof skrivas '' annars försvinner den och resten tolkas fel
                 assertTrue(!value.matches(".*(?<!')'(?!').*"),
                         file + " has a single apostrophe in a pattern, use '' instead: " + key);
             }
@@ -133,11 +125,40 @@ class LanguageBundleTest {
     void dynamicAndIndirectKeysExist() throws IOException {
         Properties sv = load(SV);
         List<String> missing = new ArrayList<>();
-        for (String key : concat(DYNAMIC_KEYS, INDIRECT_KEYS)) {
+
+        for (BookingStatus status : BookingStatus.values()) {
+            String key = "booking.status." + status.name();
             if (!sv.containsKey(key)) {
                 missing.add(key);
             }
         }
+
+        for (WorkOrderStatus status : WorkOrderStatus.values()) {
+            String key = "workOrder.status." + status.name();
+            if (!sv.containsKey(key)) {
+                missing.add(key);
+            }
+        }
+
+        for (WorkOrderChangeType type : WorkOrderChangeType.values()) {
+            String key = "workOrder.change." + type.name();
+            if (!sv.containsKey(key)) {
+                missing.add(key);
+            }
+        }
+
+        for (NavigationItem item : NavigationItem.values()) {
+            if (!sv.containsKey(item.getKey())) {
+                missing.add(item.getKey());
+            }
+        }
+
+        for (String key : PAYMENT_TYPE_KEYS) {
+            if (!sv.containsKey(key)) {
+                missing.add(key);
+            }
+        }
+
         assertTrue(missing.isEmpty(), "Keys missing in the language files: " + missing);
     }
 
@@ -158,7 +179,6 @@ class LanguageBundleTest {
             Matcher matcher = KEY_USAGE.matcher(source);
             while (matcher.find()) {
                 String key = matcher.group(1);
-                // Nycklar som slutar på punkt är prefix för dynamiska nycklar (täcks av DYNAMIC_KEYS)
                 if (!key.endsWith(".") && !sv.containsKey(key)) {
                     missing.add(key + "  (" + file.getFileName() + ")");
                 }
@@ -166,12 +186,5 @@ class LanguageBundleTest {
         }
 
         assertTrue(missing.isEmpty(), "Keys used in code but missing in the language files: " + missing);
-    }
-
-    private static String[] concat(String[] a, String[] b) {
-        String[] result = new String[a.length + b.length];
-        System.arraycopy(a, 0, result, 0, a.length);
-        System.arraycopy(b, 0, result, a.length, b.length);
-        return result;
     }
 }

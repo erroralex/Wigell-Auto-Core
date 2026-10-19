@@ -2,14 +2,20 @@ package com.wac.autocore.service;
 
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.CustomerRepo;
 import com.wac.autocore.repository.VehicleRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Optional;
 
+@Validated
 @Service
 public class VehicleService {
 
@@ -37,15 +43,15 @@ public class VehicleService {
         return vehicleRepo.existsById(id);
     }
 
-    public boolean existsByRegistrationNumber(String registrationNumber) {
+    public boolean existsByRegistrationNumber(@NotBlank(message="error.vehicle.blankRegNr") String registrationNumber) {
         return vehicleRepo.existsByRegistrationNumber(registrationNumber);
     }
 
-    public Vehicle create(String registrationNumber,
-                          String brand,
-                          String model,
-                          int year,
-                          int customerId) {
+    public Vehicle create(@NotBlank(message="error.vehicle.blankRegNr")String registrationNumber,
+                          @NotBlank(message="error.vehicle.blankBrand")String brand,
+                          @NotBlank(message="error.vehicle.blankModel")String model,
+                          @Positive @NotNull(message="error.vehicle.yearIsNull") Integer year,
+                          @Positive @NotNull(message="error.vehicle.customerIdIsNull") Integer customerId) {
         validateCustomer(customerId);
 
         if (vehicleRepo.existsByRegistrationNumber(registrationNumber)) {
@@ -57,12 +63,24 @@ public class VehicleService {
         );
     }
 
-    public Vehicle update(Vehicle vehicle) {
-        if (!vehicleRepo.existsById(vehicle.getId())) {
-            throw new EntityNotFoundException("Vehicle", vehicle.getId());
-        }
+    public Vehicle update(@Positive @NotNull(message="error.vehicle.idIsNull") Integer id,
+                          @NotBlank(message="error.vehicle.blankRegNr")String registrationNumber,
+                          @NotBlank(message="error.vehicle.blankBrand") String brand,
+                          @NotBlank(message="error.vehicle.blankModel") String model,
+                          @Positive Integer year,
+                          @Positive @NotNull(message="error.vehicle.customerIdIsNull") Integer customerId) {
 
-        validateCustomer(vehicle.getCustomerId());
+
+        Vehicle vehicle = vehicleRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("vehicle", id));
+
+        validateCustomer(customerId);
+
+        vehicle.setRegistrationNumber(registrationNumber);
+        vehicle.setBrand(brand);
+        vehicle.setModel(model);
+        vehicle.setYear(year);
+        vehicle.setCustomerId(customerId);
+
         vehicleRepo.findByRegistrationNumber(vehicle.getRegistrationNumber())
                 .filter(existing -> existing.getId() != vehicle.getId())
                 .ifPresent(existing -> {
@@ -72,11 +90,11 @@ public class VehicleService {
         return vehicleRepo.save(vehicle);
     }
 
-    public void deleteById(Integer id) {
+    public void deleteById(@Positive @NotNull(message="error.vehicle.idIsNull") Integer id) {
         vehicleRepo.deleteById(id);
     }
 
-    private void validateCustomer(int customerId) {
+    private void validateCustomer(Integer customerId) {
         if (!customerRepo.existsById(customerId)) {
             throw new EntityNotFoundException("Customer", customerId);
         }

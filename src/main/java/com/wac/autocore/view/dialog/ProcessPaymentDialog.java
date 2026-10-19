@@ -1,7 +1,7 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Invoice;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonBar;
@@ -80,15 +80,15 @@ public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
 
     public static class Result {
 
-        private final int invoiceId;
+        private final Integer invoiceId;
         private final String paymentType;
 
-        public Result(int invoiceId, String paymentType) {
+        public Result(Integer invoiceId, String paymentType) {
             this.invoiceId = invoiceId;
             this.paymentType = paymentType;
         }
 
-        public int getInvoiceId() {
+        public Integer getInvoiceId() {
             return invoiceId;
         }
 

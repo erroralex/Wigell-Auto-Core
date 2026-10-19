@@ -6,8 +6,8 @@ public class WorkOrderLockedException extends DomainException {
     public WorkOrderLockedException(int workOrderId, WorkOrderStatus status) {
         super(
                 "Work order " + workOrderId + " is locked in status " + status,
-                "error.workOrderLocked",
-                "error.workOrderLockedMsg",
+                "error.workOrder.locked",
+                "error.workOrder.lockedMsg",
                 workOrderId, status
         );
     }

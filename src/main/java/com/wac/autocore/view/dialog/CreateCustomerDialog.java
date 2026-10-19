@@ -2,8 +2,7 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.LanguageManager;
-import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.event.ActionEvent;
@@ -16,7 +15,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import java.util.regex.Pattern;
 
 /**
  * <b>CreateCustomerDialog</b>
@@ -24,7 +22,6 @@ import java.util.regex.Pattern;
  */
 public class CreateCustomerDialog {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     private final CustomerService customerService;
@@ -93,29 +90,10 @@ public class CreateCustomerDialog {
     }
 
     private boolean saveCustomer() {
-        resetFieldErrorState();
 
         String name = getTrimmedValue(nameField);
         String phone = getTrimmedValue(phoneField);
         String email = getTrimmedValue(emailField);
-
-        if (name.isEmpty()) {
-            markFieldError(nameField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.name")));
-            return false;
-        }
-
-        if (phone.isEmpty()) {
-            markFieldError(phoneField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.phone")));
-            return false;
-        }
-
-        if (!email.isEmpty() && !EMAIL_PATTERN.matcher(email).matches()) {
-            markFieldError(emailField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidEmail"));
-            return false;
-        }
 
         try {
             Customer customer = customerService.create(name, phone, email);
@@ -127,24 +105,10 @@ public class CreateCustomerDialog {
             ErrorFacade.handle(e);
             return false;
         }
-
         return true;
     }
 
     private String getTrimmedValue(TextField field) {
         return field.getText() == null ? "" : field.getText().trim();
     }
-
-    private void resetFieldErrorState() {
-        nameField.getStyleClass().remove("input-error");
-        phoneField.getStyleClass().remove("input-error");
-        emailField.getStyleClass().remove("input-error");
-    }
-
-    private void markFieldError(TextField field) {
-        if (!field.getStyleClass().contains("input-error")) {
-            field.getStyleClass().add("input-error");
-        }
-    }
-
 }

@@ -1,5 +1,8 @@
 package com.wac.autocore.model;
 
+import com.wac.autocore.data.MoneyConverter;
+import com.wac.autocore.model.value.Money;
+
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -14,7 +17,8 @@ public class Payment {
     private int id;
 
     private int invoiceId;
-    private double amount;
+    @Convert(converter = MoneyConverter.class)
+    private Money amount;
     private String paymentType;
     private LocalDateTime paymentDate;
 
@@ -23,12 +27,14 @@ public class Payment {
 
     protected Payment() {}
 
-    public Payment(int invoiceId, double amount, String paymentType) {
-        this.invoiceId = invoiceId;
-        this.amount = amount;
-        this.paymentType = paymentType;
-        this.paymentDate = LocalDateTime.now();
-        this.successful = false;
+    public static Payment successful(int invoiceId, Money amount, String paymentType) {
+        Payment payment = new Payment();
+        payment.invoiceId = invoiceId;
+        payment.amount = amount;
+        payment.paymentType = paymentType;
+        payment.paymentDate = LocalDateTime.now();
+        payment.successful = true;
+        return payment;
     }
 
     public int getId() {
@@ -39,40 +45,24 @@ public class Payment {
         return invoiceId;
     }
 
-    public void setInvoiceId(int invoiceId) {
-        this.invoiceId = invoiceId;
-    }
 
-    public double getAmount() {
+    public Money getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
 
     public String getPaymentType() {
         return paymentType;
     }
 
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
-    }
 
     public LocalDateTime getPaymentDate() {
         return paymentDate;
     }
 
-    public void setPaymentDate(LocalDateTime paymentDate) {
-        this.paymentDate = paymentDate;
-    }
 
     public boolean isSuccessful() {
         return successful;
-    }
-
-    public void setSuccessful(boolean successful) {
-        this.successful = successful;
     }
 
     @Override

@@ -6,10 +6,18 @@ import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.repository.PaymentRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
+@Validated
 @Service
+@Transactional
 public class PaymentService {
 
     private final PaymentRepo paymentRepo;
@@ -24,19 +32,20 @@ public class PaymentService {
         return paymentRepo.findAll();
     }
 
-    public Payment processPayment(Integer invoiceId, String paymentType) {
+    public Payment processPayment(@Positive @NotNull(message="error.payment.noInvoiceId") Integer invoiceId,
+                                  @NotBlank(message="error.payment.emptyPaymentType")
+                                  @Pattern(
+                                          regexp = "^(CARD|SWISH|CASH)$",
+                                          message = "error.payment.invalidType"
+                                  ) String paymentType) {
 
         Invoice invoice = invoiceService.findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Invoice", invoiceId));
 
-        if (invoice.isPaid()) {
-            throw new ValidationException("error.invoiceAlreadyPaid", String.valueOf(invoiceId));
-        }
 
-        Payment payment = new Payment(invoiceId, invoice.getTotalAmount(), paymentType);
-        payment.setSuccessful(true);
+        Payment payment = Payment.successful(invoiceId, invoice.getTotalAmount(), paymentType);
 
-        invoice.setPaid(true);
+        invoice.markPaid();
         invoiceService.update(invoice);
 
         return paymentRepo.save(payment);

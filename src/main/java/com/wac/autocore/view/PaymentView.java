@@ -2,13 +2,15 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
+import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.PaymentService;
 import com.wac.autocore.view.dialog.ProcessPaymentDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -84,20 +86,24 @@ public class PaymentView extends BaseView {
                 new SimpleIntegerProperty(c.getValue().getId()).asObject()
         );
 
-        TableColumn<Invoice, Double> amountCol = new TableColumn<>(lang.get("table.amount"));
+        TableColumn<Invoice, Money> amountCol = new TableColumn<>(lang.get("table.amount"));
         amountCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getAmount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getAmount())
         );
 
-        TableColumn<Invoice, Double> discountCol = new TableColumn<>(lang.get("table.discount"));
+        TableColumn<Invoice, Money> discountCol = new TableColumn<>(lang.get("table.discount"));
         discountCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getDiscount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getDiscount())
         );
 
-        TableColumn<Invoice, Double> totalCol = new TableColumn<>(lang.get("table.total"));
+        TableColumn<Invoice, Money> totalCol = new TableColumn<>(lang.get("table.total"));
         totalCol.setCellValueFactory(c ->
-                new SimpleDoubleProperty(c.getValue().getTotalAmount()).asObject()
+                new SimpleObjectProperty<>(c.getValue().getTotalAmount())
         );
+
+        DialogUtil.configureMoneyColumn(amountCol);
+        DialogUtil.configureMoneyColumn(discountCol);
+        DialogUtil.configureMoneyColumn(totalCol);
 
         TableColumn<Invoice, String> typeCol = new TableColumn<>(lang.get("table.paymentType"));
         typeCol.setCellValueFactory(c -> {

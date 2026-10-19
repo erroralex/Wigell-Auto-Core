@@ -2,7 +2,7 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.service.LanguageManager;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
@@ -142,24 +142,15 @@ public class CreateVehicleDialog {
         String yearValue = getTrimmedValue(yearField);
         Customer selectedCustomer = customerComboBox.getValue();
 
-        if (registrationNumber.isEmpty()) {
-            markFieldError(registrationNumberField);
-            AlertHelper.showError(lang.get("error.validation"),lang.get("error.requiredField", lang.get("table.regNumber")));
-            return false;
-        }
-
-        if (selectedCustomer == null) {
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField",lang.get("table.customer")));
-            return false;
-        }
-
-        int year;
-        try {
-            year = Integer.parseInt(yearValue);
-        } catch (NumberFormatException exception) {
-            markFieldError(yearField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidYear"));
-            return false;
+        Integer year = null;
+        if (!yearValue.isEmpty()) {
+            try {
+                year = Integer.valueOf(yearValue);
+            } catch (NumberFormatException exception) {
+                markFieldError(yearField);
+                AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidYear"));
+                return false;
+            }
         }
 
         try {
@@ -168,10 +159,9 @@ public class CreateVehicleDialog {
                     make,
                     model,
                     year,
-                    selectedCustomer.getId()
+                    selectedCustomer == null ? null : selectedCustomer.getId()
             );
         } catch (RuntimeException exception) {
-            markFieldError(registrationNumberField);
             ErrorFacade.handle(exception);
             return false;
         }
