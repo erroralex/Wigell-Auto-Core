@@ -3,7 +3,6 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.view.i18n.LanguageManager;
-import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.event.ActionEvent;
@@ -16,7 +15,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import java.util.regex.Pattern;
 
 /**
  * <b>CreateCustomerDialog</b>
@@ -92,31 +90,10 @@ public class CreateCustomerDialog {
     }
 
     private boolean saveCustomer() {
-        resetFieldErrorState();
-
-
 
         String name = getTrimmedValue(nameField);
         String phone = getTrimmedValue(phoneField);
         String email = getTrimmedValue(emailField);
-
-        /*if (name.isEmpty()) {
-            markFieldError(nameField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.name")));
-            return false;
-        }
-
-        if (phone.isEmpty()) {
-            markFieldError(phoneField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.phone")));
-            return false;
-        }
-
-        if (!email.isEmpty() && !EMAIL_PATTERN.matcher(email).matches()) {
-            markFieldError(emailField);
-            AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidEmail"));
-            return false;
-        }*/
 
         try {
             Customer customer = customerService.create(name, phone, email);
@@ -134,39 +111,4 @@ public class CreateCustomerDialog {
     private String getTrimmedValue(TextField field) {
         return field.getText() == null ? "" : field.getText().trim();
     }
-
-    private void resetFieldErrorState() {
-        nameField.getStyleClass().remove("input-error");
-        phoneField.getStyleClass().remove("input-error");
-        emailField.getStyleClass().remove("input-error");
-    }
-
-    private void markFieldError(TextField field) {
-        if (!field.getStyleClass().contains("input-error")) {
-            field.getStyleClass().add("input-error");
-        }
-    }
-
-    /*public static class Result {
-        private final String name;
-        private final String phone;
-        private final String email;
-
-        public Result(String name, String phone, String email) {
-            this.name = name;
-            this.phone = phone;
-            this.email = email;
-        }
-
-        public String getName() {
-            return name;
-        }
-        public String phone() {
-            return phone;
-        }
-        public String getEmail() {
-            return email;
-        }
-    }*/
-
 }
