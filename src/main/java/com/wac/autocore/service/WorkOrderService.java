@@ -3,19 +3,34 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.*;
-import com.wac.autocore.repository.*;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.BookingStatus;
+import com.wac.autocore.model.DropInWorkOrder;
+import com.wac.autocore.model.Mechanic;
+import com.wac.autocore.model.PlannedWorkOrder;
+import com.wac.autocore.model.WarrantyWorkOrder;
+import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.WorkOrderChange;
+import com.wac.autocore.model.WorkOrderItem;
+import com.wac.autocore.model.WorkOrderStatus;
+import com.wac.autocore.model.WorkOrderType;
+import com.wac.autocore.repository.BookingRepository;
+import com.wac.autocore.repository.MechanicRepository;
+import com.wac.autocore.repository.ServiceItemRepository;
+import com.wac.autocore.repository.VehicleRepo;
+import com.wac.autocore.repository.WorkOrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -249,7 +264,11 @@ public class WorkOrderService {
         workOrder.setCustomerInstructions(customerInstructions);
         workOrder.setComments(comments);
 
+        // En bekräftad order får inte redigeras till ofullständig
+        workOrder.requireCompleteIfConfirmed();
+
         WorkOrderScheduleResult result = scheduleResult(workOrder);
+
         rejectConflictsIfReserved(result);
         followBooking(workOrder);
         workOrderRepository.save(workOrder);
