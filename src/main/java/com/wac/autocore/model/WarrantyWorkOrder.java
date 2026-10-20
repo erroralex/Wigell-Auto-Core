@@ -4,9 +4,9 @@ import com.wac.autocore.exception.ValidationException;
 
 import java.util.Collections;
 
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 @Entity
 @DiscriminatorValue("WARRANTY")

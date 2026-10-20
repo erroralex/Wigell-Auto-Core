@@ -1,10 +1,14 @@
 package com.wac.autocore.model;
 
-import org.hibernate.annotations.Type;
-
-import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.type.NumericBooleanConverter;
 
 @Entity
 @Table(name = "customer")
@@ -23,7 +27,7 @@ public class Customer {
     @Email(message = "error.invalidEmail")
     private String email;
 
-    @Type(type = "org.hibernate.type.NumericBooleanType")
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean vip = false;
 
     protected Customer() {}

@@ -5,9 +5,9 @@ import com.wac.autocore.exception.PricingIntegrityException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Embeddable;
 import java.util.Objects;
 
 /**

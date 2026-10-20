@@ -6,7 +6,7 @@ import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.model.value.TimeSlot;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;

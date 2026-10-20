@@ -1,8 +1,8 @@
 package com.wac.autocore.exception.handler;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 
-import javax.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolation;
 import java.util.Comparator;
 
 /**

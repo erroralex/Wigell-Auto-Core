@@ -2,10 +2,14 @@ package com.wac.autocore.model;
 
 import com.wac.autocore.data.MoneyConverter;
 import com.wac.autocore.model.value.Money;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.type.NumericBooleanConverter;
 
-import org.hibernate.annotations.Type;
-
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,7 +26,7 @@ public class Payment {
     private String paymentType;
     private LocalDateTime paymentDate;
 
-    @Type(type = "org.hibernate.type.NumericBooleanType")
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean successful = false;
 
     protected Payment() {}

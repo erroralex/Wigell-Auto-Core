@@ -3,9 +3,17 @@ package com.wac.autocore.model;
 import com.wac.autocore.data.MoneyConverter;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
-import org.hibernate.annotations.Type;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import org.hibernate.type.NumericBooleanConverter;
 
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +39,7 @@ public class Invoice {
     @Convert(converter = MoneyConverter.class)
     private Money totalAmount = Money.ZERO;
 
-    @Type(type = "org.hibernate.type.NumericBooleanType")
+    @Convert(converter = NumericBooleanConverter.class)
     private boolean paid = false;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

@@ -4,7 +4,7 @@ import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.data.MoneyConverter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "service_item")

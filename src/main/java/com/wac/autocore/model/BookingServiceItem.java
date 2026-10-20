@@ -4,7 +4,7 @@ import com.wac.autocore.data.MoneyConverter;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.value.Money;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 // Samordnar bokningar.
 // Servicen laddar data, anropar domänen och kontrollerar regler.
