@@ -65,23 +65,7 @@
         </dependency>
     </dependencies>
 
-
     <build>
-        <sourceDirectory>../src/main/java</sourceDirectory>
-        <testSourceDirectory>../src/test/java</testSourceDirectory>
-
-        <resources>
-            <resource>
-                <directory>../src/main/resources</directory>
-            </resource>
-        </resources>
-
-        <testResources>
-            <testResource>
-                <directory>../src/test/resources</directory>
-            </testResource>
-        </testResources>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -90,9 +74,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
