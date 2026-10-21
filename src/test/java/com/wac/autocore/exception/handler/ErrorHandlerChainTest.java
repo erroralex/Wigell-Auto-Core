@@ -4,9 +4,9 @@ import com.wac.autocore.exception.IllegalStatusTransitionException;
 import com.wac.autocore.model.WorkOrderStatus;
 import org.junit.jupiter.api.Test;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Path;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import java.util.HashSet;
 import java.util.Set;
 

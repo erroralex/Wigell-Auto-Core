@@ -2,7 +2,7 @@ package com.wac.autocore.model;
 
 import com.wac.autocore.exception.ValidationException;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 /**

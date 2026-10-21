@@ -2,8 +2,8 @@ package com.wac.autocore.data;
 
 import com.wac.autocore.model.value.Money;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import java.math.BigDecimal;
 
 // Money som REAL i databasen, så att kolumnerna i V1-V10 inte ändras.

@@ -2,8 +2,8 @@ package com.wac.autocore.model;
 
 import com.wac.autocore.exception.ValidationException;
 import java.util.Collections;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 /**
  * <b>DropInWorkOrder</b>
