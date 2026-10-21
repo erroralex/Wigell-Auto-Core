@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class NoJavaFxInCoreTest {
 
-    private static final Path ROOT = Paths.get("autocore-core", "src", "main", "java", "com", "wac", "autocore");
+    private static final Path ROOT = Paths.get( "src", "main", "java", "com", "wac", "autocore");
 
     // JavaFX direkt, eller view-lagret som i sin tur använder JavaFX
     private static final String[] FORBIDDEN = {"javafx.", "com.wac.autocore.view"};
