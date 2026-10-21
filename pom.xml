@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Spring Boot 2.7.x is the last line that supports Java 8 (Boot 3 requires Java 17) -->
+    <!-- Spring Boot 2.7 runs on Java 21; upgrade to 3.x in SCRUM-253 -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -14,24 +14,34 @@
 
     <groupId>com.wac</groupId>
     <artifactId>autocore</artifactId>
-    <version>2.0.0</version>
+    <version>4.0.0</version>
     <packaging>jar</packaging>
     <name>Wigell AutoCore</name>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>21</java.version>
+        <javafx.version>21.0.12</javafx.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <start-class>com.wac.autocore.Main</start-class>
 
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
         <mockito.version>4.11.0</mockito.version>
         <sqlite-jdbc.version>3.53.4.0</sqlite-jdbc.version>
-
+        <byte-buddy.version>1.14.19</byte-buddy.version>
         <sqlite-dialect.version>0.1.2</sqlite-dialect.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -64,7 +74,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
-            <version>2.7.18</version>
         </dependency>
     </dependencies>
 
