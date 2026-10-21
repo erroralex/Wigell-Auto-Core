@@ -25,8 +25,6 @@
         <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <start-class>com.wac.autocore.Main</start-class>
-
-        <sqlite-dialect.version>0.1.2</sqlite-dialect.version>
     </properties>
 
     <dependencies>
@@ -47,17 +45,15 @@
             <artifactId>sqlite-jdbc</artifactId>
         </dependency>
 
-        <!-- SQLite dialect for Hibernate 5 (Hibernate's community dialects require Java 11) -->
-        <dependency>
-            <groupId>com.github.gwenn</groupId>
-            <artifactId>sqlite-dialect</artifactId>
-            <version>${sqlite-dialect.version}</version>
-        </dependency>
-
         <!-- Flyway migration -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-community-dialects</artifactId>
         </dependency>
 
         <dependency>

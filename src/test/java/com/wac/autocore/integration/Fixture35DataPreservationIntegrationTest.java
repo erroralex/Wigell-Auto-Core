@@ -13,9 +13,9 @@ import com.wac.autocore.repository.PaymentRepo;
 import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.CoreMigrationType;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.MigrationState;
-import org.flywaydb.core.api.MigrationType;
 import org.flywaydb.core.api.MigrationVersion;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -160,7 +160,7 @@ class Fixture35DataPreservationIntegrationTest {
         assertEquals(0, flyway.info().pending().length, "No migrations should be pending");
 
         for (MigrationInfo applied : flyway.info().applied()) {
-            assertTrue(applied.getType() != MigrationType.BASELINE,
+            assertTrue(applied.getType() != CoreMigrationType.BASELINE,
                     "Fixture should be a real 3.5 database, not a baselined one");
         }
     }
