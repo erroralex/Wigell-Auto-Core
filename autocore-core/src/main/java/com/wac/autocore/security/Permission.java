@@ -1,0 +1,15 @@
+package com.wac.autocore.security;
+
+public enum Permission {
+    DATA_READ,
+    CUSTOMER_WRITE,
+    CUSTOMER_DELETE,
+    VEHICLE_WRITE,
+    VEHICLE_DELETE,
+    BOOKING_WRITE,
+    WORK_ORDER_WRITE,
+    INVOICE_CREATE,
+    PAYMENT_REGISTER,
+    SERVICE_CATALOG_WRITE,
+    MECHANIC_WRITE
+}
