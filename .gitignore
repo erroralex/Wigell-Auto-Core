@@ -47,4 +47,4 @@ identifier.sqlite
 *.db
 autocore.db
 autocore-headless.db
-!**/src/test/resources/**/*.db
+!src/test/resources/fixtures/*.db
