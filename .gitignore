@@ -42,6 +42,8 @@ out/
 .sonar/
 
 # Local database
+FETCH_HEAD
+identifier.sqlite
 *.db
 autocore.db
 autocore-headless.db
