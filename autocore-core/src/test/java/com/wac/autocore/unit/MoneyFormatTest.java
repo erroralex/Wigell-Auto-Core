@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>MoneyFormatTest</b>
- * <p>Ansvar: Bevisar att belopp visas med två decimaler enligt språk, och att inmatning
- * tolkas lika med komma och punkt. Ogiltig inmatning ger ett valideringsfel.</p>
+ * <p>Responsibility: Proves that amounts are shown with two decimals according to the language, and that input
+ * is parsed the same with comma and period. Invalid input gives a validation error.</p>
  */
 class MoneyFormatTest {
 

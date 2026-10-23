@@ -29,8 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>WorkOrderLifecycleInMemoryTest</b>
- * <p>Ansvar: Bevisar att WorkOrderService kan köra en hel livscykel utan Spring och utan databas,
- * genom att använda in-memory-implementationer av repositories.</p>
+ * <p>Responsibility: Proves that WorkOrderService can run a whole lifecycle without Spring and without a database,
+ * by using in-memory implementations of the repositories.</p>
  */
 class WorkOrderLifeCycleIntegrationTest {
 
@@ -57,8 +57,8 @@ class WorkOrderLifeCycleIntegrationTest {
         bookingService = new BookingService(bookingRepo, serviceItemRepo, mechanicRepo, vehicleRepo);
         workOrderService = new WorkOrderService(workOrderRepo, bookingRepo, mechanicRepo, vehicleRepo, serviceItemRepo, bookingService);
 
-        // Arrange: Skapa en mekaniker, en tjänst, ett fordon och en bokning
-        Mechanic mechanic = mechanicRepo.save(new Mechanic("Test Mekaniker", "070-1234567", "General"));
+        // Arrange: Create a mechanic, a service, a vehicle and a booking
+        Mechanic mechanic = mechanicRepo.save(new Mechanic("Test Mechanic", "070-1234567", "General"));
         mechanicId = mechanic.getId();
 
         ServiceItem service = serviceItemRepo.save(
@@ -81,7 +81,7 @@ class WorkOrderLifeCycleIntegrationTest {
     @Test
     @DisplayName("Full work order lifecycle runs without Spring and without a database")
     void fullLifecycleRunsInMemory() {
-        // 1. Skapa arbetsorder från bokning
+        // 1. Create work order from booking
         WorkOrderScheduleResult createResult = workOrderService.createWorkOrder(bookingId);
         int workOrderId = createResult.getWorkOrder().getId();
 
@@ -89,27 +89,27 @@ class WorkOrderLifeCycleIntegrationTest {
         assertEquals(WorkOrderStatus.DRAFT, order.getStatus());
         assertEquals(BookingStatus.WORK_ORDER_CREATED, booking(bookingId).getStatus());
 
-        // 2. Bekräfta order
+        // 2. Confirm order
         workOrderService.confirmWorkOrder(workOrderId);
         order = workOrder(workOrderId);
         assertEquals(WorkOrderStatus.CONFIRMED, order.getStatus());
         assertEquals(BookingStatus.WORK_ORDER_CREATED, booking(bookingId).getStatus());
 
-        // 3. Starta order
+        // 3. Start order
         workOrderService.startWorkOrder(workOrderId);
         order = workOrder(workOrderId);
         assertEquals(WorkOrderStatus.IN_PROGRESS, order.getStatus());
         assertEquals(BookingStatus.IN_PROGRESS, booking(bookingId).getStatus());
 
-        // 4. Slutför order
+        // 4. Complete order
         workOrderService.completeWorkOrder(workOrderId);
         order = workOrder(workOrderId);
         assertEquals(WorkOrderStatus.COMPLETED, order.getStatus());
         assertEquals(BookingStatus.COMPLETED, booking(bookingId).getStatus());
     }
 
-    // Ett återöppnat utkast äger fortfarande planen, så bokningen ska förbli låst och följa ordern.
-    // Bara en avbruten order släpper bokningen (BOOKED).
+    // A reopened draft still owns the plan, so the booking should remain locked and follow the order.
+    // Only a cancelled order releases the booking (BOOKED).
     @Test
     @DisplayName("Reopening a confirmed work order makes it a draft and keeps its booking locked")
     void reopenConfirmedOrder_keepsBookingLocked() {
@@ -137,7 +137,7 @@ class WorkOrderLifeCycleIntegrationTest {
         assertThrows(ValidationException.class, () -> workOrderService.updateWorkOrder(
                 workOrderId,
                 Collections.singletonList(serviceItemId),
-                null,                                   // mekanikern tas bort
+                null,                                   // the mechanic is removed
                 order.getPlannedDate(),
                 order.getPlannedStartTime(),
                 null, null,

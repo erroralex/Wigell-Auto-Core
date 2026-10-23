@@ -18,31 +18,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * <b>NoJavaFxInCoreTest</b>
- * <p>Ansvar: Säkerställer att kärnpaketen inte är beroende av JavaFX, så att de kan köras
- * utan grafiskt gränssnitt (headless) och på en JRE utan JavaFX.</p>
- * <p>Testet läser källkoden i stället för de kompilerade klasserna. Det letar efter
- * {@code javafx.} på alla rader som inte är kommentarer, så att även fullt kvalificerade
- * anrop utan import fångas, t.ex. {@code javafx.scene.paint.Color.web(...)}.</p>
- * <p>Det förbjuder också referenser till {@code com.wac.autocore.view}. En ren textsökning ser
- * inte transitiva beroenden, och view-lagret är den enda vägen till JavaFX i projektet. Stänger
- * man den vägen kan kärnan inte heller indirekt bli beroende av JavaFX.</p>
- * <p>{@code i18n} och {@code headless} ingår eftersom de används av både UI och headless.</p>
+ * <p>Responsibility: Ensures that the core packages do not depend on JavaFX, so they can run
+ * without a graphical interface (headless) and on a JRE without JavaFX.</p>
+ * <p>The test reads the source code instead of the compiled classes. It looks for
+ * {@code javafx.} on all lines that are not comments, so that even fully qualified
+ * calls without an import are caught, e.g. {@code javafx.scene.paint.Color.web(...)}.</p>
+ * <p>It also forbids references to {@code com.wac.autocore.view}. A plain text search does not see
+ * transitive dependencies, and the view layer is the only path to JavaFX in the project. Closing
+ * that path means the core cannot indirectly depend on JavaFX either.</p>
+ * <p>{@code i18n} and {@code headless} are included because they are used by both the UI and headless.</p>
  */
 class NoJavaFxInCoreTest {
 
     private static final Path ROOT = Paths.get( "src", "main", "java", "com", "wac", "autocore");
 
-    // JavaFX direkt, eller view-lagret som i sin tur använder JavaFX
+    // JavaFX directly, or the view layer which in turn uses JavaFX
     private static final String[] FORBIDDEN = {"javafx.", "com.wac.autocore.view"};
 
-    @ParameterizedTest(name = "{0} är oberoende av JavaFX och view")
+    @ParameterizedTest(name = "{0} is independent of JavaFX and view")
     @ValueSource(strings = {"model", "service", "repository", "exception", "i18n", "headless"})
     void packageDoesNotUseJavaFx(String packageName) throws IOException {
         Path packageDir = ROOT.resolve(packageName);
 
-        // Annars skulle ett omdöpt eller borttaget paket tyst ge grönt test
+        // Otherwise a renamed or removed package would silently give a green test
         assertTrue(Files.isDirectory(packageDir),
-                () -> "Paketet saknas: " + packageDir.toAbsolutePath());
+                () -> "The package is missing: " + packageDir.toAbsolutePath());
 
         List<String> violations;
         try (Stream<Path> files = Files.walk(packageDir)) {
@@ -53,11 +53,11 @@ class NoJavaFxInCoreTest {
         }
 
         assertTrue(violations.isEmpty(),
-                () -> "JavaFX eller view används i paketet '" + packageName + "':\n"
+                () -> "JavaFX or view is used in the package '" + packageName + "':\n"
                         + String.join("\n", violations));
     }
 
-    // Returnerar "Fil.java:rad: kod" för varje rad som refererar till JavaFX eller view-lagret
+    // Returns "File.java:line: code" for each line that refers to JavaFX or the view layer
     private static Stream<String> findForbiddenReferences(Path file) {
         List<String> lines = readLines(file);
         List<String> hits = new ArrayList<>();
@@ -80,7 +80,7 @@ class NoJavaFxInCoreTest {
         return false;
     }
 
-    // Javadoc och kommentarer får nämna JavaFX, t.ex. i DomainException
+    // Javadoc and comments may mention JavaFX, e.g. in DomainException
     private static boolean isComment(String trimmedLine) {
         return trimmedLine.startsWith("//")
                 || trimmedLine.startsWith("*")
@@ -91,7 +91,7 @@ class NoJavaFxInCoreTest {
         try {
             return Files.readAllLines(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new UncheckedIOException("Kunde inte läsa " + file, e);
+            throw new UncheckedIOException("Could not read " + file, e);
         }
     }
 }

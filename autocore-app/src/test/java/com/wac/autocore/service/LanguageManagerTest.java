@@ -15,9 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * <b>LanguageManagerTest</b>
- * <p>Ansvar: Testar språkväxling, uppslag, formatering och bindningar i {@link LanguageManager}.</p>
- * <p>JavaFX-properties och bindningar fungerar utan att JavaFX-plattformen startas,
- * så testerna kräver inget fönster.</p>
+ * <p>Responsibility: Tests language switching, lookup, formatting and bindings in {@link LanguageManager}.</p>
+ * <p>JavaFX properties and bindings work without starting the JavaFX platform,
+ * so the tests require no window.</p>
  */
 class LanguageManagerTest {
 
@@ -29,7 +29,7 @@ class LanguageManagerTest {
 
     @BeforeAll
     static void saveDefaultLocale() {
-        // LanguageManager kan ändra JVM:ens standardspråk; återställs efter testerna
+        // LanguageManager may change the JVM's default locale; it is restored after the tests
         originalDefault = Locale.getDefault();
     }
 
@@ -41,7 +41,7 @@ class LanguageManagerTest {
 
     @BeforeEach
     void resetToSwedish() {
-        // Singleton: varje test börjar från samma läge oavsett körordning
+        // Singleton: each test starts from the same state regardless of execution order
         lang.setLocale(SWEDISH);
     }
 
@@ -69,7 +69,7 @@ class LanguageManagerTest {
 
     @Test
     void textWithoutArgumentsKeepsApostrophe() {
-        // Utan argument körs inte MessageFormat, så en enkel apostrof är ok
+        // Without arguments MessageFormat is not run, so a single apostrophe is ok
         lang.toggleLanguage();
         assertEquals(true, lang.get("home.welcome").contains("Wigell Auto's"));
     }
@@ -107,7 +107,7 @@ class LanguageManagerTest {
 
     @Test
     void localeListenerIsNotifiedOnToggle() {
-        // MainLayout bygger om vyn via denna lyssnare
+        // MainLayout rebuilds the view via this listener
         AtomicInteger calls = new AtomicInteger();
         lang.localeProperty().addListener((obs, oldLocale, newLocale) -> calls.incrementAndGet());
 

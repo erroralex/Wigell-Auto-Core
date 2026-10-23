@@ -19,8 +19,8 @@ import java.util.Optional;
 
 /**
  * <b>ServicePackageService</b>
- * <p>Ansvar: skapa, ändra, ta bort och läsa servicepaket.</p>
- * <p>Regler som kräver databasen ligger här: att tjänsterna finns och att namnet är unikt. Regler om paketet i sig ligger i ServicePackage.</p>
+ * <p>Responsibility: create, change, delete and read service packages.</p>
+ * <p>Rules that require the database live here: that the services exist and that the name is unique. Rules about the package itself live in ServicePackage.</p>
  */
 @Validated
 @Service

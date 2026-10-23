@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Spring Boots färgkonverterare: %clr(...) färgar nivån i konsolen, stängs av när utdata inte är en terminal -->
+    <!-- Spring Boot's color converter: %clr(...) colors the level in the console, turned off when output is not a terminal -->
     <conversionRule conversionWord="clr"
                     class="org.springframework.boot.logging.logback.ColorConverter"/>
 
     <!--
-        Två mönster med samma innehåll:
-        LOG_PATTERN används av filloggen och är ofärgat, så att inga ANSI-koder hamnar i filen.
-        CONSOLE_PATTERN används av konsolen och är samma mönster med färg via %clr.
-        MDC-nycklarna i %X{...} definieras i
+        Two patterns with the same content:
+        LOG_PATTERN is used by the file log and is uncolored, so no ANSI codes end up in the file.
+        CONSOLE_PATTERN is used by the console and is the same pattern colored with %clr.
+        The MDC keys in %X{...} are defined in
         com.wac.autocore.logging.LogKeys (autocore-core).
-        Namnen måste stämma exakt. Ändras en nyckel där måste den ändras i BÅDA mönstren här.
+        The names must match exactly. If a key is changed there, it must be changed in BOTH patterns here.
     -->
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
@@ -19,7 +19,7 @@
     <property name="CONSOLE_PATTERN"
               value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
 
-    <!-- Konsol: används av dev och test, inte headless -->
+    <!-- Console: used by dev and test, not headless -->
     <springProfile name="!headless">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
@@ -29,7 +29,7 @@
         </appender>
     </springProfile>
 
-    <!-- Dev (standard): allt som inte är headless eller test -->
+    <!-- Dev (default): everything that is not headless or test -->
     <springProfile name="!headless &amp; !test">
         <logger name="com.wac" level="DEBUG"/>
         <root level="INFO">
@@ -37,7 +37,7 @@
         </root>
     </springProfile>
 
-    <!-- Headless: roterande fillogg, ofärgad -->
+    <!-- Headless: rolling file log, uncolored -->
     <springProfile name="headless">
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>logs/autocore-headless.log</file>
@@ -58,7 +58,7 @@
         </root>
     </springProfile>
 
-    <!-- Test: bara varningar och fel -->
+    <!-- Test: only warnings and errors -->
     <springProfile name="test">
         <root level="WARN">
             <appender-ref ref="CONSOLE"/>

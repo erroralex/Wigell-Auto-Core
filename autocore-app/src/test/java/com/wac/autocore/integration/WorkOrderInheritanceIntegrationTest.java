@@ -24,11 +24,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>WorkOrderInheritanceIntegrationTest</b>
- * <p>Ansvar: Bevisar att JPA-arvet med SINGLE_TABLE läser kolumnen {@code type} rätt mot det
- * riktiga V7-schemat: en rad med {@code type = 'PLANNED'} blir en {@link PlannedWorkOrder},
- * och repositoryts frågor mot {@link WorkOrder} returnerar subklassen.</p>
- * <p>Raden skrivs med SQL och inte via servicen, så att testet efterliknar data som redan
- * fanns i databasen och inte bara går tur och retur genom den egna koden.</p>
+ * <p>Responsibility: Proves that JPA inheritance with SINGLE_TABLE reads the {@code type} column correctly against the
+ * real V7 schema: a row with {@code type = 'PLANNED'} becomes a {@link PlannedWorkOrder},
+ * and the repository's queries against {@link WorkOrder} return the subclass.</p>
+ * <p>The row is written with SQL and not via the service, so the test mimics data that already
+ * existed in the database and does not just make a round trip through our own code.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")
@@ -77,9 +77,9 @@ class WorkOrderInheritanceIntegrationTest {
         assertInstanceOf(PlannedWorkOrder.class, found);
     }
 
-    /* Skriver en arbetsorder direkt i tabellen. booking_id, vehicle_id och mechanic_id lämnas NULL
-     * (tillåtet sedan V7), annars stoppar foreign_keys=true raden. Id:t läses med MAX(id) och inte
-     * med last_insert_rowid(), eftersom JdbcTemplate kan få en ny anslutning från poolen mellan anropen. */
+    /* Writes a work order directly into the table. booking_id, vehicle_id and mechanic_id are left NULL
+     * (allowed since V7), otherwise foreign_keys=true stops the row. The id is read with MAX(id) and not
+     * with last_insert_rowid(), because JdbcTemplate may get a new connection from the pool between the calls. */
     private int insertWorkOrderRow(String type, WorkOrderStatus status) {
         jdbcTemplate.update("INSERT INTO work_order (type, status) VALUES (?, ?)", type, status.name());
         Integer id = jdbcTemplate.queryForObject("SELECT MAX(id) FROM work_order", Integer.class);

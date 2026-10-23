@@ -6,7 +6,7 @@ import java.util.Objects;
 
 /**
  * <b>ErrorReportFormatter</b>
- * <p>Ansvar: Det enda stället där en {@link ErrorReport} blir text. Både ErrorFacade och headless använder klassen.</p>
+ * <p>Responsibility: The only place where an {@link ErrorReport} becomes text. Both ErrorFacade and headless use the class.</p>
  */
 public final class ErrorReportFormatter {
 

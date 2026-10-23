@@ -20,16 +20,16 @@ import static com.wac.autocore.headless.ScenarioStep.step;
 
 /**
  * <b>DropInScenario</b>
- * <p>Ansvar: Kör ett komplett drop-in-flöde genom tjänsterna utan gränssnitt: skapa, lägg till
- * tjänster och mekaniker, bekräfta, starta, slutför, fakturera och betala. Därefter två
- * avsiktliga fel: start av en avbruten order och ett okänt fordon.</p>
- * <p>Varje steg är ett <b>Command</b> ({@link ScenarioStep}) som körs på samma sätt: lyckas det
- * blir det {@link StepResult#success}, annars översätts felet av samma
- * {@link ErrorHandlerChain} som gränssnittet använder. Därför får headless samma språknycklar som UI:t.</p>
- * <p>Medvetet utan {@code @Transactional}: varje tjänsteanrop får en egen transaktion, precis som
- * när en användare klickar i gränssnittet. En gemensam transaktion skulle dessutom markeras som
- * rollback-only av de avsiktliga felen och rulla tillbaka hela flödet.</p>
- * <p>Utan {@code @Profile}, så att integrationstestet kan köra scenariot utan headless-runnern.</p>
+ * <p>Responsibility: Runs a complete drop-in flow through the services without a UI: create, add
+ * services and mechanic, confirm, start, complete, invoice and pay. Then two
+ * intentional errors: starting a cancelled order and an unknown vehicle.</p>
+ * <p>Each step is a <b>Command</b> ({@link ScenarioStep}) that is run the same way: if it succeeds
+ * it becomes {@link StepResult#success}, otherwise the error is translated by the same
+ * {@link ErrorHandlerChain} that the UI uses. That is why headless gets the same language keys as the UI.</p>
+ * <p>Deliberately without {@code @Transactional}: each service call gets its own transaction, just like
+ * when a user clicks in the UI. A shared transaction would also be marked as
+ * rollback-only by the intentional errors and roll back the entire flow.</p>
+ * <p>Without {@code @Profile}, so the integration test can run the scenario without the headless runner.</p>
  */
 @Component
 public class DropInScenario {
@@ -59,7 +59,7 @@ public class DropInScenario {
         this.serviceItemService = serviceItemService;
     }
 
-    /* Ansvar: Kör alla steg i ordning och returnerar resultatet av varje steg som kördes */
+    /* Responsibility: Runs all steps in order and returns the result of each step that was run */
     public List<StepResult> run() {
         ScenarioContext ctx = new ScenarioContext();
         List<StepResult> results = new ArrayList<>();
@@ -83,54 +83,54 @@ public class DropInScenario {
 
     private List<ScenarioStep> steps() {
         return Arrays.asList(
-                step("Hämta testdata", this::lookUpSeedData),
+                step("Fetch test data", this::lookUpSeedData),
 
-                step("Skapa drop-in-order", ctx -> ctx.setWorkOrderId(
+                step("Create drop-in order", ctx -> ctx.setWorkOrderId(
                         workOrderService.createDropIn(ctx.getVehicleId(),
-                                "Headless-demo: motorlampan lyser",
+                                "Headless demo: check engine light is on",
                                 Collections.<Integer>emptyList()).getId())),
 
-                // Drop-in tillåter inga gratisrader, så debiteringsflaggorna ignoreras.
-                // Ingen starttid: bilen tas in direkt. Utan starttid krockkontrolleras ordern inte,
-                step("Lägg till tjänster och mekaniker", ctx -> workOrderService.updateWorkOrder(
+                // Drop-in does not allow free lines, so the charge flags are ignored.
+                // No start time: the car is taken in directly. Without a start time the order is not checked for clashes,
+                step("Add services and mechanic", ctx -> workOrderService.updateWorkOrder(
                         ctx.getWorkOrderId(), ctx.getServiceItemIds(), ctx.getMechanicId(),
                         LocalDate.now(), null, null, null, Collections.<Integer, Boolean>emptyMap())),
 
-                step("Bekräfta order", ctx -> workOrderService.confirmWorkOrder(ctx.getWorkOrderId())),
-                step("Starta order", ctx -> workOrderService.startWorkOrder(ctx.getWorkOrderId())),
-                step("Slutför order", ctx -> workOrderService.completeWorkOrder(ctx.getWorkOrderId())),
+                step("Confirm order", ctx -> workOrderService.confirmWorkOrder(ctx.getWorkOrderId())),
+                step("Start order", ctx -> workOrderService.startWorkOrder(ctx.getWorkOrderId())),
+                step("Complete order", ctx -> workOrderService.completeWorkOrder(ctx.getWorkOrderId())),
 
-                step("Skapa faktura med WELCOME10", ctx -> ctx.setInvoiceId(
+                step("Create invoice with WELCOME10", ctx -> ctx.setInvoiceId(
                         invoiceService.create(ctx.getWorkOrderId(), "WELCOME10").getId())),
 
-                step("Betala med kort", ctx -> paymentService.processPayment(ctx.getInvoiceId(), "CARD")),
+                step("Pay by card", ctx -> paymentService.processPayment(ctx.getInvoiceId(), "CARD")),
 
-                step("Skapa och avbryt en andra order", this::createAndCancelOrder),
+                step("Create and cancel a second order", this::createAndCancelOrder),
 
-                // Avsiktliga fel: ska ge samma språknycklar som i gränssnittet
-                expectFailure("Starta avbruten order",
+                // Intentional errors: should give the same language keys as in the UI
+                expectFailure("Start cancelled order",
                         ctx -> workOrderService.startWorkOrder(ctx.getCancelledOrderId())),
-                expectFailure("Skapa order för okänt fordon",
+                expectFailure("Create order for unknown vehicle",
                         ctx -> workOrderService.createDropIn(UNKNOWN_VEHICLE_ID,
-                                "Headless-demo: okänt fordon",
+                                "Headless demo: unknown vehicle",
                                 Collections.<Integer>emptyList()))
         );
     }
 
-    // Använder seed-datan i stället för hårdkodade id:n
+    // Uses the seed data instead of hard-coded ids
     private void lookUpSeedData(ScenarioContext ctx) {
         List<Vehicle> vehicles = vehicleService.findAll();
         List<Mechanic> mechanics = mechanicService.listAll();
         List<ServiceItem> services = serviceItemService.listAll();
 
         if (vehicles.isEmpty()) {
-            throw new IllegalStateException("Ingen testdata: databasen saknar fordon");
+            throw new IllegalStateException("No test data: the database has no vehicles");
         }
         if (mechanics.isEmpty()) {
-            throw new IllegalStateException("Ingen testdata: databasen saknar mekaniker");
+            throw new IllegalStateException("No test data: the database has no mechanics");
         }
         if (services.isEmpty()) {
-            throw new IllegalStateException("Ingen testdata: databasen saknar tjänster");
+            throw new IllegalStateException("No test data: the database has no services");
         }
 
         ctx.setVehicleId(vehicles.get(0).getId());
@@ -141,10 +141,10 @@ public class DropInScenario {
                 .collect(Collectors.toList()));
     }
 
-    // Ett vanligt steg som förbereder felsteget "Starta avbruten order"
+    // A regular step that prepares the failure step "Start cancelled order"
     private void createAndCancelOrder(ScenarioContext ctx) {
         int orderId = workOrderService.createDropIn(ctx.getVehicleId(),
-                "Headless-demo: order som avbryts",
+                "Headless demo: order to be cancelled",
                 Collections.<Integer>emptyList()).getId();
         workOrderService.cancelWorkOrder(orderId);
         ctx.setCancelledOrderId(orderId);

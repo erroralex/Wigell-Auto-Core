@@ -9,11 +9,11 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * MultiSelectListView är en ListView som visar objekt med en Ta bort-knapp för varje rad.
- * Den tar emot en labelProvider som används för att generera texten som visas för varje objekt.
- * Listan är generisk och vet inget om vad objekten är eller hur de väljs; det sköts av den komponent som äger listan.
- * @link getItems() är de valda objekten. Ta bort-knappen tar bort raden ur den listan.
- * Om setCellFactory skrivs över försvinner Ta bort-knapparna.
+ * MultiSelectListView is a ListView that shows items with a Remove button for each row.
+ * It takes a labelProvider that is used to generate the text shown for each item.
+ * The list is generic and knows nothing about what the items are or how they are selected; that is handled by the component that owns the list.
+ * @link getItems() are the selected items. The Remove button removes the row from that list.
+ * If setCellFactory is overridden, the Remove buttons disappear.
  **/
 public class MultiSelectListView<T> extends ListView<T> {
 
@@ -27,7 +27,7 @@ public class MultiSelectListView<T> extends ListView<T> {
         setCellFactory(listView -> new RemovableCell());
     }
 
-    // Sätter texten som visas när listan är tom.
+    // Sets the text shown when the list is empty.
     public void setPlaceholderText(String text) {
         Label placeholder = new Label(text);
         placeholder.getStyleClass().add("text-secondary");
@@ -35,7 +35,7 @@ public class MultiSelectListView<T> extends ListView<T> {
         setPlaceholder(placeholder);
     }
 
-    // Cellen som visar ett objekt med en Ta bort-knapp.
+    // The cell that shows an item with a Remove button.
     private class RemovableCell extends ListCell<T> {
 
         private final Label label = new Label();
@@ -52,7 +52,7 @@ public class MultiSelectListView<T> extends ListView<T> {
             removeButton.setOnAction(event -> removeThisRow());
 
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-            // Cellen följer listans bredd, så att ingen horisontell scrollbar uppstår vid zoom
+            // The cell follows the list's width, so no horizontal scrollbar appears when zooming
             setPrefWidth(0);
 
             label.setMinWidth(0);
@@ -60,7 +60,7 @@ public class MultiSelectListView<T> extends ListView<T> {
             HBox.setHgrow(label, Priority.ALWAYS);
         }
 
-        // Tar bort raden från listan när knappen trycks
+        // Removes the row from the list when the button is pressed
         private void removeThisRow() {
             int index = getIndex();
             if (!isEmpty() && index >= 0 && index < getListView().getItems().size()) {
@@ -68,7 +68,7 @@ public class MultiSelectListView<T> extends ListView<T> {
             }
         }
 
-        // Uppdaterar cellens innehåll när listan ändras
+        // Updates the cell's content when the list changes
         @Override
         protected void updateItem(T item, boolean empty) {
             super.updateItem(item, empty);
@@ -79,7 +79,7 @@ public class MultiSelectListView<T> extends ListView<T> {
                 return;
             }
 
-            // Sätter texten via labelProvider och uppdaterar tooltip
+            // Sets the text via labelProvider and updates the tooltip
             String text = labelProvider.apply(item);
             label.setText(text);
             removeTooltip.setText(lang.get("multiSelect.removeTooltip", text));

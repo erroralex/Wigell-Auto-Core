@@ -28,9 +28,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * <b>WorkOrderScheduleTest</b>
- * <p>Ansvar: Bevisar orderns tidslucka, krockregeln för mekaniker, om ordern reserverar mekanikern vid en tidpunkt
- * och förslaget på nästa lediga tid.
- * Reglerna är rena funktioner av ordrarna, så de testas utan Spring och utan repositoryn.</p>
+ * <p>Responsibility: Proves the order's time slot, the clash rule for mechanics, whether the order reserves the mechanic at a point in time
+ * and the suggestion for the next available time.
+ * The rules are pure functions of the orders, so they are tested without Spring and without repositories.</p>
  */
 class WorkOrderScheduleTest {
 
@@ -62,7 +62,7 @@ class WorkOrderScheduleTest {
         assertTrue(current.collidesWith(other));
     }
 
-    // Varje fall är ett skäl till att ordrarna inte krockar; samma krockregel används av nextFreeStartTime.
+    // Each case is a reason why the orders do not clash; the same clash rule is used by nextFreeStartTime.
     @ParameterizedTest(name = "{0}")
     @MethodSource("noCollisionCases")
     @DisplayName("No collision")
@@ -108,8 +108,8 @@ class WorkOrderScheduleTest {
         assertTrue(current.collidesWith(other));
     }
 
-    // Midnatt: samma regel och nyckel som bokningen. Utkastet får spara, bekräftelsen spärrar.
-    // Gränsfallen (före, exakt och efter midnatt) testas i TimeSlotTest.
+    // Midnight: the same rule and key as the booking. The draft may be saved, the confirmation blocks.
+    // The edge cases (before, exactly at and after midnight) are tested in TimeSlotTest.
 
     @Test
     @DisplayName("A draft ending past midnight can be saved, but confirm() rejects it (23:00 + 90 min)")
@@ -123,7 +123,7 @@ class WorkOrderScheduleTest {
         assertEquals(WorkOrderStatus.DRAFT, order.getStatus(), "Status must not change");
     }
 
-    // Planerad order: tid och föreslagen mekaniker kommer från bokningen. Ordern är ett utkast tills den bekräftas.
+    // Planned order: time and suggested mechanic come from the booking. The order is a draft until it is confirmed.
 
     @Test
     @DisplayName("createFrom copies date, start time and the suggested mechanic (if any) into a draft")
@@ -165,7 +165,7 @@ class WorkOrderScheduleTest {
         assertEquals(WorkOrderStatus.CONFIRMED, order.getStatus());
     }
 
-    // Nästa lediga tid: samma dag, från önskad start, i 15-minuterssteg, före midnatt. Samma krockregel som collidesWith.
+    // Next available time: same day, from the desired start, in 15-minute steps, before midnight. The same clash rule as collidesWith.
 
     @Test
     @DisplayName("Free at the wanted time: suggests the wanted time")
@@ -223,7 +223,7 @@ class WorkOrderScheduleTest {
         assertEquals(Optional.empty(), current.nextFreeStartTime(Collections.<WorkOrder>emptyList()));
     }
 
-    // Upptagen vid en tidpunkt: samma villkor som krockregeln, men för en tidpunkt i stället för en lucka.
+    // Busy at a point in time: the same conditions as the clash rule, but for a point in time instead of a slot.
 
     @Test
     @DisplayName("A confirmed order reserves its mechanic from start time up to (not including) end time")
@@ -258,7 +258,7 @@ class WorkOrderScheduleTest {
         assertTrue(order.reservesMechanicAt(DAY, LocalTime.of(10, 30)));
     }
 
-    // Hjälpmetoder
+    // Helper methods
 
     private static void assertConfirmRejected(String expectedKey, WorkOrder order) {
         ValidationException e = assertThrows(ValidationException.class, order::confirm);
@@ -273,7 +273,7 @@ class WorkOrderScheduleTest {
     }
 
     private static WorkOrder order(int id, Integer mechanicId, LocalDate date, LocalTime start, int... minutes) {
-        DropInWorkOrder order = DropInWorkOrder.draft(10, "Låter från framvagnen");
+        DropInWorkOrder order = DropInWorkOrder.draft(10, "Noise from the front axle");
         ReflectionTestUtils.setField(order, "id", id);
         order.setMechanicId(mechanicId);
         order.setPlannedDate(date);
@@ -292,7 +292,7 @@ class WorkOrderScheduleTest {
     private static ServiceItem service(int id, int minutes) {
         ServiceItem service = mock(ServiceItem.class);
         when(service.getId()).thenReturn(id);
-        when(service.getName()).thenReturn("Tjänst " + id);
+        when(service.getName()).thenReturn("Service " + id);
         when(service.getPrice()).thenReturn(Money.of(500));
         when(service.getEstimatedMinutes()).thenReturn(minutes);
         return service;

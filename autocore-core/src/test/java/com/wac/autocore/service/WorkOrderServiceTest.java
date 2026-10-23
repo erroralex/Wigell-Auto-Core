@@ -29,11 +29,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class WorkOrderServiceTest {
-    // En osparad bokning har id 0, så ordern som skapas från den får bookingId 0.
+    // An unsaved booking has id 0, so the order created from it gets bookingId 0.
     private static final int UNSAVED_BOOKING_ID = 0;
     private static final LocalDate DATE = LocalDate.of(2026, 11, 2);
     private static final LocalTime EIGHT = LocalTime.of(8, 0);
-    private static final Mechanic MECHANIC = new Mechanic("Ali", "070-1234567", "Motor");
+    private static final Mechanic MECHANIC = new Mechanic("Ali", "070-1234567", "Engine");
 
     private WorkOrderRepository workOrderRepository;
     private BookingRepository bookingRepository;
@@ -52,7 +52,7 @@ public class WorkOrderServiceTest {
         vehicleRepo = mock(VehicleRepo.class);
         serviceItemRepository = mock(ServiceItemRepository.class);
         bookingService = mock(BookingService.class);
-        // Uppslagningen är default-metoder på repositoryt; mocken ska köra dem mot stubbade findById.
+        // The lookups are default methods on the repository; the mock should run them against the stubbed findById.
         when(serviceItemRepository.requireById(anyInt())).thenCallRealMethod();
         when(serviceItemRepository.requireAllById(any())).thenCallRealMethod();
 
@@ -158,7 +158,7 @@ public class WorkOrderServiceTest {
         when(serviceItem.getPrice()).thenReturn(Money.of(899));
         when(serviceItem.getEstimatedMinutes()).thenReturn(60);
 
-        DropInWorkOrder workOrder = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
+        DropInWorkOrder workOrder = DropInWorkOrder.draft(10, "Shakes when braking");
         workOrder.addItem(serviceItem);
         workOrder.setMechanicId(5);
         workOrder.confirm();
@@ -183,22 +183,22 @@ public class WorkOrderServiceTest {
         verify(workOrderRepository, never()).save(any());
     }
 
-    // ----- Tjänster vid uppdatering -----
+    // ----- Services on update -----
 
     @Test
     void updateWorkOrder_keepsExistingItems_addsNewAtCatalogPrice_removesDeselected() {
         WorkOrder draft = dropIn(1, null, EIGHT);
-        draft.addItem(service(2, "Bromsinspektion", "1295.00", 60));
+        draft.addItem(service(2, "Brake inspection", "1295.00", 60));
         stubOrder(draft);
-        ServiceItem raisedOilChange = service(1, "Oljebyte", "999.00", 60);
-        ServiceItem diagnostics = service(3, "Diagnostik", "598.50", 30);
+        ServiceItem raisedOilChange = service(1, "Oil change", "999.00", 60);
+        ServiceItem diagnostics = service(3, "Diagnostics", "598.50", 30);
         when(serviceItemRepository.findById(1)).thenReturn(Optional.of(raisedOilChange));
         when(serviceItemRepository.findById(3)).thenReturn(Optional.of(diagnostics));
 
         workOrderService.updateWorkOrder(1, Arrays.asList(3, 1), null, DATE, EIGHT,
                 null, null, Collections.emptyMap());
 
-        // Ordningen följer valet, inte orderns tidigare ordning.
+        // The sequence follows the selection, not the work order's previous sequence.
         assertEquals(Arrays.asList(3, 1), draft.getItems().stream()
                 .map(WorkOrderItem::getServiceItemId).collect(Collectors.toList()));
         assertMoney(Money.of("899.00"), itemFor(draft, 1).getAgreedPrice());
@@ -221,13 +221,13 @@ public class WorkOrderServiceTest {
         verify(workOrderRepository, never()).save(any());
     }
 
-    // ----- Bokningen följer ordern (Kortförslag D) -----
+    // ----- The booking follows the order (Card proposal D) -----
 
     @Test
     void updateWorkOrder_plannedOrder_bookingFollowsDateTimeAndServices() {
         WorkOrder order = planned(1, 20);
         stubOrder(order);
-        ServiceItem diagnostics = service(3, "Diagnostik", "598.50", 30);
+        ServiceItem diagnostics = service(3, "Diagnostics", "598.50", 30);
         when(serviceItemRepository.findById(3)).thenReturn(Optional.of(diagnostics));
         LocalDate newDate = DATE.plusDays(1);
 
@@ -265,7 +265,7 @@ public class WorkOrderServiceTest {
         verify(workOrderRepository, never()).save(any());
     }
 
-    // ----- Mekanikerns reservation (Kortförslag M) -----
+    // ----- The mechanic's reservation (Card proposal M) -----
 
     @Test
     void updateWorkOrder_draftWithBusyMechanic_savesAndWarns() {
@@ -389,17 +389,17 @@ public class WorkOrderServiceTest {
 
     @Test
     void reopenWorkOrder_cancelledPlannedOrder_createsNewDraftFromCurrentBooking() {
-        ServiceItem oil = service(1, "Oljebyte", "899.00", 45);
-        ServiceItem brakes = service(2, "Bromsinspektion", "1295.00", 60);
+        ServiceItem oil = service(1, "Oil change", "899.00", 45);
+        ServiceItem brakes = service(2, "Brake inspection", "1295.00", 60);
         Booking booking = new Booking(10, 5, DATE, EIGHT, "Service", Collections.singletonList(oil));
 
         WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
         cancelled.setMechanicId(3);
-        cancelled.setComments("Kunden väntar på plats");
-        cancelled.setCustomerInstructions("Ring före start");
+        cancelled.setComments("The customer is waiting on site");
+        cancelled.setCustomerInstructions("Call before starting");
         cancelled.cancel();
 
-        // Bokningen ändras medan ordern är avbruten: en tjänst till
+        // The booking is changed while the order is cancelled: one more service
         booking.update(10, 5, DATE, EIGHT, "Service", Arrays.asList(oil, brakes));
         stubReopen(cancelled, booking);
 
@@ -412,8 +412,8 @@ public class WorkOrderServiceTest {
         assertEquals(Integer.valueOf(5), reopened.getMechanicId(),
                 "The new order gets the booking's suggestion, not the cancelled order's mechanic");
         assertEquals(2, reopened.getItems().size());
-        assertEquals("Kunden väntar på plats", reopened.getComments());
-        assertEquals("Ring före start", reopened.getCustomerInstructions());
+        assertEquals("The customer is waiting on site", reopened.getComments());
+        assertEquals("Call before starting", reopened.getCustomerInstructions());
 
         assertEquals(WorkOrderStatus.CANCELLED, cancelled.getStatus());
 
@@ -429,7 +429,7 @@ public class WorkOrderServiceTest {
     @Test
     void reopenWorkOrder_cancelledPlannedOrder_warnsWhenSuggestedMechanicIsBusy() {
         Booking booking = new Booking(10, 7, DATE, EIGHT, "Service",
-                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+                Collections.singletonList(service(1, "Oil change", "899.00", 45)));
         WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
         cancelled.cancel();
         stubReopen(cancelled, booking);
@@ -447,7 +447,7 @@ public class WorkOrderServiceTest {
     @Test
     void reopenWorkOrder_cancelledPlannedOrder_throwsWhenBookingHasAnotherActiveOrder() {
         Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
-                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+                Collections.singletonList(service(1, "Oil change", "899.00", 45)));
         WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
         cancelled.cancel();
 
@@ -466,7 +466,7 @@ public class WorkOrderServiceTest {
     @Test
     void reopenWorkOrder_cancelledPlannedOrder_throwsWhenBookingIsCancelled() {
         Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
-                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+                Collections.singletonList(service(1, "Oil change", "899.00", 45)));
         WorkOrder cancelled = PlannedWorkOrder.createFrom(booking);
         cancelled.cancel();
         booking.followWorkOrder(cancelled.getStatus());
@@ -485,7 +485,7 @@ public class WorkOrderServiceTest {
     @Test
     void reopenWorkOrder_confirmedOrder_becomesDraftWithoutChanges() {
         Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
-                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+                Collections.singletonList(service(1, "Oil change", "899.00", 45)));
         WorkOrder confirmed = confirmed(PlannedWorkOrder.createFrom(booking));
 
         when(workOrderRepository.findById(1)).thenReturn(Optional.of(confirmed));
@@ -501,8 +501,8 @@ public class WorkOrderServiceTest {
 
     @Test
     void reopenWorkOrder_cancelledDropIn_becomesDraftWithoutChanges() {
-        DropInWorkOrder dropIn = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
-        dropIn.addItem(service(1, "Oljebyte", "899.00", 45));
+        DropInWorkOrder dropIn = DropInWorkOrder.draft(10, "Shakes when braking");
+        dropIn.addItem(service(1, "Oil change", "899.00", 45));
         dropIn.cancel();
 
         when(workOrderRepository.findById(1)).thenReturn(Optional.of(dropIn));
@@ -518,7 +518,7 @@ public class WorkOrderServiceTest {
     @Test
     void reopenWorkOrder_completedOrder_throws() {
         Booking booking = new Booking(10, 5, DATE, EIGHT, "Service",
-                Collections.singletonList(service(1, "Oljebyte", "899.00", 45)));
+                Collections.singletonList(service(1, "Oil change", "899.00", 45)));
         WorkOrder completed = confirmed(PlannedWorkOrder.createFrom(booking));
         completed.start();
         completed.complete();
@@ -529,12 +529,12 @@ public class WorkOrderServiceTest {
         verify(workOrderRepository, never()).save(any());
     }
 
-    // Hjälpmetoder
+    // Helper methods
 
-    // En bokad bokning (mock) med en tjänst på 60 min kl. 08:00 och valfri föreslagen mekaniker.
+    // A booked booking (mock) with one 60 min service at 08:00 and an optional suggested mechanic.
     private void stubBookedBooking(int bookingId, Integer suggestedMechanicId) {
         Booking booking = mock(Booking.class);
-        // Snapshoten skapas före stubbningen: den anropar tjänstemocken, vilket Mockito inte tillåter inuti when(...).
+        // The snapshot is created before the stubbing: it calls the service mock, which Mockito does not allow inside when(...).
         List<BookingServiceItem> items = Collections.singletonList(
                 BookingServiceItem.snapshotOf(service(1, "Oil Change", "899", 60)));
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
@@ -550,7 +550,7 @@ public class WorkOrderServiceTest {
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
-    // Stubbar för att återöppna en avbruten planerad order (id 1) från en osparad bokning.
+    // Stubs for reopening a cancelled planned order (id 1) from an unsaved booking.
     private void stubReopen(WorkOrder cancelled, Booking booking) {
         when(workOrderRepository.findById(1)).thenReturn(Optional.of(cancelled));
         when(workOrderRepository.existsByBookingIdAndStatusNot(UNSAVED_BOOKING_ID, WorkOrderStatus.CANCELLED))
@@ -568,35 +568,35 @@ public class WorkOrderServiceTest {
                 DATE, startTime, null, null, Collections.emptyMap());
     }
 
-    // Stubbar ordern och katalogen för tjänst 1, som alla hjälpordrar har; uppdateringen slår upp alla valda tjänster.
+    // Stubs the order and the catalog for service 1, which all helper orders have; the update looks up all selected services.
     private void stubOrder(WorkOrder order) {
-        ServiceItem oilChange = service(1, "Oljebyte", "899.00", 60);
+        ServiceItem oilChange = service(1, "Oil change", "899.00", 60);
         when(workOrderRepository.findById(order.getId())).thenReturn(Optional.of(order));
         when(serviceItemRepository.findById(1)).thenReturn(Optional.of(oilChange));
     }
 
-    // Drop-in-utkast med en tjänst på 60 min. Id sätts så att krockregeln kan skilja ordrarna åt.
+    // Drop-in draft with one 60 min service. The id is set so the clash rule can tell the orders apart.
     private static WorkOrderItem itemFor(WorkOrder order, int serviceItemId) {
         return order.getItems().stream()
                 .filter(item -> item.getServiceItemId() == serviceItemId)
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Tjänst " + serviceItemId + " saknas i ordern"));
+                .orElseThrow(() -> new AssertionError("Service " + serviceItemId + " is missing from the order"));
     }
 
     private static WorkOrder dropIn(int id, Integer mechanicId, LocalTime startTime) {
-        DropInWorkOrder order = DropInWorkOrder.draft(10, "Skakar vid inbromsning");
+        DropInWorkOrder order = DropInWorkOrder.draft(10, "Shakes when braking");
         ReflectionTestUtils.setField(order, "id", id);
-        order.addItem(service(1, "Oljebyte", "899.00", 60));
+        order.addItem(service(1, "Oil change", "899.00", 60));
         order.setMechanicId(mechanicId);
         order.setPlannedDate(DATE);
         order.setPlannedStartTime(startTime);
         return order;
     }
 
-    // Planerad order (utkast) från en sparad bokning med en tjänst på 60 min kl. 08:00.
+    // Planned order (draft) from a saved booking with one 60 min service at 08:00.
     private static WorkOrder planned(int id, int bookingId) {
         Booking booking = new Booking(10, null, DATE, EIGHT, "Service",
-                Collections.singletonList(service(1, "Oljebyte", "899.00", 60)));
+                Collections.singletonList(service(1, "Oil change", "899.00", 60)));
         ReflectionTestUtils.setField(booking, "id", bookingId);
         WorkOrder order = PlannedWorkOrder.createFrom(booking);
         ReflectionTestUtils.setField(order, "id", id);

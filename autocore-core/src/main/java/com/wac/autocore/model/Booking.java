@@ -15,15 +15,15 @@ import java.util.List;
 
 /**
  * <b>Booking</b>
- * <p>Ansvar: En bokning av ett fordon hos en mekaniker. Bokningen äger sina tjänsterader
- * ({@link BookingServiceItem}) där namn, pris och tid frystes när tjänsten lades till.</p>
- * <p>Bokningen ändras bara via konstruktorn och {@link #update}. Båda kräver datum, starttid
- * och minst en tjänst, behåller avtalade priser för befintliga rader, snapshotar bara nya
- * tjänster och räknar sluttiden från radernas frysta minuter. En bokning får inte sluta vid
- * eller efter midnatt, och {@code update} och {@link #cancel} kastar {@link BookingLockedException} när
- * bokningen har en arbetsorder eller redan är avbokad.</p>
- * <p>Medan arbetsordern planeras ({@link BookingStatus#WORK_ORDER_CREATED}) följer bokningen orderns datum,
- * starttid och tjänster via {@link #applyWorkOrderPlan}, med samma regler.</p>
+ * <p>Responsibility: A booking of a vehicle with a mechanic. The booking owns its service lines
+ * ({@link BookingServiceItem}) where name, price and duration were frozen when the service was added.</p>
+ * <p>The booking is changed only via the constructor and {@link #update}. Both require date, start time
+ * and at least one service, keep agreed prices for existing lines, snapshot only new
+ * services and calculate the end time from the lines' frozen minutes. A booking may not end at
+ * or after midnight, and {@code update} and {@link #cancel} throw {@link BookingLockedException} when
+ * the booking has a work order or is already cancelled.</p>
+ * <p>While the work order is being planned ({@link BookingStatus#WORK_ORDER_CREATED}) the booking follows the order's date,
+ * start time and services via {@link #applyWorkOrderPlan}, with the same rules.</p>
  */
 @Entity
 @Table(name = "booking")
@@ -36,7 +36,7 @@ public class Booking {
     @Column(name = "vehicle_id", nullable = false)
     private int vehicleId;
 
-    // Föreslagen mekaniker, valfri. Reserverar ingen tid; mekanikern reserveras först på arbetsordern.
+    // Suggested mechanic, optional. Reserves no time; the mechanic is reserved only on the work order.
     @Column(name = "mechanic_id")
     private Integer mechanicId;
 
@@ -74,10 +74,10 @@ public class Booking {
     }
 
 
-     // Ändrar hela bokningen i ett steg.
-     // Befintliga tjänster behåller sitt avtalade pris och sin tid,
-     // nya tjänster snapshotas till dagens pris och avvalda tjänster tas bort.
-     // Om något är ogiltigt kastas ett undantag och bokningen lämnas oförändrad.
+     // Changes the whole booking in one step.
+     // Existing services keep their agreed price and duration,
+     // new services are snapshotted at today's price and deselected services are removed.
+     // If anything is invalid an exception is thrown and the booking is left unchanged.
     public void update(int vehicleId, Integer mechanicId, LocalDate date,
                        LocalTime startTime, String description, List<ServiceItem> services) {
         ensureEditable();
@@ -85,11 +85,11 @@ public class Booking {
     }
 
     /**
-     * Låter bokningen följa sin arbetsorder: datum, starttid och tjänster sätts från ordern. Fordon, föreslagen
-     * mekaniker och beskrivning behålls. Samma regler som {@link #update}: minst en tjänst, behållna avtalade
-     * priser, snapshot av nya tjänster, sluttid från snapshots och inte över midnatt.
+     * Lets the booking follow its work order: date, start time and services are set from the order. Vehicle, suggested
+     * mechanic and description are kept. Same rules as {@link #update}: at least one service, kept agreed
+     * prices, snapshot of new services, end time from snapshots and not past midnight.
      *
-     * @throws BookingLockedException om bokningen inte har en arbetsorder som fortfarande planeras
+     * @throws BookingLockedException if the booking does not have a work order that is still being planned
      */
     public void applyWorkOrderPlan(LocalDate date, LocalTime startTime, List<ServiceItem> services) {
         if (status != BookingStatus.WORK_ORDER_CREATED) {
@@ -99,11 +99,11 @@ public class Booking {
     }
 
     /**
-     * Skapar en ny bokning med samma fordon, föreslagna mekaniker, beskrivning och tjänster, men med nytt
-     * datum och ny starttid. Tjänsterna hämtas från {@code currentCatalog}, så kopian får dagens
-     * pris och tid. Kopian byggs via konstruktorn och följer därför samma regler som en ny bokning.
+     * Creates a new booking with the same vehicle, suggested mechanic, description and services, but with a new
+     * date and a new start time. The services are fetched from {@code currentCatalog}, so the copy gets today's
+     * price and duration. The copy is built via the constructor and therefore follows the same rules as a new booking.
      *
-     * @throws EntityNotFoundException om en av bokningens tjänster saknas i katalogen
+     * @throws EntityNotFoundException if one of the booking's services is missing from the catalog
      */
     public Booking copyAsNew(LocalDate date, LocalTime startTime, List<ServiceItem> currentCatalog) {
         List<ServiceItem> services = new ArrayList<>();
@@ -122,8 +122,8 @@ public class Booking {
         throw new EntityNotFoundException("ServiceItem", serviceItemId, "error.serviceNotFound");
     }
 
-    // Validerar allt och bygger den nya radlistan innan något fält ändras,
-    // så att ett undantag aldrig lämnar bokningen halvt ändrad.
+    // Validates everything and builds the new line list before any field is changed,
+    // so an exception never leaves the booking half changed.
     private void apply(int vehicleId, Integer mechanicId, LocalDate date,
                        LocalTime startTime, String description, List<ServiceItem> services) {
         if (date == null) {
@@ -146,7 +146,7 @@ public class Booking {
         this.endTime = newEndTime;
         this.description = description;
 
-        // Samma listinstans behålls: Hibernate kräver det för samlingar med orphanRemoval.
+        // The same list instance is kept: Hibernate requires it for collections with orphanRemoval.
         items.clear();
         for (BookingServiceItem item : nextItems) {
             item.setBooking(this);
@@ -166,8 +166,8 @@ public class Booking {
         return minutes;
     }
 
-    // Avbokning tillåts bara innan en arbetsorder finns. CANCELLED är ett slutläge;
-    // att ångra görs genom att skapa en ny bokning från den avbokade (copyAsNew).
+    // Cancellation is only allowed before a work order exists. CANCELLED is a final state;
+    // undoing is done by creating a new booking from the cancelled one (copyAsNew).
     public void cancel() {
         ensureEditable();
         status = BookingStatus.CANCELLED;

@@ -5,12 +5,12 @@ import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Objects;
 
-// Värdeobjekt som representerar ett penningbelopp med två decimaler. Immutable.
+// Value object representing a monetary amount with two decimals. Immutable.
 public final class Money implements Comparable<Money> {
 
     public static final Money ZERO = new Money(BigDecimal.ZERO);
 
-    private final BigDecimal amount; // alltid med två decimaler, avrundat med HALF_UP
+    private final BigDecimal amount; // always with two decimals, rounded with HALF_UP
 
     private Money(BigDecimal amount) {
         this.amount = Objects.requireNonNull(amount, "Money value must not be null")

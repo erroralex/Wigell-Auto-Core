@@ -5,12 +5,12 @@ import java.util.Objects;
 
 /**
  * <b>StepResult</b>
- * <p>Ansvar: Resultatet av ett körda {@link ScenarioStep}: om det lyckades, om det var tänkt att
- * misslyckas, och vid fel den {@link ErrorReport} som felkedjan gav, samma rapport som
- * gränssnittet visar.</p>
- * <p>Skapas bara via {@link #success} och {@link #failure}, så att ett resultat aldrig kan vara
- * både lyckat och ha ett fel. {@link #isAsExpected()} är regeln som både runnern och
- * integrationstestet använder.</p>
+ * <p>Responsibility: The result of an executed {@link ScenarioStep}: whether it succeeded, whether it was meant to
+ * fail, and on failure the {@link ErrorReport} that the error chain produced, the same report that
+ * the UI shows.</p>
+ * <p>Created only via {@link #success} and {@link #failure}, so a result can never be
+ * both successful and have an error. {@link #isAsExpected()} is the rule that both the runner and
+ * the integration test use.</p>
  */
 public final class StepResult {
 
@@ -51,7 +51,7 @@ public final class StepResult {
         return error;
     }
 
-    // Sant om steget blev som tänkt: ett vanligt steg lyckades, eller ett felsteg misslyckades
+    // True if the step went as intended: a regular step succeeded, or a failure step failed
     public boolean isAsExpected() {
         if (expectedFailure) {
             return !succeeded && !error.isUnexpected();

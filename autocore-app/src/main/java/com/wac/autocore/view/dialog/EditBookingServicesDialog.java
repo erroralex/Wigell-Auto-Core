@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * <b>EditBookingServicesDialog</b>
- * <p>Ansvar: Dialog för att redigera tjänster på en befintlig bokning.</p>
+ * <p>Responsibility: Dialog for editing the services on an existing booking.</p>
  */
 public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.Result> {
 
@@ -33,7 +33,7 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
     public EditBookingServicesDialog(Booking booking, List<ServiceItem> serviceItems, Vehicle vehicle, Mechanic mechanic) {
         this.booking = booking;
 
-        // Initiera serviceSelector med alla tillgängliga tjänster
+        // Initialize serviceSelector with all available services
         serviceSelector = new ServiceSelectorBox(serviceItems);
 
         serviceSelector.selectServiceIds(

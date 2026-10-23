@@ -45,8 +45,8 @@ import java.util.function.IntConsumer;
 
 /**
  * <b>WorkOrderView</b>
- * <p>Ansvar: Visar och hanterar arbetsordrar i användargränssnittet. Under listan visas
- * jobben för vald arbetsorder med namn, tid och avtalat pris.</p>
+ * <p>Responsibility: Shows and manages work orders in the user interface. Below the list,
+ * the jobs for the selected work order are shown with name, duration and agreed price.</p>
  */
 public class WorkOrderView extends BaseView {
 
@@ -96,7 +96,7 @@ public class WorkOrderView extends BaseView {
         initializeTable();
         initializeJobTable();
 
-        // Valet i listan styr både knapparna och vilka jobb som visas
+        // The selection in the list controls both the buttons and which jobs are shown
         workOrderTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> {
                     updateButtonStates(newValue);
@@ -147,7 +147,7 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getId()))
         );
 
-        // Regnummer räcker för att känna igen bilen vid disken
+        // The registration number is enough to recognize the car at the counter
         TableColumn<WorkOrder, String> vehicleCol = new TableColumn<>(lang.get("table.vehicle"));
         vehicleCol.setCellValueFactory(c ->
                 new SimpleStringProperty(vehicleName(c.getValue().getVehicleId()))
@@ -163,7 +163,7 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(mechanicName(c.getValue().getMechanicId()))
         );
 
-        // Planerade ordrar saknar beskrivning; radbrytningar visas som mellanslag i tabellen
+        // Planned orders have no description; line breaks are shown as spaces in the table
         TableColumn<WorkOrder, String> problemCol = new TableColumn<>(lang.get("table.problemDescription"));
         problemCol.setCellValueFactory(c -> {
             String description = c.getValue().getProblemDescription();
@@ -178,7 +178,7 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(String.valueOf(c.getValue().getItems().size()))
         );
 
-        // Reklamationer visar vilken order de gäller, t.ex. "Reklamation för #12"
+        // Warranty claims show which order they concern, e.g. "Warranty claim for #12"
         TableColumn<WorkOrder, String> typeCol = new TableColumn<>(lang.get("table.type"));
         typeCol.setCellValueFactory(c -> {
             WorkOrder order = c.getValue();
@@ -189,7 +189,7 @@ public class WorkOrderView extends BaseView {
             return new SimpleStringProperty(lang.get(order.getType().getMessageKey()));
         });
 
-        // Statusen sparas som CONFIRMED/IN_PROGRESS/COMPLETED/DRAFT, bara visningen översätts
+        // The status is stored as CONFIRMED/IN_PROGRESS/COMPLETED/DRAFT, only the display is translated
         TableColumn<WorkOrder, String> statusCol = new TableColumn<>(lang.get("table.status"));
         statusCol.setCellValueFactory(c ->
                 new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
@@ -207,7 +207,7 @@ public class WorkOrderView extends BaseView {
         workOrderTable.setItems(masterData);
     }
 
-    // Jobben visas från orderns snapshot: det som avtalades vid bokningen
+    // The jobs are shown from the order's snapshot: what was agreed at booking time
     private void initializeJobTable() {
 
         TableColumn<WorkOrderItem, String> nameCol = new TableColumn<>(lang.get("table.name"));
@@ -259,7 +259,7 @@ public class WorkOrderView extends BaseView {
         );
     }
 
-    // Dialogen låter användaren välja typ (planerad, drop-in eller reklamation) och skapa arbetsordern
+    // The dialog lets the user choose a type (planned, drop-in or warranty claim) and create the work order
     private void openCreateWorkOrderDialog() {
         CreateWorkOrderDialog dialog = new CreateWorkOrderDialog(
                 workOrderService.findBookableBookings(),
@@ -351,8 +351,8 @@ public class WorkOrderView extends BaseView {
         button.setDisable(selected == null || !selected.getStatus().canChangeTo(target));
     }
 
-    // Gemensam hantering för alla åtgärder: kör servicen, laddar om tabellen och visar resultatet.
-    // Fel (t.ex. valideringsfel vid Confirm) visas via ErrorFacade.
+    // Common handling for all actions: runs the service, reloads the table and shows the result.
+    // Errors (e.g. validation errors on Confirm) are shown via ErrorFacade.
     private void runAction(IntConsumer action, String titleKey, String messageKey) {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -369,8 +369,8 @@ public class WorkOrderView extends BaseView {
         }
     }
 
-    // Tabellen byter ut alla rader vid refresh och markeringen försvinner. Vi markerar samma order igen
-    // så att knapparna återspeglar den nya statusen.
+    // The table replaces all rows on refresh and the selection disappears. We select the same order again
+    // so the buttons reflect the new status.
     private void refreshAfterAction(int workOrderId) {
         refreshData();
         selectWorkOrder(workOrderId);
@@ -390,8 +390,8 @@ public class WorkOrderView extends BaseView {
         }
     }
 
-    // En avbruten planerad order blir en ny order från bokningen. Den nya ordern markeras och skillnaderna
-    // mot den avbrutna visas. Övriga ordrar blir utkast, som tidigare.
+    // A cancelled planned order becomes a new order from the booking. The new order is selected and the differences
+    // from the cancelled one are shown. Other orders become drafts, as before.
     private void reopenSelectedWorkOrder() {
         WorkOrder selected = workOrderTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -425,7 +425,7 @@ public class WorkOrderView extends BaseView {
         return sb.toString();
     }
 
-    // Texten per ändringstyp finns i språkfilerna som workOrder.change.<typ>
+    // The text per change type is in the language files as workOrder.change.<type>
     private String describe(WorkOrderChange change) {
         String key = "workOrder.change." + change.getType().name();
         switch (change.getType()) {
@@ -448,7 +448,7 @@ public class WorkOrderView extends BaseView {
         }
     }
 
-    // ISO-format (2026-11-02, 08:00) som i resten av vyn. Ett saknat värde visas som NO_VALUE.
+    // ISO format (2026-11-02, 08:00) as in the rest of the view. A missing value is shown as NO_VALUE.
     private static String orNoValue(Object value) {
         return value == null ? NO_VALUE : value.toString();
     }
@@ -461,7 +461,7 @@ public class WorkOrderView extends BaseView {
         return displayName(mechanicId, mechanicsById, Mechanic::getName);
     }
 
-    // Visar ett id från en uppslagstabell: null → NO_VALUE, okänt id → common.unknownId, annars display-värdet
+    // Shows an id from a lookup table: null → NO_VALUE, unknown id → common.unknownId, otherwise the display value
     private <T> String displayName(Integer id, Map<Integer, T> byId, Function<? super T, String> display) {
         if (id == null) {
             return NO_VALUE;
@@ -478,8 +478,8 @@ public class WorkOrderView extends BaseView {
         openEditWorkOrderDialog(selected, selected.getPlannedStartTime());
     }
 
-    // Dialogen sparar själv och visar fel (t.ex. krock på en bekräftad order) utan att stängas.
-    // Ett sparat utkast kan ändå krocka, och då visas varningen här.
+    // The dialog saves by itself and shows errors (e.g. a clash on a confirmed order) without closing.
+    // A saved draft can still clash, and then the warning is shown here.
     private void openEditWorkOrderDialog(WorkOrder workOrder, LocalTime startTime) {
         EditWorkOrderDialog dialog = new EditWorkOrderDialog(
                 workOrder, serviceItemService.listAll(), mechanicService.listAll(), workOrderService, startTime);
@@ -491,8 +491,8 @@ public class WorkOrderView extends BaseView {
         });
     }
 
-    // Gemensam varning för skapande, redigering och återöppning. Ordern är redan sparad som utkast;
-    // användaren väljer att ändra mekaniker/tid (dialogen öppnas med föreslagen tid) eller att behålla den.
+    // Common warning for creating, editing and reopening. The order is already saved as a draft;
+    // the user chooses to change mechanic/time (the dialog opens with the suggested time) or to keep it.
     private void warnAboutMechanicConflicts(WorkOrderScheduleResult schedule) {
         if (schedule.getMechanicConflicts().isEmpty()) {
             return;
@@ -518,7 +518,7 @@ public class WorkOrderView extends BaseView {
         }
     }
 
-    // Samma stil för alla knappar i verktygsraden
+    // The same style for all buttons in the toolbar
     private void setupButton(Button button, Runnable action) {
         button.getStyleClass().addAll("btn", "btn-primary");
         button.setOnAction(event -> action.run());

@@ -2,9 +2,9 @@ package com.wac.autocore.exception.handler;
 
 /**
  * <b>FallbackErrorHandler</b>
- * <p>Ansvar: Sista ledet i felkedjan. Tar hand om alla fel som inga tidigare led känner igen,
- * t.ex. {@code NullPointerException} eller {@code IllegalStateException}, och visar dem som
- * oväntade fel med tekniska detaljer.</p>
+ * <p>Responsibility: Last link in the error chain. Takes care of all errors that no earlier link recognizes,
+ * e.g. {@code NullPointerException} or {@code IllegalStateException}, and shows them as
+ * unexpected errors with technical details.</p>
  */
 public class FallbackErrorHandler extends ErrorHandler {
 

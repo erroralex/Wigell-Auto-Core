@@ -18,8 +18,8 @@ public class WarrantyWorkOrder extends WorkOrder {
     protected WarrantyWorkOrder() {
     }
 
-    // Skapar ett utkast till en garantiorder baserat på en befintlig order.
-    // Den nya ordern får samma fordon som originalet och problem beskrivs av användaren.
+    // Creates a draft of a warranty order based on an existing order.
+    // The new order gets the same vehicle as the original and the problem is described by the user.
     private WarrantyWorkOrder(WorkOrder original, String problemDescription) {
         super(
                 null,
@@ -33,7 +33,7 @@ public class WarrantyWorkOrder extends WorkOrder {
 
     }
 
-    // Skapar ett utkast till en garantiorder. Validerar att originalet är giltigt och att problemet har en beskrivning.
+    // Creates a draft of a warranty order. Validates that the original is valid and that the problem has a description.
     public static WarrantyWorkOrder draft(WorkOrder original, String problemDescription) {
 
         if (original == null || original.getId() <= 0) {
@@ -59,7 +59,7 @@ public class WarrantyWorkOrder extends WorkOrder {
         return WorkOrderType.WARRANTY;
     }
 
-    // Validerar att originalorder-id är satt och giltigt. Anropas av confirm() i bas-klassen.
+    // Validates that the original order id is set and valid. Called by confirm() in the base class.
     @Override
     protected void validateTypeSpecific() {
         if (originalWorkOrderId == null || originalWorkOrderId <= 0) {

@@ -34,7 +34,7 @@ import java.util.Objects;
 
 /**
  * <b>CreateBookingDialog</b>
- * <p>Ansvar: Dialog för att skapa en bokning.</p>
+ * <p>Responsibility: Dialog for creating a booking.</p>
  */
 public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
@@ -55,7 +55,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
 
     private VBox contentBox;
 
-    // previous kan vara null
+    // previous may be null
     public CreateBookingDialog(
             BookingService bookingService,
             ServicePackageService servicePackageService,
@@ -152,7 +152,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         handleInput();
     }
 
-    // Förslaget är valfritt, så ett valt förslag ska kunna rensas utan att dialogen avbryts.
+    // The suggestion is optional, so a selected suggestion can be cleared without cancelling the dialog.
     private HBox suggestedMechanicBox() {
         Button clearButton = new Button(lang.get("btn.remove"));
         clearButton.getStyleClass().addAll("btn", "btn-secondary");
@@ -230,7 +230,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         private final Integer vehicleId;
         private final LocalDate date;
         private final String description;
-        // Valfritt förslag; null = ingen föreslagen mekaniker.
+        // Optional suggestion; null = no suggested mechanic.
         private final Integer mechanicId;
         private final LocalTime startTime;
         private final List<Integer> serviceItemIds;

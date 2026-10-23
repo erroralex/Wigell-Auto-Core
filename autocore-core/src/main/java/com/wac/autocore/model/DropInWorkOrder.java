@@ -7,13 +7,13 @@ import jakarta.persistence.Entity;
 
 /**
  * <b>DropInWorkOrder</b>
- * <p>Ansvar: En arbetsorder för en bil som kommer in till verkstaden utan bokning.
- * Ordern har därför ingen koppling till en {@link Booking} ({@code bookingId} är alltid {@code null}).</p>
- * <p>Skapas bara via {@link #draft(int, String)} med fordon och problembeskrivning, och börjar
- * som utkast ({@link WorkOrderStatus#DRAFT}). Mekaniker och tjänster läggs till i efterhand
+ * <p>Responsibility: A work order for a car that comes into the workshop without a booking.
+ * The order therefore has no link to a {@link Booking} ({@code bookingId} is always {@code null}).</p>
+ * <p>Created only via {@link #draft(int, String)} with vehicle and problem description, and starts
+ * as a draft ({@link WorkOrderStatus#DRAFT}). Mechanic and services are added afterwards
  * ({@link #setMechanicId(Integer)}, {@link #addItem(ServiceItem)}).
- * Ordern kan bekräftas med {@link #confirm()} först när de gemensamma fälten är ifyllda och
- * problembeskrivningen finns kvar, eftersom {@link WorkOrderType#DROP_IN} kräver en sådan.</p>
+ * The order can be confirmed with {@link #confirm()} only once the common fields are filled in and
+ * the problem description is still present, because {@link WorkOrderType#DROP_IN} requires one.</p>
  */
 @Entity
 @DiscriminatorValue("DROP_IN")

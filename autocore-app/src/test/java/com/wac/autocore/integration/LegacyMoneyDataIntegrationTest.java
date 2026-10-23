@@ -26,9 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * <b>LegacyMoneyDataIntegrationTest</b>
- * <p>Ansvar: Bevisar att belopp som redan ligger i en gammal databas (REAL-värden med flyttalsbrus,
- * och NULL i invoice_line) läses som exakta Money-värden. Raderna skrivs med SQL och inte via
- * servicen, så att de efterliknar data från före Money.</p>
+ * <p>Responsibility: Proves that amounts already stored in an old database (REAL values with floating-point noise,
+ * and NULL in invoice_line) are read as exact Money values. The rows are written with SQL and not via
+ * the service, so they mimic data from before Money.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")
@@ -115,8 +115,8 @@ class LegacyMoneyDataIntegrationTest {
                 .orElseThrow(() -> new AssertionError("Invoice " + invoiceId + " should exist"));
     }
 
-    /* work_order_id måste finnas (foreign_keys=true). Id:n läses med MAX(id), eftersom JdbcTemplate
-     * kan få en ny anslutning från poolen mellan anropen. */
+    /* work_order_id must exist (foreign_keys=true). The ids are read with MAX(id), because JdbcTemplate
+     * may get a new connection from the pool between the calls. */
     private int insertInvoice(double amount, double discount, double total) {
         jdbcTemplate.update("INSERT INTO work_order (type, status) VALUES ('PLANNED', 'COMPLETED')");
         Integer workOrderId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM work_order", Integer.class);

@@ -4,10 +4,10 @@ import java.util.Locale;
 
 /**
  * <b>Translator</b>
- * <p>Ansvar: Översätter språknycklar till text på aktivt språk. Kontraktet för all
- * översättning i applikationen, utan beroende till JavaFX.</p>
- * <p>Saknad nyckel ger {@code !nyckel!} i stället för ett undantag, så att ett glömt
- * språkuttryck syns i gränssnittet utan att krascha det.</p>
+ * <p>Responsibility: Translates language keys to text in the active language. The contract for all
+ * translation in the application, without a dependency on JavaFX.</p>
+ * <p>A missing key gives {@code !key!} instead of an exception, so a forgotten
+ * language entry shows up in the UI without crashing it.</p>
  */
 public interface Translator {
 

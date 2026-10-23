@@ -26,11 +26,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-// Samordnar bokningar. Servicen laddar data, anropar domänen och kontrollerar
-// regler som kräver andra bokningar (fordonet bokat samma dag; avbokade bokningar räknas inte).
-// Regler som bara rör en bokning ligger i {@link Booking}.
-// Mekanikern på en bokning är ett valfritt förslag och krockkontrolleras inte här;
-// mekanikern reserveras först på arbetsordern (se WorkOrderService).
+// Coordinates bookings. The service loads data, calls the domain and checks
+// rules that require other bookings (vehicle booked the same day; cancelled bookings do not count).
+// Rules that concern only one booking live in {@link Booking}.
+// The mechanic on a booking is an optional suggestion and is not checked for clashes here;
+// the mechanic is reserved only on the work order (see WorkOrderService).
 @Validated
 @Service
 public class BookingService {
@@ -54,7 +54,7 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
-    // Alla bokningar utom avbokade.
+    // All bookings except cancelled ones.
     public List<Booking> listActive() {
         return bookingRepository.findByStatusNot(BookingStatus.CANCELLED);
     }
@@ -81,8 +81,8 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // Skapar en ny bokning med data från en tidigare bokning.
-    // Om mekaniker, fordon, beskrivning eller tjänster inte anges ärvs de från den tidigare bokningen.
+    // Creates a new booking with data from a previous booking.
+    // If mechanic, vehicle, description or services are not given, they are inherited from the previous booking.
     @Transactional
     public BookingCopyResult createFromPrevious(int previousBookingId,
                                                 LocalDate date,
@@ -138,13 +138,13 @@ public class BookingService {
         booking.update(vehicleId, mechanicId, date, startTime, description,
                 serviceItemRepository.requireAllById(serviceItemIds));
 
-        // Om kontrollen nedan kastar rullar transaktionen tillbaka ändringen ovan.
+        // If the check below throws, the transaction rolls back the change above.
         checkVehicleAvailable(booking, vehicle);
         return bookingRepository.save(booking);
     }
 
-    // Bokningen följer sin arbetsorder: datum, starttid och tjänster. Anropas av WorkOrderService i samma transaktion,
-    // så ett fel här (fordonet upptaget, midnatt) rullar tillbaka även orderns ändring.
+    // The booking follows its work order: date, start time and services. Called by WorkOrderService in the same transaction,
+    // so an error here (vehicle busy, midnight) also rolls back the order's change.
     @Transactional
     public Booking followWorkOrder(@Positive @NotNull(message="error.noBooking") Integer bookingId,
                                    LocalDate date, LocalTime startTime,
@@ -158,8 +158,8 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // Bokningens status följer sin arbetsorder. Anropas av WorkOrderService i samma transaktion.
-    // En saknad bokning ger samma fel som när planen följer ordern, i stället för att tyst ignoreras.
+    // The booking's status follows its work order. Called by WorkOrderService in the same transaction.
+    // A missing booking gives the same error as when the plan follows the order, instead of being silently ignored.
     @Transactional
     public Booking followWorkOrderStatus(@Positive @NotNull(message="error.noBooking") Integer bookingId, WorkOrderStatus workOrderStatus) {
         Booking booking = requireBooking(bookingId);
@@ -167,7 +167,7 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // Mjuk borttagning: raden och bokningsnumret finns kvar, bara statusen ändras. Domänen avgör om det är tillåtet.
+    // Soft delete: the row and the booking number remain, only the status changes. The domain decides whether it is allowed.
     @Transactional
     public Booking cancel(@Positive @NotNull(message="error.noBooking") Integer bookingId) {
         Booking booking = requireBooking(bookingId);
@@ -192,7 +192,7 @@ public class BookingService {
                 .orElseThrow(() -> new EntityNotFoundException("Vehicle", id));
     }
 
-    // Förslaget är valfritt, men ett angivet id måste finnas så att ett skräp-id stoppas i appen och inte i databasen.
+    // The suggestion is optional, but a given id must exist so a garbage id is stopped in the app and not in the database.
     private void requireSuggestedMechanic(Integer id) {
         if (id != null && !mechanicRepository.findById(id).isPresent()) {
             throw new EntityNotFoundException("Mechanic", id);
@@ -205,7 +205,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    // Jämför varje rads avtalade pris med dagens katalogpris.
+    // Compares each line's agreed price with today's catalog price.
     private List<BookingPriceChange> priceChanges(Booking booking) {
         List<BookingPriceChange> changes = new ArrayList<>();
         for (BookingServiceItem item : booking.getItems()) {

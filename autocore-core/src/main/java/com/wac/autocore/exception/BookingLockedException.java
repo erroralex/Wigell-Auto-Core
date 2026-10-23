@@ -4,9 +4,9 @@ import com.wac.autocore.model.BookingStatus;
 
 /**
  * <b>BookingLockedException</b>
- * <p>Ansvar: Kastas när någon försöker lägga till eller ta bort tjänster på en bokning
- * som inte längre är redigerbar.</p>
- * <p><b>Exempel på användning:</b></p>
+ * <p>Responsibility: Thrown when someone tries to add or remove services on a booking
+ * that is no longer editable.</p>
+ * <p><b>Example usage:</b></p>
  * <pre>{@code
  * if (!booking.getStatus().isEditable()) {
  *     throw new BookingLockedException(booking.getId(), booking.getStatus());

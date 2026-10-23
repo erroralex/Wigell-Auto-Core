@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
- * Ett arkitekturs-test genom {@code ArchUnit} som gör mer eller mindre samma sak som {@code NoJavaFxInCoreTest.java}.
- * Mest skapad som en jämförelse mellan de två olika testerna för utbildningssyfte.
+ * An architecture test using {@code ArchUnit} that does more or less the same thing as {@code NoJavaFxInCoreTest.java}.
+ * Mostly created as a comparison between the two different tests for educational purposes.
  *
- * ArchUnit testet kollar på kompilerad byte-kod, inklusive annoteringar och signaturen, men fångar inte referenser
- * som bara används i strängar. Detta kollar inte heller så att förväntade directories existerar (innehåller klasser).
+ * The ArchUnit test looks at compiled bytecode, including annotations and signatures, but does not catch references
+ * that are only used in strings. Nor does it check that the expected directories exist (contain classes).
  */
 public class NoJavaFxInCoreArchUnitTest {
 

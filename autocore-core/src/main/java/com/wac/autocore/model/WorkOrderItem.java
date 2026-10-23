@@ -12,10 +12,10 @@ import java.util.Objects;
 
 /**
  * <b>WorkOrderItem</b>
- * <p>Ansvar: Ett jobb på en arbetsorder. Namn, avtalat pris och tidsåtgång kopieras från
- * bokningens rad ({@link BookingServiceItem}) när arbetsordern skapas eller från katalogtjänst.</p>
- * <p>Raden är ett värdeobjekt: den har ingen egen identitet och lever bara som en del av
- * sin {@link WorkOrder}. Skapas via {@link #from(BookingServiceItem)} eller {@link #snapshotOf(ServiceItem)}.</p>
+ * <p>Responsibility: A job on a work order. Name, agreed price and duration are copied from
+ * the booking's line ({@link BookingServiceItem}) when the work order is created, or from a catalog service.</p>
+ * <p>The line is a value object: it has no identity of its own and lives only as part of
+ * its {@link WorkOrder}. Created via {@link #from(BookingServiceItem)} or {@link #snapshotOf(ServiceItem)}.</p>
  */
 @Embeddable
 public class WorkOrderItem {
@@ -51,8 +51,8 @@ public class WorkOrderItem {
         this.durationMinutes = durationMinutes;
     }
 
-    /* Kopierar en bokningsrad till ett jobb på arbetsordern. Priset hämtas från
-     * bokningens snapshot, aldrig från tjänstekatalogen. */
+    /* Copies a booking line to a job on the work order. The price is taken from
+     * the booking's snapshot, never from the service catalog. */
     public static WorkOrderItem from(BookingServiceItem bookingLine) {
         if (bookingLine == null) {
             throw new PricingIntegrityException("Booking line is missing");
@@ -105,7 +105,7 @@ public class WorkOrderItem {
         return serviceName;
     }
 
-    /* Pris som frystes när raden skapades. */
+    /* Price frozen when the line was created. */
     public Money getAgreedPrice() {
         return agreedPrice;
     }
@@ -114,7 +114,7 @@ public class WorkOrderItem {
         return this.chargeable;
     }
 
-    /* Beloppet kunden betalar för raden */
+    /* The amount the customer pays for the line */
     public Money getChargedAmount() {
         if (chargeable) {
             return this.agreedPrice;
@@ -126,7 +126,7 @@ public class WorkOrderItem {
         this.chargeable = chargeable;
     }
 
-    /* Tidsåtgång som avtalades vid bokningen. */
+    /* Duration agreed at booking time. */
     public int getDurationMinutes() {
         return durationMinutes;
     }

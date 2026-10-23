@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * <b>ErrorTextSameInUiAndHeadlessTest</b>
- * <p>Ansvar: Bevisar att samma fel ger exakt samma text i gränssnittet och i headless-läget.
- * Gränssnittet översätter via {@link LanguageManager} (JavaFX-adaptern), headless via en
- * fristående {@link ResourceBundleTranslator}. Båda går genom samma felkedja och samma formatter.</p>
+ * <p>Responsibility: Proves that the same error gives exactly the same text in the UI and in headless mode.
+ * The UI translates via {@link LanguageManager} (the JavaFX adapter), headless via a
+ * standalone {@link ResourceBundleTranslator}. Both go through the same error chain and the same formatter.</p>
  */
 class ErrorTextSameInUiAndHeadlessTest {
 
@@ -28,7 +28,7 @@ class ErrorTextSameInUiAndHeadlessTest {
 
     @BeforeAll
     static void saveDefaultLocale() {
-        // LanguageManager ändrar JVM:ens standardspråk; återställs efter testet
+        // LanguageManager changes the JVM's default locale; it is restored after the test
         originalDefault = Locale.getDefault();
     }
 

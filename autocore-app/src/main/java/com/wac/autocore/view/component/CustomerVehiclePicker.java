@@ -24,9 +24,9 @@ import java.util.stream.Stream;
 
 /**
  * <b>CustomerVehiclePicker</b>
- * <p>Ansvar: Välj kund och sedan ett av kundens fordon, eller skapa nya.
- * Samordnar valen (<b>Mediator</b>). Tar emot services eftersom dialogerna för
- * ny kund och nytt fordon behöver dem.</p>
+ * <p>Responsibility: Choose a customer and then one of the customer's vehicles, or create new ones.
+ * Coordinates the choices (<b>Mediator</b>). Takes services because the dialogs for
+ * a new customer and a new vehicle need them.</p>
  */
 public class CustomerVehiclePicker extends VBox {
 
@@ -73,7 +73,7 @@ public class CustomerVehiclePicker extends VBox {
 
         getChildren().addAll(customerLabel, customerRow, vehicleLabel, vehicleRow);
 
-        // Översättningsnyckel för det som saknas, eller null när ett fordon är valt.
+        // Translation key for what is missing, or null when a vehicle is selected.
         missingSelectionKey = Bindings.createStringBinding(() -> {
                     if (customerCombo.getValue() == null) {
                         return "workOrder.hint.selectCustomer";
@@ -138,7 +138,7 @@ public class CustomerVehiclePicker extends VBox {
                 .findFirst()
                 .orElse(null);
 
-        // Ny kund väljs direkt; annars behålls tidigare val.
+        // A new customer is selected directly; otherwise the previous choice is kept.
         Integer selectedId = created != null ? Integer.valueOf(created.getId())
                 : previous != null ? Integer.valueOf(previous.getId()) : null;
         customerCombo.getItems().stream()

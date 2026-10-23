@@ -13,8 +13,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * <b>CustomerServiceTest</b>
- * <p>Ansvar: Bevisar att {@link CustomerService} inte accepterar påhittade kund-id:
- * update och deleteById kastar för okänt id och rör inte databasen.</p>
+ * <p>Responsibility: Proves that {@link CustomerService} does not accept made-up customer ids:
+ * update and deleteById throw for an unknown id and do not touch the database.</p>
  */
 class CustomerServiceTest {
 
@@ -28,7 +28,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    @DisplayName("update med okänt id kastar och sparar ingenting")
+    @DisplayName("update with an unknown id throws and saves nothing")
     void updateUnknownIdThrowsEntityNotFoundException() {
         Customer customer = new Customer("Anna", "070-1234567", "anna@example.com");
         when(customerRepo.existsById(customer.getId())).thenReturn(false);
@@ -41,7 +41,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    @DisplayName("update med känt id sparar kunden")
+    @DisplayName("update with a known id saves the customer")
     void updateKnownIdSavesCustomer() {
         Customer customer = new Customer("Anna", "070-1234567", "anna@example.com");
         when(customerRepo.existsById(customer.getId())).thenReturn(true);
@@ -54,7 +54,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    @DisplayName("deleteById med okänt id kastar och tar inte bort något")
+    @DisplayName("deleteById with an unknown id throws and deletes nothing")
     void deleteByIdUnknownIdThrowsEntityNotFoundException() {
         when(customerRepo.existsById(99)).thenReturn(false);
 
@@ -66,7 +66,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    @DisplayName("deleteById med känt id tar bort kunden")
+    @DisplayName("deleteById with a known id deletes the customer")
     void deleteByIdKnownIdDeletesCustomer() {
         when(customerRepo.existsById(1)).thenReturn(true);
 

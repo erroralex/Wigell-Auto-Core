@@ -13,8 +13,8 @@ import java.util.Optional;
 
 /**
  * <b>AlertHelper</b>
- * <p>Ansvar: Hjälpklass för att visa dialogrutor och varningar i användargränssnittet.</p>
- * <p><b>Exempel på användning:</b></p>
+ * <p>Responsibility: Helper class for showing dialogs and warnings in the user interface.</p>
+ * <p><b>Example usage:</b></p>
  * <pre>{@code
 LanguageManager lang = LanguageManager.getInstance();
  * if (nameField.getText().isEmpty()) {
@@ -31,7 +31,7 @@ public class AlertHelper {
     }
 
 
-    // Visar ett enkelt felmeddelande med OK-knapp
+    // Shows a simple error message with an OK button
     public static void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR, "", okButton());
         alert.setTitle(title);
@@ -41,7 +41,7 @@ public class AlertHelper {
         alert.showAndWait();
     }
 
-    // Visar ett informationsmeddelande med OK-knapp
+    // Shows an information message with an OK button
     public static void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "", okButton());
         alert.setTitle(title);
@@ -51,7 +51,7 @@ public class AlertHelper {
         alert.showAndWait();
     }
 
-    // Visar en bekräftelsedialog med OK/Avbryt och returnerar true om användaren bekräftade
+    // Shows a confirmation dialog with OK/Cancel and returns true if the user confirmed
     public static boolean showConfirmation(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "", okButton(), cancelButton());
         alert.setTitle(title);
@@ -63,7 +63,7 @@ public class AlertHelper {
         return result.isPresent() && result.get().getButtonData() == ButtonBar.ButtonData.OK_DONE;
     }
 
-    // Visar en varning med två egna val och returnerar true om användaren valde det första
+    // Shows a warning with two custom choices and returns true if the user chose the first one
     public static boolean showWarningChoice(String title, String message, String acceptText, String declineText) {
         ButtonType accept = new ButtonType(acceptText, ButtonBar.ButtonData.OK_DONE);
         ButtonType decline = new ButtonType(declineText, ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -77,7 +77,7 @@ public class AlertHelper {
         return result.isPresent() && result.get() == accept;
     }
 
-    // Visar ett felmeddelande med utfällbar stack trace, för oväntade fel
+    // Shows an error message with an expandable stack trace, for unexpected errors
     public static void showException(String title, String message, Exception e) {
         Alert alert = new Alert(Alert.AlertType.ERROR, "", okButton());
         alert.setTitle(title);
@@ -100,7 +100,7 @@ public class AlertHelper {
         content.setMaxWidth(Double.MAX_VALUE);
         content.add(textArea, 0, 0);
 
-        // Döljs som standard bakom "Show Details"-knappen (Alert:s inbyggda beteende)
+        // Hidden by default behind the "Show Details" button (Alert's built-in behavior)
         alert.getDialogPane().setExpandableContent(content);
 
         alert.showAndWait();

@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>CorrelationAspectTest</b>
- * <p>Ansvar: Bevisar att en operation får ett och samma korrelations-id, även genom inre
- * service-anrop, att nästa operation får ett nytt id och att MDC städas efteråt.</p>
+ * <p>Responsibility: Proves that an operation gets one and the same correlation id, even through inner
+ * service calls, that the next operation gets a new id and that the MDC is cleaned up afterwards.</p>
  */
 class CorrelationAspectTest {
 

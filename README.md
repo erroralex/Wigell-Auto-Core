@@ -1,263 +1,264 @@
 # Wigell AutoCore
- 
-Verkstadssystem för Wigellkoncernens fordonsservice: kunder, fordon, bokningar, arbetsorder,
-fakturor och betalningar. JavaFX-gränssnitt byggt i kod (ingen FXML), Spring Boot 4, Java 21 och SQLite.
- 
-# Arkitektur: modulär monolit
- 
-Projektet är en Maven-reactor med tre moduler. All affärslogik ligger i `autocore-core`, och de två
-körbara modulerna bygger på den.
- 
+
+> Svensk version: [README-SV.md](README-SV.md)
+
+Workshop system for the Wigell group's vehicle service: customers, vehicles, bookings, work orders,
+invoices and payments. JavaFX UI built in code (no FXML), Spring Boot 4, Java 21 and SQLite.
+
+# Architecture: modular monolith
+
+The project is a Maven reactor with three modules. All business logic lives in `autocore-core`, and the two
+runnable modules build on it.
+
 ```
                  ┌────────────────────┐
-                 │   autocore-core    │   Domän, tjänster, repository-interface, felhantering, i18n
-                 │ (ingen Boot/JavaFX)│
+                 │   autocore-core    │   Domain, services, repository interfaces, error handling, i18n
+                 │ (no Boot/JavaFX)   │
                  └─────────▲──────────┘
-                           │ beror på
+                           │ depends on
              ┌─────────────┴─────────────┐
    ┌─────────┴──────────┐      ┌─────────┴──────────┐
    │    autocore-app    │      │ autocore-standalone│
-   │ Spring Boot, JPA,  │      │ Utan Spring, GUI   │
-   │ SQLite, Flyway,    │      │ och databas        │
-   │ JavaFX, headless   │      │ (påbörjas i 4.0)   │
+   │ Spring Boot, JPA,  │      │ Without Spring, GUI│
+   │ SQLite, Flyway,    │      │ and database       │
+   │ JavaFX, headless   │      │ (started in 4.0)   │
    └────────────────────┘      └────────────────────┘
 ```
- 
-| Modul | Innehåll | Får bero på | Får INTE bero på |
+
+| Module | Contents | May depend on | May NOT depend on |
 |---|---|---|---|
-| `autocore-core` | Entiteter, värdeobjekt, tjänster, repository-interface, undantag, felkedja, översättning, drop-in-scenariot | Spring Context/Tx, Spring Data JPA (interface), Jakarta Persistence/Validation, SLF4J | Spring Boot, JavaFX, `com.wac.autocore.view` |
-| `autocore-app` | Spring Boot-start, JavaFX-vyer, headless-läge, `application*.properties`, Flyway-migreringar, språkfiler | `autocore-core`, Spring Boot-startrar, JavaFX, SQLite | – |
-| `autocore-standalone` | Fristående körläge som kopplar ihop tjänsterna med `new` mot in-memory-repositoryn | `autocore-core` | Spring-kontext, JavaFX |
- 
-**Regeln vaktas av tester:** `NoJavaFxInCoreTest` i core underkänner bygget om någon kod i core
-refererar till `javafx.` eller `com.wac.autocore.view`.
- 
-**Var lägger jag ny kod?**
-- Affärsregel, ny entitet, ny tjänstemetod → `autocore-core`
-- Ny vy, dialog, CSS, Spring-konfiguration, migrering, språktext → `autocore-app`
-- Ny databastabell eller kolumn → ny `V14__...sql` och framåt i `autocore-app`. **V1–V13 rörs aldrig.**
-# Struktur
- 
-Alla moduler använder samma baspaket, `com.wac.autocore`. Varje klass ligger alltså i samma paket
-som före uppdelningen, bara i en annan modul.
- 
+| `autocore-core` | Entities, value objects, services, repository interfaces, exceptions, error chain, translation, the drop-in scenario | Spring Context/Tx, Spring Data JPA (interfaces), Jakarta Persistence/Validation, SLF4J | Spring Boot, JavaFX, `com.wac.autocore.view` |
+| `autocore-app` | Spring Boot startup, JavaFX views, headless mode, `application*.properties`, Flyway migrations, language files | `autocore-core`, Spring Boot starters, JavaFX, SQLite | – |
+| `autocore-standalone` | Standalone run mode that wires the services together with `new` against in-memory repositories | `autocore-core` | Spring context, JavaFX |
+
+**The rule is guarded by tests:** `NoJavaFxInCoreTest` in core fails the build if any code in core
+refers to `javafx.` or `com.wac.autocore.view`.
+
+**Where do I put new code?**
+- Business rule, new entity, new service method → `autocore-core`
+- New view, dialog, CSS, Spring configuration, migration, language text → `autocore-app`
+- New database table or column → a new `V14__...sql` and onwards in `autocore-app`. **V1–V13 are never touched.**
+# Structure
+
+All modules use the same base package, `com.wac.autocore`. Every class is therefore in the same package
+as before the split, just in a different module.
+
 ```
 wigell-auto-core/
-├── pom.xml                              # Reactor-pom: parent spring-boot-starter-parent 4.x, Java 21, listar modulerna
-├── mvnw  mvnw.cmd  .mvn/                # Maven Wrapper – använd alltid ./mvnw
-├── .github/workflows/build-check.yml    # CI: ./mvnw -B clean verify på Java 21 för PR mot main och dev
-├── README.md  STYLEGUIDE.md
+├── pom.xml                              # Reactor pom: parent spring-boot-starter-parent 4.x, Java 21, lists the modules
+├── mvnw  mvnw.cmd  .mvn/                # Maven Wrapper – always use ./mvnw
+├── .github/workflows/build-check.yml    # CI: ./mvnw -B clean verify on Java 21 for PRs against main and dev
+├── README.md  README-SV.md  STYLEGUIDE.md
 │
-├── autocore-core/                       # Logiken. Ingen Spring Boot, ingen JavaFX
+├── autocore-core/                       # The logic. No Spring Boot, no JavaFX
 │   ├── pom.xml
 │   └── src/
 │       ├── main/java/com/wac/autocore/
-│       │   ├── model/                   # JPA-entiteter och domänlogik
+│       │   ├── model/                   # JPA entities and domain logic
 │       │   │   ├── Customer  Vehicle  Mechanic  ServiceItem  ServicePackage
-│       │   │   ├── Booking  BookingServiceItem  BookingStatus     # Bokning + tjänster med avtalat pris (snapshot)
-│       │   │   ├── WorkOrder                # Abstrakt bas, SINGLE_TABLE-arv, Template Method i confirm()
-│       │   │   ├── PlannedWorkOrder  DropInWorkOrder  WarrantyWorkOrder   # Ordertyper: createFrom(Booking) / draft(...)
+│       │   │   ├── Booking  BookingServiceItem  BookingStatus     # Booking + services with agreed price (snapshot)
+│       │   │   ├── WorkOrder                # Abstract base, SINGLE_TABLE inheritance, Template Method in confirm()
+│       │   │   ├── PlannedWorkOrder  DropInWorkOrder  WarrantyWorkOrder   # Order types: createFrom(Booking) / draft(...)
 │       │   │   ├── WorkOrderType  WorkOrderItem  ServiceLines
-│       │   │   ├── WorkOrderStatus          # State: livscykel och tillåtna övergångar
-│       │   │   ├── WorkOrderChange  WorkOrderChangeType           # Ändringshistorik på ordern
+│       │   │   ├── WorkOrderStatus          # State: lifecycle and allowed transitions
+│       │   │   ├── WorkOrderChange  WorkOrderChangeType           # Change history on the order
 │       │   │   ├── Invoice  InvoiceLine  Payment
-│       │   │   └── value/                   # Värdeobjekt
+│       │   │   └── value/                   # Value objects
 │       │   │       └── Money  MoneyFormat  TimeSlot
-│       │   ├── repository/                  # Repository-interface, en per aggregat (ärver Spring Data Repository)
-│       │   ├── service/                     # Affärslogik, @Service och @Transactional
+│       │   ├── repository/                  # Repository interfaces, one per aggregate (extend Spring Data Repository)
+│       │   ├── service/                     # Business logic, @Service and @Transactional
 │       │   │   ├── BookingService  CustomerService  VehicleService  MechanicService
 │       │   │   ├── ServiceItemService  ServicePackageService  WorkOrderService
 │       │   │   ├── InvoiceService  PaymentService
 │       │   │   ├── BookingCopyResult  BookingPriceChange  WorkOrderReopenResult  WorkOrderScheduleResult
-│       │   │   └── discount/                # Strategy: rabattregler för fakturor
+│       │   │   └── discount/                # Strategy: discount rules for invoices
 │       │   │       └── DiscountStrategy  NoDiscount  VipDiscount  Welcome10Discount  Service200Discount
-│       │   ├── exception/                   # Domänfel med språknyckel (DomainException och subklasser)
-│       │   │   └── handler/                 # Chain of Responsibility för felvisning
+│       │   ├── exception/                   # Domain errors with a language key (DomainException and subclasses)
+│       │   │   └── handler/                 # Chain of Responsibility for displaying errors
 │       │   │       └── ErrorHandler  ErrorHandlerChain  ErrorReport
 │       │   │           DomainErrorHandler  ValidationErrorHandler  DataAccessErrorHandler  FallbackErrorHandler
-│       │   ├── i18n/                        # Översättning utan JavaFX, delas av GUI och headless
+│       │   ├── i18n/                        # Translation without JavaFX, shared by GUI and headless
 │       │   │   └── Translator  ResourceBundleTranslator  LocalizedError  ErrorReportFormatter
-│       │   ├── headless/                    # Drop-in-scenariot som headless kör
+│       │   ├── headless/                    # The drop-in scenario that headless runs
 │       │   │   └── DropInScenario  ScenarioContext  ScenarioStep  StepResult
-│       │   └── data/                        # JPA-konverterare: datum/tid som TEXT, Money som BigDecimal
+│       │   └── data/                        # JPA converters: date/time as TEXT, Money as BigDecimal
 │       │       └── LocalDateConverter  LocalTimeConverter  LocalDateTimeConverter  MoneyConverter
 │       └── test/java/com/wac/autocore/
-│           ├── unit/                        # Rena enhetstester av modellen och värdeobjekten
-│           ├── service/                     # Tjänstetester med Mockito
-│           ├── exception/handler/           # Test av felkedjan
-│           ├── architecture/NoJavaFxInCoreTest.java   # Vaktar modulgränsen
-│           ├── WorkOrderLifeCycleIntegrationTest.java # Hela livscykeln utan Spring och utan databas
-│           └── testsupport/                 # In-memory-repositoryn och MoneyAssert
+│           ├── unit/                        # Pure unit tests of the model and the value objects
+│           ├── service/                     # Service tests with Mockito
+│           ├── exception/handler/           # Tests of the error chain
+│           ├── architecture/NoJavaFxInCoreTest.java   # Guards the module boundary
+│           ├── WorkOrderLifeCycleIntegrationTest.java # The whole lifecycle without Spring and without a database
+│           └── testsupport/                 # In-memory repositories and MoneyAssert
 │
-├── autocore-app/                        # Spring Boot + JavaFX + SQLite. Den körbara applikationen
-│   ├── pom.xml                          # spring-boot-maven-plugin bygger en körbar jar
+├── autocore-app/                        # Spring Boot + JavaFX + SQLite. The runnable application
+│   ├── pom.xml                          # spring-boot-maven-plugin builds a runnable jar
 │   └── src/
 │       ├── main/java/com/wac/autocore/
-│       │   ├── Main.java                    # Startpunkt
-│       │   ├── AutoCoreConfig.java          # @SpringBootApplication – skannar com.wac.autocore i alla moduler
-│       │   ├── headless/HeadlessRunner.java # @Profile("headless"): kör DropInScenario utan GUI
-│       │   └── view/                        # JavaFX-vyer, byggda i kod (ingen FXML)
-│       │       ├── AutoCoreApp              # Application: startar/stänger Spring, bygger scenen
-│       │       ├── MainLayout  SideNavigation  NavigationItem   # Skal och sidomeny
-│       │       ├── BaseView                 # Template Method: gemensam ram för alla vyer
+│       │   ├── Main.java                    # Entry point
+│       │   ├── AutoCoreConfig.java          # @SpringBootApplication – scans com.wac.autocore in all modules
+│       │   ├── headless/HeadlessRunner.java # @Profile("headless"): runs DropInScenario without a GUI
+│       │   └── view/                        # JavaFX views, built in code (no FXML)
+│       │       ├── AutoCoreApp              # Application: starts/stops Spring, builds the scene
+│       │       ├── MainLayout  SideNavigation  NavigationItem   # Shell and side menu
+│       │       ├── BaseView                 # Template Method: common frame for all views
 │       │       ├── HomeView  CustomerView  VehicleView  BookingView  MechanicView  MechanicBookingsView
 │       │       ├── ServiceItemView  ServicePackageView  WorkOrderView  InvoiceView  PaymentView
-│       │       ├── component/               # Återanvändbara kontroller
+│       │       ├── component/               # Reusable controls
 │       │       │   └── CustomerVehiclePicker  MultiSelectListView  ServiceSelectorBox  ServicePackageSelectorBox
-│       │       ├── dialog/                  # Create*/Edit*-dialoger, InvoiceDetail, ProcessPayment, QuickDraftWorkOrder m.fl.
-│       │       ├── i18n/LanguageManager     # Språkbyte sv/en i GUI:t, bygger på core:s Translator
+│       │       ├── dialog/                  # Create*/Edit* dialogs, InvoiceDetail, ProcessPayment, QuickDraftWorkOrder etc.
+│       │       ├── i18n/LanguageManager     # Language switching sv/en in the GUI, built on core's Translator
 │       │       └── util/
-│       │           ├── ErrorFacade          # Facade: en ingång för att visa fel via handler-kedjan
-│       │           ├── GlobalExceptionHandler   # Fångar ohanterade undantag och skickar till ErrorFacade
+│       │           ├── ErrorFacade          # Facade: a single entry point for showing errors via the handler chain
+│       │           ├── GlobalExceptionHandler   # Catches unhandled exceptions and passes them to ErrorFacade
 │       │           └── AlertHelper  DialogUtil  StringConverterUtil
 │       ├── main/resources/
 │       │   ├── application.properties           # SQLite (autocore.db), foreign_keys=true, ddl-auto=none, Flyway
-│       │   ├── application-headless.properties  # Egen databasfil autocore-headless.db, tyst logg
-│       │   ├── db/migration/                    # Flyway äger schemat, V1–V13 (+ .conf där migreringen körs utan transaktion)
-│       │   ├── i18n/messages*.properties        # Texter på svenska och engelska
-│       │   └── com/wac/autocore/view/           # style.css och assets/ (logga, ikon)
+│       │   ├── application-headless.properties  # Separate database file autocore-headless.db, quiet log
+│       │   ├── db/migration/                    # Flyway owns the schema, V1–V13 (+ .conf where the migration runs without a transaction)
+│       │   ├── i18n/messages*.properties        # Texts in Swedish and English
+│       │   └── com/wac/autocore/view/           # style.css and assets/ (logo, icon)
 │       └── test/
 │           ├── java/com/wac/autocore/
-│           │   ├── integration/             # Mot riktig SQLite som Flyway bygger: migreringar, prishistorik,
-│           │   │                            # arv, headless-scenariot, bevarande av 3.5-data
-│           │   ├── service/                 # Validering via Spring, språkfilerna, LanguageManager
-│           │   └── view/i18n/               # Samma feltexter i GUI och headless
+│           │   ├── integration/             # Against a real SQLite database built by Flyway: migrations, price history,
+│           │   │                            # inheritance, the headless scenario, preservation of 3.5 data
+│           │   ├── service/                 # Validation via Spring, the language files, LanguageManager
+│           │   └── view/i18n/               # The same error texts in GUI and headless
 │           └── resources/
 │               ├── application-test.properties   # ddl-auto=validate
-│               └── fixtures/autocore-3.5.db      # Kopia av en WAC-3.5-databas för datatestet
+│               └── fixtures/autocore-3.5.db      # Copy of a WAC 3.5 database for the data test
 │
-└── autocore-standalone/                 # Fristående läge utan Spring, GUI och databas
-    └── pom.xml                          # Beror bara på autocore-core. Koden byggs i sprint 4.0
+└── autocore-standalone/                 # Standalone mode without Spring, GUI and database
+    └── pom.xml                          # Depends only on autocore-core. The code is built in sprint 4.0
 ```
- 
-# Bygga och köra
- 
-Kräver **JDK 21**. JavaFX hämtas som Maven-beroende, så ingen JDK med inbyggt FX behövs.
- 
+
+# Building and running
+
+Requires **JDK 21**. JavaFX is fetched as a Maven dependency, so no JDK with bundled FX is needed.
+
 ```bash
-./mvnw clean verify          # Bygger alla moduler och kör alla tester (samma som CI)
+./mvnw clean verify          # Builds all modules and runs all tests (same as CI)
 ./mvnw clean package -DskipTests
 ```
- 
-Bygga och testa bara en modul (med de moduler den beror på):
+
+Build and test only one module (together with the modules it depends on):
 ```bash
 ./mvnw -pl autocore-core verify
 ./mvnw -pl autocore-app -am verify
 ```
- 
-Starta gränssnittet:
+
+Start the UI:
 ```bash
 java -jar autocore-app/target/autocore-app-4.0.0.jar
 ```
- 
-> Databasfilen `autocore.db` skapas i den mapp du startar från. Starta från repots rot så
-> används samma databas varje gång.
 
-## Loggning
+> The database file `autocore.db` is created in the folder you start from. Start from the root of the repo so
+> the same database is used every time.
 
-Loggningen styrs av `autocore-app/src/main/resources/logback-spring.xml`, med en profil per körläge:
+## Logging
 
-| Profil | Utdata | Nivå |
+Logging is configured in `autocore-app/src/main/resources/logback-spring.xml`, with one profile per run mode:
+
+| Profile | Output | Level |
 |---|---|---|
-| standard (dev) | Konsol, färgad | `com.wac` DEBUG, övrigt INFO |
-| `test` | Konsol | WARN |
-| `headless` | Fil, `logs/autocore-headless.log`, ofärgad | INFO |
+| default (dev) | Console, colored | `com.wac` DEBUG, everything else INFO |
+| `test` | Console | WARN |
+| `headless` | File, `logs/autocore-headless.log`, uncolored | INFO |
 
-Varje rad innehåller tid, nivå, logger och MDC-fälten `corrId`, `op`, `user` och `wo`.
+Every line contains time, level, logger and the MDC fields `corrId`, `op`, `user` and `wo`.
 
-**Färger i IntelliJ:** Spring Boot slår bara på färg när utdata går till en terminal, och med Java 21
-räknas IntelliJ:s konsol inte som det. Lägg till följande i run configurationens VM options:
+**Colors in IntelliJ:** Spring Boot only turns on colors when output goes to a terminal, and with Java 21
+IntelliJ's console does not count as one. Add the following to the run configuration's VM options:
 
     -Dspring.output.ansi.enabled=always
 
-Samma sak gäller Git Bash. Där skickar du `--spring.output.ansi.enabled=always` efter jar-filen.
-Sätt det inte i `application.properties`, eftersom ANSI-koder då hamnar i test- och CI-loggarna.
+The same applies to Git Bash. There, pass `--spring.output.ansi.enabled=always` after the jar file.
+Do not set it in `application.properties`, since ANSI codes would then end up in test and CI logs.
 
-# Köra utan gränssnitt (headless)
- 
-Applikationens tjänster kan köras utan JavaFX. Headless-läget kör ett komplett drop-in-flöde
-(skapa, lägg till tjänster och mekaniker, bekräfta, starta, slutför, fakturera, betala) och därefter
-två otillåtna operationer, och skriver ut resultatet med samma felnycklar och texter som gränssnittet.
- 
+# Running without a UI (headless)
+
+The application's services can run without JavaFX. Headless mode runs a complete drop-in flow
+(create, add services and mechanic, confirm, start, complete, invoice, pay) followed by
+two disallowed operations, and prints the result with the same error keys and texts as the UI.
 ```bash
 ./mvnw clean package
 java -jar autocore-app/target/autocore-app-4.0.0.jar --spring.profiles.active=headless
 ```
- 
-Engelska:
+
+English:
 ```bash
 java -jar autocore-app/target/autocore-app-4.0.0.jar --spring.profiles.active=headless --headless.lang=en
 ```
- 
-- Scenariot (`DropInScenario`) ligger i core, och `HeadlessRunner` i app kör det med Spring och SQLite.
-- Kör mot en egen databasfil, `autocore-headless.db`. Den vanliga `autocore.db` rörs inte.
-- Avslutar med kod `0` om alla steg blev som förväntat, annars med en felkod.
-- Samma scenario körs som integrationstest i `HeadlessDropInScenarioIntegrationTest`.
-**Windows:** visas `å`, `ä` och `ö` fel i konsolen, kör `chcp 65001` först.
- 
-# Fristående läge (standalone)
- 
-> Under uppbyggnad i sprint 4.0. Se migrationsplanen, avsnitt 7.
- 
-`autocore-standalone` kör samma domän- och servicekod som appen, men utan Spring, GUI och databas.
-Tjänsterna skapas med `new` och kopplas mot in-memory-repositoryn. Modulen paketeras som en egen
-körbar jar.
- 
-# Git-flöde: från branch till Pull Request
- 
-## 1. Uppdatera dev lokalt
-Byt till dev och hämta senaste versionen från GitHub innan du börjar något nytt:
+
+- The scenario (`DropInScenario`) lives in core, and `HeadlessRunner` in app runs it with Spring and SQLite.
+- Runs against a separate database file, `autocore-headless.db`. The regular `autocore.db` is not touched.
+- Exits with code `0` if all steps went as expected, otherwise with an error code.
+- The same scenario runs as an integration test in `HeadlessDropInScenarioIntegrationTest`.
+**Windows:** if `å`, `ä` and `ö` are displayed incorrectly in the console, run `chcp 65001` first.
+
+# Standalone mode
+
+> Under construction in sprint 4.0. See the migration plan, section 7.
+
+`autocore-standalone` runs the same domain and service code as the app, but without Spring, GUI and database.
+The services are created with `new` and wired to in-memory repositories. The module is packaged as its own
+runnable jar.
+
+# Git flow: from branch to Pull Request
+
+## 1. Update dev locally
+Switch to dev and fetch the latest version from GitHub before you start anything new:
 ```bash
 git checkout dev
 git pull origin dev
 ```
- 
-## 2. Skapa och checka ut en ny branch
-Skapa en branch för det du ska jobba på och hoppa direkt till den:
+
+## 2. Create and check out a new branch
+Create a branch for what you are going to work on and switch to it directly:
 ```bash
-git checkout -b namn-pa-branch
+git checkout -b branch-name
 ```
-Använd ett beskrivande namn, t.ex. `feature/kundvy` eller `fix/nullpointer-bokning`.
- 
-## 3. Gör dina ändringar
-Redigera koden som vanligt i din editor/IDE. Kör `./mvnw clean verify` lokalt innan du går vidare,
-så att alla tre modulerna bygger och alla tester är gröna.
- 
-## 4. Se vad som ändrats
+Use a descriptive name, e.g. `feature/customer-view` or `fix/booking-nullpointer`.
+
+## 3. Make your changes
+Edit the code as usual in your editor/IDE. Run `./mvnw clean verify` locally before you move on,
+so all three modules build and all tests are green.
+
+## 4. See what has changed
 ```bash
 git status
 git diff
 ```
- 
-## 5. Lägg till ändringarna (stage)
+
+## 5. Add the changes (stage)
 ```bash
 git add .
 ```
-eller för specifika filer:
+or for specific files:
 ```bash
-git add filnamn
+git add filename
 ```
- 
-## 6. Committa med tydligt meddelande
+
+## 6. Commit with a clear message
 ```bash
 git commit -m "Add validation to booking form"
 ```
-> Commit-meddelanden, PR-titlar och PR-beskrivningar skrivs på engelska, i imperativ form och utan
-> Jira-nyckel som prefix. Undvik nästlade citattecken i meddelandet, det kan krångla i Git Bash på Windows.
- 
-## 7. Pusha branchen till GitHub
-Första gången du pushar en ny branch:
+> Commit messages, PR titles and PR descriptions are written in English, in the imperative mood and without
+> a Jira key as a prefix. Avoid nested quotation marks in the message, as they can cause trouble in Git Bash on Windows.
+
+## 7. Push the branch to GitHub
+The first time you push a new branch:
 ```bash
-git push -u origin namn-pa-branch
+git push -u origin branch-name
 ```
-Flaggan `-u` kopplar ihop din lokala branch med samma branch på GitHub, så du bara kan skriva `git push` nästa gång.
- 
-## 8. Öppna en Pull Request
-Gå till repot på GitHub, öppna en PR från din branch mot `dev`. Skriv gärna en kort beskrivning av vad ändringen gör.
- 
-**Krav innan merge (branch protection):**
-- ✅ Minst 1 godkänd review
-- ✅ `compile`-checken är grön (`./mvnw clean verify` på Java 21)
-- ✅ Branchen är uppdaterad mot `dev`
-- ✅ Alla kommentarer/konversationer är lösta
-`main` uppdateras bara mellan fredag 15:00 och måndag 09:00 och ska alltid innehålla ett komplett, fungerande projekt.
+The `-u` flag links your local branch to the same branch on GitHub, so you can just type `git push` next time.
+
+## 8. Open a Pull Request
+Go to the repo on GitHub and open a PR from your branch against `dev`. Feel free to write a short description of what the change does.
+
+**Requirements before merge (branch protection):**
+- ✅ At least 1 approved review
+- ✅ The `compile` check is green (`./mvnw clean verify` on Java 21)
+- ✅ The branch is up to date with `dev`
+- ✅ All comments/conversations are resolved
+`main` is only updated between Friday 15:00 and Monday 09:00 and must always contain a complete, working project.

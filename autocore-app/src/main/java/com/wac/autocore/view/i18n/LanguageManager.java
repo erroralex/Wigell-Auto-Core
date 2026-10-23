@@ -15,14 +15,14 @@ import static com.wac.autocore.i18n.ResourceBundleTranslator.SWEDISH;
 
 /**
  * <b>LanguageManager</b>
- * <p>Ansvar: <b>Adapter</b> som gör en {@link Translator} användbar i JavaFX. Översättningen
- * sköts av den inlindade översättaren; den här klassen lägger till det vyerna behöver:
- * bindningar som uppdateras vid språkbyte ({@link #bind}) och en observerbar
- * språk-property ({@link #localeProperty()}).</p>
- * <p>Alla språkbyten i gränssnittet måste gå via den här klassen, annars uppdateras inte
- * bindningarna. Därför exponeras inte den inlindade översättaren.</p>
- * <p>Implementerar själv {@link Translator}, så att gränssnittet kan skicka den till kod
- * som bara känner till interfacet, t.ex. felformateringen.</p>
+ * <p>Responsibility: <b>Adapter</b> that makes a {@link Translator} usable in JavaFX. The translation
+ * is handled by the wrapped translator; this class adds what the views need:
+ * bindings that update on language switch ({@link #bind}) and an observable
+ * language property ({@link #localeProperty()}).</p>
+ * <p>All language switches in the UI must go through this class, otherwise the
+ * bindings are not updated. That is why the wrapped translator is not exposed.</p>
+ * <p>Implements {@link Translator} itself, so the UI can pass it to code
+ * that only knows the interface, e.g. the error formatting.</p>
  */
 public final class LanguageManager implements Translator {
 
@@ -46,7 +46,7 @@ public final class LanguageManager implements Translator {
         return translator.get(key, args);
     }
 
-    // Översättaren är enda källan för aktivt språk
+    // The translator is the single source of the active language
     @Override
     public Locale getLocale() {
         return translator.getLocale();
@@ -59,17 +59,17 @@ public final class LanguageManager implements Translator {
         locale.set(newLocale);
     }
 
-    // Växlar mellan svenska och engelska.
+    // Toggles between Swedish and English.
     public void toggleLanguage() {
         setLocale(SWEDISH.getLanguage().equals(getLocale().getLanguage()) ? ENGLISH : SWEDISH);
     }
 
-    // Exponerar aktivt språk för lyssnare, t.ex. vyer som byggs om vid språkbyte.
+    // Exposes the active language to listeners, e.g. views that are rebuilt on language switch.
     public ReadOnlyObjectProperty<Locale> localeProperty() {
         return locale.getReadOnlyProperty();
     }
 
-    // Ger en text som uppdateras automatiskt vid språkbyte.
+    // Gives a text that updates automatically on language switch.
     public StringBinding bind(String key, Object... args) {
         return Bindings.createStringBinding(() -> get(key, args), locale);
     }

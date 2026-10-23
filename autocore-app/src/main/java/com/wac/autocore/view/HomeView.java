@@ -9,7 +9,7 @@ import java.net.URL;
 
 /**
  * <b>HomeView</b>
- * <p>Ansvar: Startvy som visar logotyp och välkomsttext.</p>
+ * <p>Responsibility: Start view that shows the logo and welcome text.</p>
  */
 public class HomeView extends BaseView {
 
@@ -26,7 +26,7 @@ public class HomeView extends BaseView {
         initView();
     }
 
-    // Visar logotypen, eller appens namn som text om bilden inte kan laddas
+    // Shows the logo, or the app's name as text if the image cannot be loaded
     private Label createLogo() {
         Label logo = new Label();
         URL logoUrl = getClass().getResource(LOGO_PATH);
@@ -35,7 +35,7 @@ public class HomeView extends BaseView {
             ImageView imageView = new ImageView(new Image(logoUrl.toExternalForm()));
             imageView.setFitWidth(800);
             imageView.setPreserveRatio(true);
-            imageView.getStyleClass().add("home-logo"); // CSS klass för skugga bakom logotypen
+            imageView.getStyleClass().add("home-logo"); // CSS class for the shadow behind the logo
             logo.setGraphic(imageView);
             logo.setAlignment(Pos.TOP_CENTER);
         } else {

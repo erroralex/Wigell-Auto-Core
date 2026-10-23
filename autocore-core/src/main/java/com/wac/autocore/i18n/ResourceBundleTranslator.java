@@ -13,12 +13,12 @@ import java.util.*;
 
 /**
  * <b>ResourceBundleTranslator</b>
- * <p>Ansvar: Slår upp översatta texter i språkfilerna {@code i18n/messages*.properties}
- * (UTF-8) och formaterar argument, där {@code Money} alltid formateras via {@link MoneyFormat}.</p>
- * <p>Innehåller ingen JavaFX-kod och kan därför användas av både gränssnittet och headless-läget.
- * Gränssnittet använder den via {@code LanguageManager}, som lägger till JavaFX-bindningar.</p>
- * <p>Ändrar medvetet inte {@code Locale.setDefault}: varje instans har sitt eget språk,
- * så att headless-körningar och tester inte påverkar varandra.</p>
+ * <p>Responsibility: Looks up translated texts in the language files {@code i18n/messages*.properties}
+ * (UTF-8) and formats arguments, where {@code Money} is always formatted via {@link MoneyFormat}.</p>
+ * <p>Contains no JavaFX code and can therefore be used by both the UI and headless mode.
+ * The UI uses it via {@code LanguageManager}, which adds JavaFX bindings.</p>
+ * <p>Deliberately does not change {@code Locale.setDefault}: each instance has its own language,
+ * so headless runs and tests do not affect each other.</p>
  */
 public final class ResourceBundleTranslator implements Translator {
 
@@ -74,7 +74,7 @@ public final class ResourceBundleTranslator implements Translator {
         return locale;
     }
 
-    // Byter språk för kommande uppslag.
+    // Switches language for upcoming lookups.
     @Override
     public void setLocale(Locale newLocale) {
         Objects.requireNonNull(newLocale, "locale");
@@ -82,7 +82,7 @@ public final class ResourceBundleTranslator implements Translator {
         this.locale = newLocale;
     }
 
-    // Belopp formateras av MoneyFormat (enda källan), så bundlarna använder bara {0} för Money
+    // Amounts are formatted by MoneyFormat (the single source), so the bundles only use {0} for Money
     private Object[] toFormatArgs(Object[] args) {
         Object[] converted = new Object[args.length];
         for (int i = 0; i < args.length; i++) {

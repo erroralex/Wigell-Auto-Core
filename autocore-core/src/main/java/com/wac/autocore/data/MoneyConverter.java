@@ -6,11 +6,11 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import java.math.BigDecimal;
 
-// Money som REAL i databasen, så att kolumnerna i V1-V10 inte ändras.
-// Vid läsning avrundas värdet till två decimaler med HALF_UP, så att det alltid är samma som i Money-objektet.
-// Det är bara här som double förekommer, eftersom kolumnen är REAL.
-// Null: ett saknat värde i databasen (t.ex. nullable invoice_line) läses som Money.ZERO, så Money är aldrig null i modellen.
-// Skrivning av null ger fortsatt null, så att ett saknat belopp i en NOT NULL-kolumn ger ett tydligt fel och inte tyst 0.
+// Money is stored as REAL in the database, so the columns in V1-V10 are not changed.
+// When reading, the value is rounded to two decimals with HALF_UP, so it always equals the value in the Money object.
+// This is the only place where double is used, because the column is REAL.
+// Null: a missing value in the database (e.g. nullable invoice_line) is read as Money.ZERO, so Money is never null in the model.
+// Writing null still yields null, so a missing amount in a NOT NULL column gives a clear error instead of a silent 0.
 @Converter
 public class MoneyConverter implements AttributeConverter<Money, Double> {
 
