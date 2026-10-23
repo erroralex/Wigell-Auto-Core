@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Ett gemensamt mönster för alla appenders. -->
+    <!--
+        Ett gemensamt mönster för alla appenders.
+        MDC-nycklarna i %X{...} definieras i
+        com.wac.autocore.logging.LogKeys (autocore-core).
+        Namnen måste stämma exakt. Ändras en nyckel där måste den ändras här också.
+    -->
     <property name="LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-}] - %msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
 
     <!-- Konsol: används av dev och test, inte headless -->
     <springProfile name="!headless">
