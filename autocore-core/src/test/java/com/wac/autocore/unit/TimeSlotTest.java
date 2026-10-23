@@ -11,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>TimeSlotTest</b>
- * <p>Ansvar: Bevisar tidsluckans regler, som bokning och arbetsorder delar: sluttid, att luckan måste sluta
- * före midnatt (gränsfallen testas här och inte i varje aggregat), att angränsande luckor inte överlappar
- * och att intervallet är halvöppet.</p>
+ * <p>Responsibility: Proves the time slot rules that booking and work order share: end time, that the slot must end
+ * before midnight (the edge cases are tested here and not in each aggregate), that adjacent slots do not overlap
+ * and that the interval is half-open.</p>
  */
 class TimeSlotTest {
 
@@ -22,7 +22,7 @@ class TimeSlotTest {
     }
 
     @Test
-    @DisplayName("Sluttiden är starttid plus längd (08:00 + 165 min = 10:45)")
+    @DisplayName("The end time is the start time plus the length (08:00 + 165 min = 10:45)")
     void endIsStartPlusDuration() {
         TimeSlot slot = slot(8, 0, 165);
 
@@ -31,21 +31,21 @@ class TimeSlotTest {
     }
 
     @Test
-    @DisplayName("En lucka som slutar före midnatt godkänns, men 00:00 eller senare avvisas med error.booking.pastMidnight")
+    @DisplayName("A slot that ends before midnight is accepted, but 00:00 or later is rejected with error.booking.pastMidnight")
     void mustEndBeforeMidnight() {
         TimeSlot beforeMidnight = slot(21, 45, 120);
         assertTrue(beforeMidnight.endsWithinDay());
         assertSame(beforeMidnight, beforeMidnight.requireWithinDay());
 
         for (TimeSlot tooLate : new TimeSlot[]{slot(22, 0, 120), slot(23, 0, 90)}) {
-            assertFalse(tooLate.endsWithinDay(), "Slut " + tooLate.getEnd());
+            assertFalse(tooLate.endsWithinDay(), "End " + tooLate.getEnd());
             ValidationException e = assertThrows(ValidationException.class, tooLate::requireWithinDay);
             assertEquals("error.booking.pastMidnight", e.getMessageKey());
         }
     }
 
     @Test
-    @DisplayName("Överlapp: delvis och omslutande överlappar, angränsande gör det inte och sena luckor slår inte runt till morgonen")
+    @DisplayName("Overlap: partial and enclosing overlap, adjacent does not, and late slots do not wrap around to the morning")
     void overlaps() {
         TimeSlot tenToEleven = slot(10, 0, 60);
 
@@ -58,7 +58,7 @@ class TimeSlotTest {
     }
 
     @Test
-    @DisplayName("contains: starttiden ingår, sluttiden inte")
+    @DisplayName("contains: the start time is included, the end time is not")
     void containsIsHalfOpen() {
         TimeSlot tenToEleven = slot(10, 0, 60);
 
@@ -69,7 +69,7 @@ class TimeSlotTest {
     }
 
     @Test
-    @DisplayName("Starttid krävs")
+    @DisplayName("Start time is required")
     void startIsRequired() {
         assertThrows(NullPointerException.class, () -> TimeSlot.of(null, 60));
     }

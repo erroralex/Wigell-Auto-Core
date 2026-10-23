@@ -39,11 +39,11 @@ import java.util.stream.Collectors;
 
 /**
  * <b>WorkOrderService</b>
- * <p>Ansvar: Affärslogik för arbetsordrar: Skapa, starta och avsluta, samt hämtning för vyerna.</p>
- * <p>{@link #createWorkOrder(int)} kastar ett {@code DomainException} med språknyckel när
- * ordern inte kan skapas, så att vyn kan visa rätt orsak via {@code ErrorFacade}.
- * {@link #startWorkOrder(int)} och {@link #completeWorkOrder(int)} kastar {@code IllegalStatusTransitionException}
- * när övergången inte är tillåten.</p>
+ * <p>Responsibility: Business logic for work orders: create, start and complete, plus fetching for the views.</p>
+ * <p>{@link #createWorkOrder(int)} throws a {@code DomainException} with a language key when
+ * the order cannot be created, so the view can show the correct reason via {@code ErrorFacade}.
+ * {@link #startWorkOrder(int)} and {@link #completeWorkOrder(int)} throw {@code IllegalStatusTransitionException}
+ * when the transition is not allowed.</p>
  */
 @Validated
 @Service
@@ -98,7 +98,7 @@ public class WorkOrderService {
         return workOrderRepository.findCompletedNotInvoiced();
     }
 
-    // Hämtar alla arbetsordrar med status "COMPLETED" för att kunna skapa en garantiorder.
+    // Fetches all work orders with status "COMPLETED" so a warranty order can be created.
     @Transactional(readOnly = true)
     public List<WorkOrder> findCompletedWorkOrders() {
         return workOrderRepository.findByStatus(WorkOrderStatus.COMPLETED);
@@ -109,9 +109,9 @@ public class WorkOrderService {
         return bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED);
     }
 
-    // Skapar en planerad arbetsorder för en bokning och sparar den som utkast.
-    // Bokningens föreslagna mekaniker, tid och tjänster, med avtalade priser, ärvs från bokningen.
-    // Krockar mekanikern sparas utkastet ändå och resultatet innehåller varningen och nästa lediga tid.
+    // Creates a planned work order for a booking and saves it as a draft.
+    // The booking's suggested mechanic, time and services, with agreed prices, are inherited from the booking.
+    // If the mechanic has a clash, the draft is saved anyway and the result contains the warning and the next available time.
     public WorkOrderScheduleResult createWorkOrder(@Positive(message = "error.notFound") int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
@@ -129,9 +129,9 @@ public class WorkOrderService {
         return scheduleResult(saved);
     }
 
-    // Gemensamt för createWorkOrder och reopenWorkOrder: bokningen måste vara ledig och fordonet finnas.
-    // Ordern skapas från bokningen som den ser ut nu, och bokningen låses.
-    // Den föreslagna mekanikern slås inte upp: främmande nyckeln garanterar att den finns.
+    // Shared by createWorkOrder and reopenWorkOrder: the booking must be free and the vehicle must exist.
+    // The order is created from the booking as it looks now, and the booking is locked.
+    // The suggested mechanic is not looked up: the foreign key guarantees that it exists.
     private WorkOrder plannedWorkOrderFor(Booking booking) {
         if (booking.getStatus() != BookingStatus.BOOKED) {
             throw new ValidationException("error.workOrder.bookingNotBookable", String.valueOf(booking.getId()));
@@ -147,7 +147,7 @@ public class WorkOrderService {
         return workOrder;
     }
 
-    // Skapar en garantiorder från en tidigare arbetsorder och sparar den som utkast.
+    // Creates a warranty order from a previous work order and saves it as a draft.
     public WarrantyWorkOrder createWarranty(@Positive int originalWorkOrderId,
                                             String problemDescription) {
         WorkOrder original = require(originalWorkOrderId);
@@ -162,9 +162,9 @@ public class WorkOrderService {
         return saved;
     }
 
-    // Skapar en drop-in-order (bil utan bokning) och sparar den som utkast.
-    // Servicen kontrollerar att fordonet finns, modellen validerar resten.
-    // Tjänster är valfria för ett utkast; null behandlas som "inga tjänster".
+    // Creates a drop-in order (car without a booking) and saves it as a draft.
+    // The service checks that the vehicle exists, the model validates the rest.
+    // Services are optional for a draft; null is treated as "no services".
     public DropInWorkOrder createDropIn(@Positive(message = "error.notFound") int vehicleId,
                                         String problemDescription,
                                         List<Integer> serviceItemIds) {
@@ -172,7 +172,7 @@ public class WorkOrderService {
             throw new EntityNotFoundException("Vehicle", vehicleId);
         }
 
-        // Tjänsterna kopieras som snapshots så senare prisändringar inte påverkar ordern.
+        // The services are copied as snapshots so later price changes do not affect the order.
         DropInWorkOrder dropIn = DropInWorkOrder.draft(vehicleId, problemDescription);
         dropIn.replaceItems(serviceItemRepository.requireAllById(serviceItemIds));
 
@@ -204,9 +204,9 @@ public class WorkOrderService {
         }
     }
 
-    // Bokningens status följer arbetsordern. Hämtning, regel och sparning ligger i BookingService,
-    // samma väg som när planen följer ordern (followBooking).
-    // En arbetsorder utan bokning (drop-in, reklamation) har ingen bokning att uppdatera.
+    // The booking's status follows the work order. Fetching, the rule and saving live in BookingService,
+    // the same path as when the plan follows the order (followBooking).
+    // A work order without a booking (drop-in, warranty claim) has no booking to update.
     private void syncBooking(WorkOrder workOrder) {
         Integer bookingId = workOrder.getBookingId();
         if (bookingId == null) {
@@ -215,7 +215,7 @@ public class WorkOrderService {
         bookingService.followWorkOrderStatus(bookingId, workOrder.getStatus());
     }
 
-    // Bekräftelsen reserverar mekanikern, så en krock stoppar den och inget sparas.
+    // Confirmation reserves the mechanic, so a clash stops it and nothing is saved.
     public void confirmWorkOrder(@Positive int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Confirming work order");
@@ -227,10 +227,10 @@ public class WorkOrderService {
         }
     }
 
-    // En avbruten planerad order öppnas som en ny order från bokningen som den ser ut nu, eftersom bokningen
-    // kan ha ändrats medan ordern var avbruten. Den avbrutna ordern ligger kvar som historik. Kommentarer och
-    // kundinstruktioner följer med, och resultatet listar vad som skiljer mot den avbrutna ordern.
-    // Övriga ordrar återöppnas som utkast (samma order). Bokningen förblir då låst: DRAFT mappar till WORK_ORDER_CREATED.
+    // A cancelled planned order is opened as a new order from the booking as it looks now, because the booking
+    // may have changed while the order was cancelled. The cancelled order remains as history. Comments and
+    // customer instructions are carried over, and the result lists what differs from the cancelled order.
+    // Other orders are reopened as drafts (the same order). The booking then remains locked: DRAFT maps to WORK_ORDER_CREATED.
     public WorkOrderReopenResult reopenWorkOrder(@Positive int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Reopening work order");
@@ -267,7 +267,7 @@ public class WorkOrderService {
         return new WorkOrderReopenResult(scheduleResult(saved), WorkOrderChange.between(cancelled, saved));
     }
 
-    // Avbryter ordern och släpper bokningen (BOOKED), så den kan få en ny order, t.ex med annan mekaniker.
+    // Cancels the order and releases the booking (BOOKED), so it can get a new order, e.g. with another mechanic.
     public void cancelWorkOrder(@Positive int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Cancelling work order");
@@ -278,7 +278,7 @@ public class WorkOrderService {
         }
     }
 
-    // Mekaniker är valfri. Ett utkast som krockar sparas med varning; en bekräftad order som krockar stoppas.
+    // Mechanic is optional. A draft that clashes is saved with a warning; a confirmed order that clashes is stopped.
     public WorkOrderScheduleResult updateWorkOrder(@Positive int id,
                                                    List<@NotNull @Positive Integer> serviceItemIds,
                                                    @Positive Integer mechanicId,
@@ -305,7 +305,7 @@ public class WorkOrderService {
             workOrder.setCustomerInstructions(customerInstructions);
             workOrder.setComments(comments);
 
-            // En bekräftad order får inte redigeras till ofullständig
+            // A confirmed order may not be edited into an incomplete one
             workOrder.requireCompleteIfConfirmed();
 
             WorkOrderScheduleResult result = scheduleResult(workOrder);
@@ -317,9 +317,9 @@ public class WorkOrderService {
         }
     }
 
-    // Bokningen följer orderns datum, starttid och tjänster så att kalendern och kontrollen av fordonet stämmer.
-    // Mekanikern följer inte med: ordern äger den, och bokningens förslag är kundens önskemål.
-    // Fordonskontrollen och laddningen av tjänster finns i BookingService och dupliceras inte här.
+    // The booking follows the order's date, start time and services so the calendar and the vehicle check are correct.
+    // The mechanic does not follow: the order owns it, and the booking's suggestion is the customer's wish.
+    // The vehicle check and the loading of services live in BookingService and are not duplicated here.
     private void followBooking(WorkOrder workOrder) {
         Integer bookingId = workOrder.getBookingId();
         if (bookingId == null) {
@@ -337,8 +337,8 @@ public class WorkOrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Mechanic", mechanicId));
     }
 
-    // Enda platsen som hämtar krockar för mekanikern. Regeln och förslaget ligger i WorkOrder.
-    // Utan mekaniker eller datum finns inget att krocka med och databasen frågas inte.
+    // The only place that fetches clashes for the mechanic. The rule and the suggestion live in WorkOrder.
+    // Without a mechanic or date there is nothing to clash with and the database is not queried.
     private WorkOrderScheduleResult scheduleResult(WorkOrder workOrder) {
         if (workOrder.getMechanicId() == null || workOrder.getPlannedDate() == null) {
             return WorkOrderScheduleResult.withoutConflicts(workOrder);
@@ -354,7 +354,7 @@ public class WorkOrderService {
         return new WorkOrderScheduleResult(workOrder, conflicts, workOrder.nextFreeStartTime(sameDay));
     }
 
-    // En order som reserverar mekanikern (bekräftad eller pågående) får inte krocka. Ett utkast får det, med varning.
+    // An order that reserves the mechanic (confirmed or in progress) may not clash. A draft may, with a warning.
     private void rejectConflictsIfReserved(WorkOrderScheduleResult result) {
         WorkOrder workOrder = result.getWorkOrder();
         if (workOrder.getStatus().reservesMechanic() && !result.getMechanicConflicts().isEmpty()) {
@@ -363,7 +363,7 @@ public class WorkOrderService {
         }
     }
 
-    // Namnet behövs bara i felmeddelandet. Faller tillbaka på id:t om mekanikern inte går att läsa.
+    // The name is only needed in the error message. Falls back to the id if the mechanic cannot be read.
     private String mechanicName(int mechanicId) {
         return mechanicRepository.findById(mechanicId)
                 .map(Mechanic::getName)

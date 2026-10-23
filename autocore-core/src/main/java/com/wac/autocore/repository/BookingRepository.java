@@ -17,13 +17,13 @@ public interface BookingRepository extends org.springframework.data.repository.R
     Optional<Booking> findById(Integer id);
     <S extends Booking> S save(S booking);
 
-    // Bokningar där mekanikern är föreslagen. Mekanikerns reserverade tid finns på arbetsordern.
+    // Bookings where the mechanic is suggested. The mechanic's reserved time is on the work order.
     List<Booking> findByMechanicId(int id);
 
-    // Används med CANCELLED för att lista aktiva bokningar.
+    // Used with CANCELLED to list active bookings.
     List<Booking> findByStatusNot(BookingStatus status);
 
-    // Fordonskontrollen anropas med CANCELLED, så att en avbokad bokning inte blockerar fordonet.
+    // The vehicle check is called with CANCELLED, so a cancelled booking does not block the vehicle.
     boolean existsByVehicleIdAndDateAndStatusNot(int vehicleId, LocalDate date, BookingStatus status);
 
     @Query("SELECT b FROM Booking b " +
@@ -34,7 +34,7 @@ public interface BookingRepository extends org.springframework.data.repository.R
             "  AND w.status <> :cancelled)")
     List<Booking> findBookable(@Param("status") BookingStatus status,
                                @Param("cancelled") WorkOrderStatus cancelled);
-    // excludedBookingId är bokningen som uppdateras och som kontrollen ska ignorera.
+    // excludedBookingId is the booking being updated, which the check should ignore.
     boolean existsByVehicleIdAndDateAndIdNotAndStatusNot(int vehicleId, LocalDate date, int excludedBookingId,
                                                          BookingStatus status);
 }

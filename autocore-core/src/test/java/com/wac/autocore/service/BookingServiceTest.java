@@ -32,12 +32,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Testar samordningen i {@link BookingService}: att data laddas, att okända id:n avvisas,
- * att fordonet inte är bokat samma dag (avbokade bokningar räknas inte), att avbokning sparas
- * och att inget sparas vid fel. Den föreslagna mekanikern
- * slås bara upp när den är ifylld och krockkontrolleras inte (den reserveras först på arbetsordern).
- * Bokningens egna regler testas i {@code BookingTest}; att avbokade bokningar döljs och inte blockerar
- * fordonet testas mot en riktig databas i {@code BookableBookingsIntegrationTest}.
+ * Tests the coordination in {@link BookingService}: that data is loaded, that unknown ids are rejected,
+ * that the vehicle is not booked the same day (cancelled bookings do not count), that a cancellation is saved
+ * and that nothing is saved on error. The suggested mechanic
+ * is only looked up when it is filled in and is not checked for clashes (it is reserved only on the work order).
+ * The booking's own rules are tested in {@code BookingTest}; that cancelled bookings are hidden and do not block
+ * the vehicle is tested against a real database in {@code BookableBookingsIntegrationTest}.
  */
 public class BookingServiceTest {
 
@@ -69,7 +69,7 @@ public class BookingServiceTest {
 
         when(bookingRepository.save(any(Booking.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        // Uppslagningen är default-metoder på repositoryt; mocken ska köra dem mot stubbade findById.
+        // The lookups are default methods on the repository; the mock should run them against the stubbed findById.
         when(serviceItemRepository.requireById(anyInt())).thenCallRealMethod();
         when(serviceItemRepository.requireAllById(any())).thenCallRealMethod();
     }
@@ -77,7 +77,7 @@ public class BookingServiceTest {
     // ----- create -----
 
     @Test
-    @DisplayName("create avvisar ett fordon som redan är bokat samma dag och sparar inget")
+    @DisplayName("create rejects a vehicle that is already booked the same day and saves nothing")
     void createNewBooking_shouldThrowValidationError_WhenVehicleAlreadyBookedSameDay() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -94,7 +94,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("create avvisar ett okänt fordon och sparar inget")
+    @DisplayName("create rejects an unknown vehicle and saves nothing")
     void create_shouldThrow_WhenVehicleIsUnknown() {
         mechanicExists(MECHANIC_ID, "Kalle");
         catalog(service(3, "Oil change", "899", 60));
@@ -107,7 +107,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("create avvisar en okänd mekaniker och sparar inget")
+    @DisplayName("create rejects an unknown mechanic and saves nothing")
     void create_shouldThrow_WhenMechanicIsUnknown() {
         vehicleExists(VEHICLE_ID, "ABC123");
         catalog(service(3, "Oil change", "899", 60));
@@ -120,7 +120,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("create utan föreslagen mekaniker slår inte upp någon mekaniker och sparar bokningen")
+    @DisplayName("create without a suggested mechanic does not look up any mechanic and saves the booking")
     void create_withoutSuggestedMechanic_skipsMechanicLookup() {
         vehicleExists(VEHICLE_ID, "ABC123");
         catalog(service(3, "Oil change", "899", 60));
@@ -136,7 +136,7 @@ public class BookingServiceTest {
     // ----- update -----
 
     @Test
-    @DisplayName("update avvisar ett fordon som har en annan bokning samma dag och sparar inget")
+    @DisplayName("update rejects a vehicle that has another booking the same day and saves nothing")
     void updateBooking_shouldThrowValidationError_WhenVehicleAlreadyBookedSameDay() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -157,7 +157,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("update lyckas när datumet är oförändrat och ingen annan bokning krockar")
+    @DisplayName("update succeeds when the date is unchanged and no other booking clashes")
     void updateBooking_shouldSucceed_WhenDateIsUnchangedAndNoOtherBookingConflicts() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -180,7 +180,7 @@ public class BookingServiceTest {
     // ----- createFromPrevious -----
 
     @Test
-    @DisplayName("createFromPrevious avvisar ett fordon som redan är bokat samma dag och sparar inget")
+    @DisplayName("createFromPrevious rejects a vehicle that is already booked the same day and saves nothing")
     void createFromPreviousBooking_shouldThrowValidationError_WhenVehicleAlreadyBookedSameDay() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -198,7 +198,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("En ren kopia, även av en avbokad bokning (ångra avbokning), får dagens priser och samma fordon, mekaniker och beskrivning")
+    @DisplayName("A clean copy, even of a cancelled booking (undo cancellation), gets today's prices and the same vehicle, mechanic and description")
     void createFromPrevious_pureCopyOfCancelledBookingUsesTodaysPrices() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -231,7 +231,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("createFromPrevious rapporterar prisändringar bara för de tjänster som faktiskt väljs")
+    @DisplayName("createFromPrevious reports price changes only for the services that are actually selected")
     void createFromPrevious_reportsPriceChangesOnlyForChosenServices() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -256,7 +256,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("createFromPrevious räknar sluttid från det nya urvalet, inte originalets längd")
+    @DisplayName("createFromPrevious calculates the end time from the new selection, not the original's length")
     void createFromPrevious_usesChosenServicesForEndTime() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -275,7 +275,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("createFromPrevious avvisar ett okänt fordon som ersätter originalets och sparar inget")
+    @DisplayName("createFromPrevious rejects an unknown vehicle that replaces the original's and saves nothing")
     void createFromPrevious_shouldThrow_WhenOverrideVehicleIsUnknown() {
         vehicleExists(VEHICLE_ID, "ABC123");
         mechanicExists(MECHANIC_ID, "Kalle");
@@ -294,7 +294,7 @@ public class BookingServiceTest {
     // ----- cancel -----
 
     @Test
-    @DisplayName("cancel avbokar bokningen och sparar den")
+    @DisplayName("cancel cancels the booking and saves it")
     void cancel_setsCancelledAndSaves() {
         ServiceItem oilChange = service(1, "Oil change", "899", 45);
         Booking booking = persisted(10, new Booking(VEHICLE_ID, MECHANIC_ID, DATE, NINE,
@@ -309,7 +309,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("cancel med okänt id kastar error.bookingNotFound och sparar inget")
+    @DisplayName("cancel with an unknown id throws error.bookingNotFound and saves nothing")
     void cancel_unknownId_throwsAndDoesNotSave() {
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
                 () -> bookingService.cancel(99));
@@ -321,7 +321,7 @@ public class BookingServiceTest {
     // ----- followWorkOrder -----
 
     @Test
-    @DisplayName("followWorkOrder flyttar bokningen till orderns datum, tid och tjänster och sparar den")
+    @DisplayName("followWorkOrder moves the booking to the order's date, time and services and saves it")
     void followWorkOrder_appliesPlanAndSaves() {
         vehicleExists(VEHICLE_ID, "ABC123");
         ServiceItem oilChange = service(1, "Oil change", "899", 45);
@@ -343,7 +343,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    @DisplayName("followWorkOrder avvisar ett fordon som har en annan bokning den dagen och sparar inget")
+    @DisplayName("followWorkOrder rejects a vehicle that has another booking that day and saves nothing")
     void followWorkOrder_rejectsVehicleBookedThatDay() {
         vehicleExists(VEHICLE_ID, "ABC123");
         ServiceItem oilChange = service(1, "Oil change", "899", 45);
@@ -366,7 +366,7 @@ public class BookingServiceTest {
     // ----- followWorkOrderStatus -----
 
     @Test
-    @DisplayName("followWorkOrderStatus med okänd bokning kastar error.bookingNotFound, som när planen följer ordern")
+    @DisplayName("followWorkOrderStatus with an unknown booking throws error.bookingNotFound, as when the plan follows the order")
     void followWorkOrderStatus_unknownBooking_throwsLikeFollowWorkOrder() {
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
                 () -> bookingService.followWorkOrderStatus(99, WorkOrderStatus.IN_PROGRESS));
@@ -375,7 +375,7 @@ public class BookingServiceTest {
         verify(bookingRepository, never()).save(any());
     }
 
-    // ----- Hjälpmetoder -----
+    // ----- Helper methods -----
 
     private static ServiceItem service(int id, String name, String price, int minutes) {
         ServiceItem service = mock(ServiceItem.class);
@@ -407,7 +407,7 @@ public class BookingServiceTest {
         when(mechanicRepository.findById(id)).thenReturn(Optional.of(mechanic));
     }
 
-    // Ger bokningen ett id, som om den hade sparats i databasen.
+    // Gives the booking an id, as if it had been saved in the database.
     private static Booking persisted(int id, Booking booking) {
         ReflectionTestUtils.setField(booking, "id", id);
         return booking;

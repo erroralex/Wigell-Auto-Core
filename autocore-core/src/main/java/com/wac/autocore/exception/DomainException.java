@@ -4,14 +4,14 @@ import java.util.Objects;
 
 /**
  * <b>DomainException</b>
- * <p>Ansvar: Basklass för alla förväntade affärsfel i applikationen, t.ex. dubbelbokning,
- * låst bokning eller valideringsfel.</p>
- * <p>Undantaget bär språknycklar i stället för färdig text. Tjänstelagret avgör <i>vad</i> som
- * gick fel, och UI-lagret avgör <i>hur</i> och på vilket språk det visas. Därför behöver
- * tjänsterna inte känna till {@code LanguageManager} eller JavaFX, och språkbyte fungerar
- * eftersom texten slås upp först när den visas.</p>
- * <p>{@link #getMessage()} innehåller ett tekniskt meddelande på engelska för loggar,
- * inte för användaren.</p>
+ * <p>Responsibility: Base class for all expected business errors in the application, e.g. double booking,
+ * locked booking or validation errors.</p>
+ * <p>The exception carries language keys instead of finished text. The service layer decides <i>what</i>
+ * went wrong, and the UI layer decides <i>how</i> and in which language it is shown. That way the
+ * services do not need to know about {@code LanguageManager} or JavaFX, and switching language works
+ * because the text is looked up only when it is shown.</p>
+ * <p>{@link #getMessage()} contains a technical message in English for logs,
+ * not for the user.</p>
  */
 public abstract class DomainException extends RuntimeException {
 
@@ -33,12 +33,12 @@ public abstract class DomainException extends RuntimeException {
         this.messageArgs = messageArgs == null ? new Object[0] : messageArgs.clone();
     }
 
-    /** Ansvar: Språknyckel för feldialogens rubrik, t.ex. {@code error.booking}. */
+    /** Responsibility: Language key for the error dialog's title, e.g. {@code error.booking}. */
     public String getTitleKey() {
         return titleKey;
     }
 
-    /** Ansvar: Språknyckel för meddelandet till användaren, t.ex. {@code error.mechanicBusy}. */
+    /** Responsibility: Language key for the message to the user, e.g. {@code error.mechanicBusy}. */
     public String getMessageKey() {
         return messageKey;
     }

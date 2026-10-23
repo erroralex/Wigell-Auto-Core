@@ -4,12 +4,12 @@ import com.wac.autocore.exception.DomainException;
 
 /**
  * <b>DomainErrorHandler</b>
- * <p>Ansvar: Första ledet i felkedjan. Hanterar alla förväntade affärsfel, det vill säga alla
- * subklasser till {@link DomainException}, t.ex. dubbelbokning, låst bokning eller valideringsfel.</p>
+ * <p>Responsibility: First link in the error chain. Handles all expected business errors, that is, all
+ * subclasses of {@link DomainException}, e.g. double booking, locked booking or validation errors.</p>
  */
 public class DomainErrorHandler extends ErrorHandler {
 
-    // Svarar ja om det finns ett DomainException någonstans i orsakskedjan
+    // Answers yes if there is a DomainException anywhere in the cause chain
     @Override
     protected boolean canHandle(Throwable error) {
         return findCause(error, DomainException.class) != null;

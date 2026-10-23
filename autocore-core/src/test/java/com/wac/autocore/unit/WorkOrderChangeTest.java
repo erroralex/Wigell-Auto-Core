@@ -23,25 +23,25 @@ import static org.mockito.Mockito.when;
 
 /**
  * <b>WorkOrderChangeTest</b>
- * <p>Ansvar: Bevisar att {@link WorkOrderChange#between(WorkOrder, WorkOrder)} hittar vad som skiljer en avbruten
- * order från den nya ordern som skapas från bokningen vid återöppning: tjänster, avtalat pris, tid,
- * mekaniker och fordon.</p>
- * <p>Ordrarna byggs från riktiga bokningar, precis som vid återöppning. Tjänsterna är mockar med unika id,
- * eftersom riktiga {@link ServiceItem} får id 0 tills de sparas.</p>
+ * <p>Responsibility: Proves that {@link WorkOrderChange#between(WorkOrder, WorkOrder)} finds what differs between a cancelled
+ * order and the new order created from the booking on reopening: services, agreed price, duration,
+ * mechanic and vehicle.</p>
+ * <p>The orders are built from real bookings, just as on reopening. The services are mocks with unique ids,
+ * because real {@link ServiceItem}s get id 0 until they are saved.</p>
  */
 class WorkOrderChangeTest {
 
     private static final LocalDate DATE = LocalDate.of(2026, 11, 2);
     private static final LocalTime EIGHT = LocalTime.of(8, 0);
-    private static final String DESCRIPTION = "Service inför vintern";
+    private static final String DESCRIPTION = "Winter service";
 
     private ServiceItem oil;
     private ServiceItem brakes;
 
     @BeforeEach
     void setUp() {
-        oil = service(1, "Oljebyte", "899.00", 45);
-        brakes = service(2, "Bromsinspektion", "1295.00", 60);
+        oil = service(1, "Oil change", "899.00", 45);
+        brakes = service(2, "Brake inspection", "1295.00", 60);
     }
 
     @Test
@@ -62,7 +62,7 @@ class WorkOrderChangeTest {
         assertEquals(1, changes.size());
         WorkOrderChange change = changes.get(0);
         assertEquals(WorkOrderChangeType.SERVICE_ADDED, change.getType());
-        assertEquals("Bromsinspektion", change.getServiceName());
+        assertEquals("Brake inspection", change.getServiceName());
         assertNull(change.getPreviousItem());
         assertEquals(2, change.getCurrentItem().getServiceItemId());
     }
@@ -77,7 +77,7 @@ class WorkOrderChangeTest {
         assertEquals(1, changes.size());
         WorkOrderChange change = changes.get(0);
         assertEquals(WorkOrderChangeType.SERVICE_REMOVED, change.getType());
-        assertEquals("Bromsinspektion", change.getServiceName());
+        assertEquals("Brake inspection", change.getServiceName());
         assertEquals(2, change.getPreviousItem().getServiceItemId());
         assertNull(change.getCurrentItem());
     }
@@ -85,7 +85,7 @@ class WorkOrderChangeTest {
     @Test
     void reportsChangedAgreedPrice() {
         WorkOrder previous = orderFor(1, 2, oil);
-        ServiceItem dearerOil = service(1, "Oljebyte", "999.00", 45);
+        ServiceItem dearerOil = service(1, "Oil change", "999.00", 45);
         WorkOrder current = orderFor(1, 2, dearerOil);
 
         List<WorkOrderChange> changes = WorkOrderChange.between(previous, current);
@@ -93,7 +93,7 @@ class WorkOrderChangeTest {
         assertEquals(1, changes.size());
         WorkOrderChange change = changes.get(0);
         assertEquals(WorkOrderChangeType.PRICE_CHANGED, change.getType());
-        assertEquals("Oljebyte", change.getServiceName());
+        assertEquals("Oil change", change.getServiceName());
         assertMoney(Money.of(899), change.getPreviousItem().getAgreedPrice());
         assertMoney(Money.of(999), change.getCurrentItem().getAgreedPrice());
     }
@@ -101,7 +101,7 @@ class WorkOrderChangeTest {
     @Test
     void reportsChangedDuration() {
         WorkOrder previous = orderFor(1, 2, oil);
-        ServiceItem slowerOil = service(1, "Oljebyte", "899.00", 60);
+        ServiceItem slowerOil = service(1, "Oil change", "899.00", 60);
         WorkOrder current = orderFor(1, 2, slowerOil);
 
         List<WorkOrderChange> changes = WorkOrderChange.between(previous, current);
@@ -162,7 +162,7 @@ class WorkOrderChangeTest {
     @Test
     void reportsChangesInFixedOrder() {
         WorkOrder previous = orderFor(1, 2, oil);
-        ServiceItem dearerOil = service(1, "Oljebyte", "999.00", 45);
+        ServiceItem dearerOil = service(1, "Oil change", "999.00", 45);
         WorkOrder current = orderFor(9, 7, dearerOil, brakes);
 
         List<WorkOrderChange> changes = WorkOrderChange.between(previous, current);

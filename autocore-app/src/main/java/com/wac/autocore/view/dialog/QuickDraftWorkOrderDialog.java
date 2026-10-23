@@ -19,8 +19,8 @@ import java.util.Collections;
 
 /**
  * <b>QuickDraftWorkOrderDialog</b>
- * <p>Ansvar: Att snabbt skapa ett drop-in-utkast med kund, fordon och
- * problembeskrivning. Dialogen sparar själv och returnerar den sparade ordern.</p>
+ * <p>Responsibility: Quickly creating a drop-in draft with customer, vehicle and
+ * problem description. The dialog saves by itself and returns the saved order.</p>
  */
 public class QuickDraftWorkOrderDialog extends Dialog<DropInWorkOrder> {
 
@@ -66,7 +66,7 @@ public class QuickDraftWorkOrderDialog extends Dialog<DropInWorkOrder> {
         saveButton.getStyleClass().addAll("btn", "btn-primary");
         cancelButton.getStyleClass().addAll("btn", "btn-secondary");
 
-        // Dialogen sparar själv; vid fel visas orsaken och dialogen stannar öppen.
+        // The dialog saves by itself; on error the cause is shown and the dialog stays open.
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             String description = problemDescription.getText();
             try {
@@ -86,7 +86,7 @@ public class QuickDraftWorkOrderDialog extends Dialog<DropInWorkOrder> {
         content.getChildren().addAll(picker, problemLabel, problemDescription, hintLabel);
         getDialogPane().setContent(content);
 
-        // Returnerar den sparade ordern; Avbryt ger null.
+        // Returns the saved order; Cancel gives null.
         setResultConverter(buttonType -> buttonType == saveButtonType ? created : null);
 
         setOnShown(event -> picker.focusCustomer());

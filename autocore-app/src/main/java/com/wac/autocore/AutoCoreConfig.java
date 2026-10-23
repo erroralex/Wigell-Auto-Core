@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * <b>AutoCoreConfig</b>
- * <p>Ansvar: Spring Boot-konfiguration. Ligger i rotpaketet så att Spring hittar entiteter,
- * repositories, tjänster och konverterare i alla underpaket.</p>
+ * <p>Responsibility: Spring Boot configuration. Lives in the root package so Spring finds entities,
+ * repositories, services and converters in all subpackages.</p>
  */
 @SpringBootApplication
 public class AutoCoreConfig {

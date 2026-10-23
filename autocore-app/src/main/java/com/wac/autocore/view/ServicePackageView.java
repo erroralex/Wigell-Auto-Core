@@ -27,9 +27,9 @@ import java.util.List;
 
 /**
  * <b>ServicePackageView</b>
- * <p>Ansvar: Admin-vy för att lista, skapa, redigera och ta bort servicepaket.</p>
- * <p>Totalpriset är summan av dagens katalogpriser. Paketet är bara en mall; en bokning
- * fryser sina egna priser, så det som visas här påverkar aldrig befintliga bokningar.</p>
+ * <p>Responsibility: Admin view for listing, creating, editing and deleting service packages.</p>
+ * <p>The total price is the sum of today's catalog prices. The package is only a template; a booking
+ * freezes its own prices, so what is shown here never affects existing bookings.</p>
  */
 public class ServicePackageView extends BaseView {
 
@@ -98,7 +98,7 @@ public class ServicePackageView extends BaseView {
         return sum;
     }
 
-    // Sorteras här i vyn, så att ServicePackageService inte behöver ändras
+    // Sorted here in the view, so ServicePackageService does not need to change
     private void refresh() {
         List<ServicePackage> all = new ArrayList<>(servicePackageService.findAll());
         all.sort(Comparator.comparing(ServicePackage::getName, String.CASE_INSENSITIVE_ORDER));
@@ -114,7 +114,7 @@ public class ServicePackageView extends BaseView {
         editButton.getStyleClass().addAll("btn", "btn-secondary");
         deleteButton.getStyleClass().addAll("btn", "btn-secondary");
 
-        // Redigera och Ta bort kräver en markerad rad
+        // Edit and Delete require a selected row
         BooleanBinding noSelection = table.getSelectionModel().selectedItemProperty().isNull();
         editButton.disableProperty().bind(noSelection);
         deleteButton.disableProperty().bind(noSelection);

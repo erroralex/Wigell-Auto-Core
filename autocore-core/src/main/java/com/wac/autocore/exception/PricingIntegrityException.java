@@ -2,10 +2,10 @@ package com.wac.autocore.exception;
 
 /**
  * <b>PricingIntegrityException</b>
- * <p>Ansvar: Kastas när en prissnapshot saknas eller är ogiltig, t.ex. om en arbetsorder skulle
- * skapas från en bokningsrad utan fryst pris. Skyddar kravet att historiska priser aldrig
- * räknas om från katalogen.</p>
- * <p><b>Exempel på användning:</b></p>
+ * <p>Responsibility: Thrown when a price snapshot is missing or invalid, e.g. if a work order would
+ * be created from a booking line without a frozen price. Protects the requirement that historical prices are never
+ * recalculated from the catalog.</p>
+ * <p><b>Example usage:</b></p>
  * <pre>{@code
  * if (line.getPriceSnapshot() == null) {
  *     throw new PricingIntegrityException(

@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * <b>MoneyMappingGuardTest</b>
- * <p>Ansvar: Bevisar att varje REAL-kolumn i det riktiga schemat hör till ett Money-fält med
- * {@link MoneyConverter}, och att inget penningfält har blivit double eller BigDecimal.</p>
+ * <p>Responsibility: Proves that every REAL column in the real schema belongs to a Money field with
+ * {@link MoneyConverter}, and that no monetary field has become double or BigDecimal.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")

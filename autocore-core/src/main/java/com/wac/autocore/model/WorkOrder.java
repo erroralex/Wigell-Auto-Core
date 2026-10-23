@@ -33,7 +33,7 @@ import java.util.Optional;
 
 /**
  * <b>WorkOrder</b>
- * <p>Ansvar: Den gemensamma basen för alla ordertyper. Varje typ skapas via fabriksmetoden i sin subklass.</p>
+ * <p>Responsibility: The common base for all order types. Each type is created via the factory method in its subclass.</p>
  */
 @Entity
 @Table(name = "work_order")
@@ -41,7 +41,7 @@ import java.util.Optional;
 @DiscriminatorColumn(name = "type")
 public abstract class WorkOrder {
 
-    // Steget för föreslagna starttider. Publik så att vyns tidsval använder samma steg.
+    // The step for suggested start times. Public so the view's time picker uses the same step.
     public static final int SUGGESTION_STEP_MINUTES = 15;
 
     @Id
@@ -84,7 +84,7 @@ public abstract class WorkOrder {
         this.items.addAll(items);
     }
 
-    // Statusregeln kontrolleras först: en otillåten övergång är fel, oavsett vad ordern innehåller.
+    // The status rule is checked first: a disallowed transition is an error, regardless of what the order contains.
     private void requireCanChangeTo(WorkOrderStatus next) {
         if (!this.status.canChangeTo(next)) {
             throw new IllegalStatusTransitionException(this.status, next);
@@ -118,8 +118,8 @@ public abstract class WorkOrder {
         }
     }
 
-    // Regeln för problembeskrivning finns bara här. Typen avgör om den krävs, metoden avgör vad som räknas som tomt.
-    // Statisk så att fabrikerna kan validera innan objektet skapas. Dialogen förvaliderar med samma regel.
+    // The rule for the problem description exists only here. The type decides whether it is required, the method decides what counts as empty.
+    // Static so the factories can validate before the object is created. The dialog pre-validates with the same rule.
     public static void requireProblemDescription(WorkOrderType type, String problemDescription) {
         if (type.requiresProblemDescription()
                 && (problemDescription == null || problemDescription.trim().isEmpty())) {
@@ -130,7 +130,7 @@ public abstract class WorkOrder {
     protected void validateTypeSpecific() {
     } // Intentionally empty.
 
-    // Samma krav som vid bekräftelsen. En bekräftad order som tappat t.ex. mekaniker får inte påbörjas.
+    // Same requirements as on confirmation. A confirmed order that has lost e.g. its mechanic may not be started.
     public void start() {
         requireCanChangeTo(WorkOrderStatus.IN_PROGRESS);
         requireReadyForWork();
@@ -149,16 +149,16 @@ public abstract class WorkOrder {
         transitionTo(WorkOrderStatus.DRAFT);
     }
 
-    // En bekräftad order ska alltid vara komplett. Anropas efter redigering.
-    // Ett utkast får vara ofullständigt. Vill man ta bort uppgifter återöppnas ordern som utkast först.
+    // A confirmed order must always be complete. Called after editing.
+    // A draft may be incomplete. To remove details, the order is first reopened as a draft.
     public void requireCompleteIfConfirmed() {
         if (status == WorkOrderStatus.CONFIRMED) {
             requireReadyForWork();
         }
     }
 
-    // Enda stället som avgör om ordern har det som krävs för att arbetet ska kunna genomföras.
-    // Template Method: gemensamma krav här, typens egna krav i validateTypeSpecific().
+    // The only place that decides whether the order has what is required for the work to be carried out.
+    // Template Method: common requirements here, the type's own requirements in validateTypeSpecific().
     private void requireReadyForWork() {
         validateCommon();
         validateTypeSpecific();
@@ -178,9 +178,9 @@ public abstract class WorkOrder {
         throw new EntityNotFoundException("WorkOrderItem", serviceItemId);
     }
 
-    // Tillämpar debiteringsflaggorna från redigeringsdialogen (Template Method).
-    // Typer som inte tillåter gratisrader ignorerar flaggorna, så anroparen behöver inte veta ordertypen.
-    // Rader som saknas i flaggorna, t.ex. en tjänst som lades till i samma redigering, blir ej debiterbara.
+    // Applies the charge flags from the edit dialog (Template Method).
+    // Types that do not allow free lines ignore the flags, so the caller does not need to know the order type.
+    // Lines missing from the flags, e.g. a service added in the same edit, become non-chargeable.
     public void applyChargeFlags(Map<Integer, Boolean> chargeFlags) {
         if (!allowsNonChargeableItems()) {
             return;
@@ -191,12 +191,12 @@ public abstract class WorkOrder {
         }
     }
 
-    // Subklasser som får ha gratisrader överskuggar
+    // Subclasses that are allowed to have free lines override this
     public boolean allowsNonChargeableItems() {
         return false;
     }
 
-    // Lägger till ett jobb på ordern. Bara subklasser som tillåter nya jobb exponerar detta.
+    // Adds a job to the order. Only subclasses that allow new jobs expose this.
     protected void addItem(WorkOrderItem item) {
         Objects.requireNonNull(item, "item must not be null");
         ensureEditable();
@@ -215,9 +215,9 @@ public abstract class WorkOrder {
         addItem(WorkOrderItem.snapshotOf(service));
     }
 
-    // Byter orderns tjänster i ett steg med samma regel som bokningen (se ServiceLines): befintliga rader behåller
-    // avtalat pris, tid och debiteringsflagga, nya snapshotas och avvalda tas bort.
-    // En order med tjänster får inte tömmas; ett utkast som saknar tjänster får fortsätta sakna dem.
+    // Replaces the order's services in one step with the same rule as the booking (see ServiceLines): existing lines keep
+    // agreed price, duration and charge flag, new ones are snapshotted and deselected ones are removed.
+    // An order with services may not be emptied; a draft that has no services may continue to have none.
     public void replaceItems(List<ServiceItem> services) {
         ensureEditable();
         List<WorkOrderItem> next = ServiceLines.merge(items, services,
@@ -229,15 +229,15 @@ public abstract class WorkOrder {
         items.addAll(next);
     }
 
-    // Ordern får bara ändras innan arbetet har påbörjat
+    // The order may only be changed before the work has started
     private void ensureEditable() {
         if (!status.isEditable()) {
             throw new WorkOrderLockedException(this.getId(), this.status);
         }
     }
 
-    // Bara ordrar som gäller en tidigare order har ett värde
-    // Subklassen överskuggar metoden och null betyder “gäller ingen tidigare order”
+    // Only orders that relate to a previous order have a value
+    // The subclass overrides the method and null means "does not relate to any previous order"
     public Integer getOriginalWorkOrderId() {
         return null;
     }
@@ -271,7 +271,7 @@ public abstract class WorkOrder {
         this.problemDescription = problemDescription;
     }
 
-    // Valfria uppgifter för utkast. Kan fyllas i senare och låses när arbetet påbörjas.
+    // Optional details for drafts. Can be filled in later and are locked when the work starts.
     public LocalDate getPlannedDate() {
         return plannedDate;
     }
@@ -290,18 +290,18 @@ public abstract class WorkOrder {
         this.plannedStartTime = plannedStartTime;
     }
 
-    // Beräknas från tjänsternas tid, sparas inte. Null utan starttid.
+    // Calculated from the services' durations, not stored. Null without a start time.
     public LocalTime getPlannedEndTime() {
         return plannedStartTime == null ? null : plannedSlot().getEnd();
     }
 
-    // Krockregeln för mekaniker. Bara den andra ordern behöver reservera, så ett utkast kan varnas innan det bekräftas.
+    // The clash rule for mechanics. Only the other order needs to reserve, so a draft can be warned before it is confirmed.
     public boolean collidesWith(WorkOrder other) {
         return plannedStartTime != null && blocks(other, plannedSlot());
     }
 
-    // Första lediga starttid samma dag, från planerad starttid i 15-minuterssteg, som slutar före midnatt.
-    // Tom om mekaniker, datum eller starttid saknas, eller om inget ryms.
+    // First available start time the same day, from the planned start time in 15-minute steps, that ends before midnight.
+    // Empty if mechanic, date or start time is missing, or if nothing fits.
     public Optional<LocalTime> nextFreeStartTime(List<WorkOrder> others) {
         if (mechanicId == null || plannedDate == null || plannedStartTime == null) {
             return Optional.empty();
@@ -327,7 +327,7 @@ public abstract class WorkOrder {
         return true;
     }
 
-    // Gemensamt filter för krock och förslag: en annan reserverande order för samma mekaniker och dag som överlappar luckan.
+    // Common filter for clashes and suggestions: another reserving order for the same mechanic and day that overlaps the slot.
     private boolean blocks(WorkOrder other, TimeSlot slot) {
         return other.getId() != getId()
                 && mechanicId != null && mechanicId.equals(other.mechanicId)
@@ -335,12 +335,12 @@ public abstract class WorkOrder {
                 && slot.overlaps(other.plannedSlot());
     }
 
-    // Om ordern reserverar sin mekaniker vid tidpunkten, t.ex. för "upptagen nu".
+    // Whether the order reserves its mechanic at the given time, e.g. for "busy now".
     public boolean reservesMechanicAt(LocalDate date, LocalTime time) {
         return reservesOn(date) && plannedSlot().contains(time);
     }
 
-    // En reserverande order med starttid den dagen. Utan starttid finns ingen lucka att krocka med.
+    // A reserving order with a start time that day. Without a start time there is no slot to clash with.
     private boolean reservesOn(LocalDate date) {
         return status.reservesMechanic()
                 && plannedStartTime != null
@@ -369,12 +369,12 @@ public abstract class WorkOrder {
         this.comments = comments;
     }
 
-    // Skrivskyddad lista med jobben som ska utföras
+    // Read-only list of the jobs to be performed
     public List<WorkOrderItem> getItems() {
         return Collections.unmodifiableList(items);
     }
 
-    // Summan av de avtalade priserna, underlag för fakturan
+    // The sum of the agreed prices, the basis for the invoice
     public Money getTotalPrice() {
         return items.stream()
                 .map(WorkOrderItem::getChargedAmount)
@@ -391,7 +391,7 @@ public abstract class WorkOrder {
         return status;
     }
 
-    // Varje subklass anger sin typ, så nya ordertyper inte kräver ändringar i vyn
+    // Each subclass specifies its type, so new order types do not require changes in the view
     public abstract WorkOrderType getType();
 
     @Override

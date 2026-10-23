@@ -9,16 +9,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-// Samlar ordern, eventuella skillnader och en eventuell krockvarning i ett resultatobjekt från WorkOrderService.reopenWorkOrder().
-// Vid återöppning av en avbruten planerad order är ordern en ny order och listan visar vad som skiljer mot den avbrutna.
-// I övriga fall är det samma order och listan är tom.
-// Ordern och krockvarningen hålls av ett WorkOrderScheduleResult, så de beräknas och visas på samma sätt som vid skapande.
+// Collects the order, any differences and any clash warning in a result object from WorkOrderService.reopenWorkOrder().
+// When reopening a cancelled planned order, the order is a new order and the list shows what differs from the cancelled one.
+// In all other cases it is the same order and the list is empty.
+// The order and the clash warning are held by a WorkOrderScheduleResult, so they are calculated and shown the same way as on creation.
 public final class WorkOrderReopenResult {
 
     private final WorkOrderScheduleResult schedule;
     private final List<WorkOrderChange> changes;
 
-    // Hindrar anroparen från att ändra listan genom att skapa en oföränderlig kopia av den.
+    // Prevents the caller from changing the list by creating an immutable copy of it.
     public WorkOrderReopenResult(WorkOrderScheduleResult schedule, List<WorkOrderChange> changes) {
         this.schedule = schedule;
         this.changes = Collections.unmodifiableList(new ArrayList<>(changes));

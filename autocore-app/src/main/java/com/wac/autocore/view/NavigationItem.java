@@ -2,7 +2,7 @@ package com.wac.autocore.view;
 
 /**
  * <b>NavigationItem</b>
- * <p>Ansvar: Definierar applikationens navigerbara sektioner och deras språknycklar.</p>
+ * <p>Responsibility: Defines the application's navigable sections and their language keys.</p>
  */
 public enum NavigationItem {
     HOME(            "nav.home"),

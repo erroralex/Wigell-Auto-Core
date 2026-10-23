@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * <b>WorkOrderTypeTest</b>
- * <p>Ansvar: Bevisar vilka ordertyper som kräver problembeskrivning. En ny typ hamnar
- * automatiskt bland dem som inte kräver det, så ett ändrat krav måste beslutas medvetet.</p>
+ * <p>Responsibility: Proves which order types require a problem description. A new type automatically ends up
+ * among those that do not require one, so a changed requirement must be decided deliberately.</p>
  */
 class WorkOrderTypeTest {
 

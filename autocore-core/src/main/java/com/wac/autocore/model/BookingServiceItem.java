@@ -6,8 +6,8 @@ import com.wac.autocore.model.value.Money;
 
 import jakarta.persistence.*;
 
-// Samordnar bokningar.
-// Servicen laddar data, anropar domänen och kontrollerar regler.
+// Coordinates bookings.
+// The service loads data, calls the domain and checks rules.
 @Entity
 @Table(name = "booking_service_item", uniqueConstraints = {
         @UniqueConstraint(

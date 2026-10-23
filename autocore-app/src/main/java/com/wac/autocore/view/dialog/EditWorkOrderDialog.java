@@ -21,9 +21,9 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// Dialogen sparar själv via WorkOrderService (samma mönster som feature/movingValidationRulesFromDialogs):
-// vid fel, t.ex. en krock på en bekräftad order, visas felet via ErrorFacade och dialogen förblir öppen.
-// Resultatet innehåller servicens WorkOrderScheduleResult, så att vyn kan visa en krockvarning för ett utkast.
+// The dialog saves by itself via WorkOrderService (the same pattern as feature/movingValidationRulesFromDialogs):
+// on error, e.g. a clash on a confirmed order, the error is shown via ErrorFacade and the dialog stays open.
+// The result contains the service's WorkOrderScheduleResult, so the view can show a clash warning for a draft.
 public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
 
     private static final LanguageManager lang = LanguageManager.getInstance();
@@ -50,7 +50,7 @@ public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
         this(workOrder, serviceItems, mechanics, workOrderService, workOrder.getPlannedStartTime());
     }
 
-    // startTime förifyller fältet, t.ex. med den föreslagna tiden från en krockvarning.
+    // startTime prefills the field, e.g. with the suggested time from a clash warning.
     public EditWorkOrderDialog(WorkOrder workOrder, List<ServiceItem> serviceItems, List<Mechanic> mechanics,
                                WorkOrderService workOrderService, LocalTime startTime) {
         this.workOrder = workOrder;
@@ -154,8 +154,8 @@ public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
         commentsArea.setPrefRowCount(3);
     }
 
-    // Hela dygnet i samma steg som WorkOrder föreslår tider i, så att en föreslagen tid alltid går att välja.
-    // En befintlig tid utanför stegen (t.ex. från äldre data) läggs till, så att den inte försvinner vid sparning.
+    // The whole day in the same step that WorkOrder suggests times in, so a suggested time can always be selected.
+    // An existing time outside the steps (e.g. from older data) is added, so it does not disappear on save.
     private static List<LocalTime> startTimes(LocalTime current) {
         TreeSet<LocalTime> times = new TreeSet<>();
         LocalTime time = LocalTime.MIDNIGHT;

@@ -7,8 +7,8 @@ import java.util.*;
 
 /**
  * <b>ServicePackage</b>
- * <p>Ansvar: ett namngivet urval av katalogtjänster som används som mall när en bokning skapas.</p>
- * <p>Viktigt: paketet pekar på levande ServiceItem. En bokning kopierar tjänsterna till egna snapshot-rader (BookingServiceItem.snapshotOf) och refererar aldrig till paketet, så en ändring i ett paket påverkar aldrig befintliga bokningar.</p>
+ * <p>Responsibility: a named selection of catalog services used as a template when a booking is created.</p>
+ * <p>Important: the package points to live ServiceItems. A booking copies the services into its own snapshot lines (BookingServiceItem.snapshotOf) and never references the package, so a change to a package never affects existing bookings.</p>
  */
 @Entity
 @Table(name = "service_package")

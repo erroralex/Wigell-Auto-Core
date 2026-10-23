@@ -28,11 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * <b>BookableBookingsIntegrationTest</b>
- * <p>Ansvar: Bevisar att {@link BookingRepository#findBookable(BookingStatus, WorkOrderStatus)}mot en riktig SQLite-fil
- * returnerar bokningar som är {@code BOOKED} och som inte har någon aktiv arbetsorder, och att fordonskontrollen
- * och listningen av aktiva bokningar i {@link BookingService} ignorerar avbokade bokningar.</p>
- * <p>Rader skrivs med SQL och inte via servicen, så att testet efterliknar data som redan
- * fanns i databasen och inte bara går tur och retur genom den egna koden.</p>
+ * <p>Responsibility: Proves that {@link BookingRepository#findBookable(BookingStatus, WorkOrderStatus)} against a real SQLite file
+ * returns bookings that are {@code BOOKED} and have no active work order, and that the vehicle check
+ * and the listing of active bookings in {@link BookingService} ignore cancelled bookings.</p>
+ * <p>Rows are written with SQL and not via the service, so the test mimics data that already
+ * existed in the database and does not just make a round trip through our own code.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")
@@ -103,7 +103,7 @@ class BookableBookingsIntegrationTest {
                 "BOOKED booking with cancelled work order should be bookable, got ids " + ids);
     }
 
-    // ----- Avbokade bokningar -----
+    // ----- Cancelled bookings -----
 
     @Test
     @DisplayName("Cancelled booking does not block its vehicle, an active booking does")
@@ -155,8 +155,8 @@ class BookableBookingsIntegrationTest {
         return idsOf(bookingRepository.findBookable(BookingStatus.BOOKED, WorkOrderStatus.CANCELLED));
     }
 
-    /* Skapar en bokning direkt i tabellen. vehicle_id och mechanic_id är NOT NULL,
-     * så testet skapar först en kund, ett fordon och en mekaniker. */
+    /* Creates a booking directly in the table. vehicle_id and mechanic_id are NOT NULL,
+     * so the test first creates a customer, a vehicle and a mechanic. */
     private int insertBooking(BookingStatus status) {
         int customerId = insertCustomer();
         int vehicleId = insertVehicle(customerId);
@@ -180,7 +180,7 @@ class BookableBookingsIntegrationTest {
     private int insertCustomer() {
         jdbcTemplate.update(
                 "INSERT INTO customer (name, phone, email, vip) VALUES (?, ?, ?, ?)",
-                "Test Kund", "070-0000000", "test@example.se", 0);
+                "Test Customer", "070-0000000", "test@example.se", 0);
         Integer id = jdbcTemplate.queryForObject("SELECT MAX(id) FROM customer", Integer.class);
         assertNotNull(id, "Insert should have produced a customer id");
         return id;
@@ -198,7 +198,7 @@ class BookableBookingsIntegrationTest {
     private int insertMechanic() {
         jdbcTemplate.update(
                 "INSERT INTO mechanic (name, phone, specialization) VALUES (?, ?, ?)",
-                "Test Mekaniker", "070-0000001", "General service");
+                "Test Mechanic", "070-0000001", "General service");
         Integer id = jdbcTemplate.queryForObject("SELECT MAX(id) FROM mechanic", Integer.class);
         assertNotNull(id, "Insert should have produced a mechanic id");
         return id;

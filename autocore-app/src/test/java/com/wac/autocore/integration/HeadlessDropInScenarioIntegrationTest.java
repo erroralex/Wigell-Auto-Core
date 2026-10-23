@@ -29,19 +29,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>HeadlessDropInScenarioIntegrationTest</b>
- * <p>Ansvar: Kör samma scenario som headless-läget mot en riktig SQLite-databas med Flyway-schemat,
- * och bevisar att tjänsterna följer samma regler utan gränssnitt: hela drop-in-flödet går igenom,
- * och de två otillåtna operationerna ger samma språknycklar som gränssnittet visar.</p>
- * <p>Profilen {@code headless} aktiveras medvetet inte, så att {@code HeadlessRunner} inte körs vid
- * uppstart. Testet anropar {@link DropInScenario} direkt och kontrollerar resultatet i stället för utskriften.</p>
+ * <p>Responsibility: Runs the same scenario as headless mode against a real SQLite database with the Flyway schema,
+ * and proves that the services follow the same rules without a UI: the whole drop-in flow goes through,
+ * and the two disallowed operations give the same language keys that the UI shows.</p>
+ * <p>The {@code headless} profile is deliberately not activated, so {@code HeadlessRunner} does not run at
+ * startup. The test calls {@link DropInScenario} directly and checks the result instead of the printout.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")
 @DirtiesContext
 class HeadlessDropInScenarioIntegrationTest {
 
-    private static final String START_CANCELLED = "Starta avbruten order";
-    private static final String UNKNOWN_VEHICLE = "Skapa order för okänt fordon";
+    private static final String START_CANCELLED = "Start cancelled order";
+    private static final String UNKNOWN_VEHICLE = "Create order for unknown vehicle";
 
     @TempDir
     static Path tempDir;
@@ -59,19 +59,19 @@ class HeadlessDropInScenarioIntegrationTest {
     @Test
     @DisplayName("Drop-in flow runs through the services and expected errors give the UI's i18n keys")
     void runsDropInFlowAndReportsExpectedErrors() {
-        // Fakturor som fanns innan (seed-datan innehåller redan en betald faktura)
+        // Invoices that existed before (the seed data already contains a paid invoice)
         Set<Integer> invoicesBefore = invoiceService.findAll().stream()
                 .map(Invoice::getId)
                 .collect(Collectors.toSet());
 
         List<StepResult> results = scenario.run();
 
-        // Alla steg kördes, och alla blev som förväntat
+        // All steps ran, and all went as expected
         assertEquals(11, results.size(), () -> "Scenario stopped early: " + describe(results));
         assertTrue(results.stream().allMatch(StepResult::isAsExpected),
                 () -> "Not all steps as expected: " + describe(results));
 
-        // Huvudflödet: scenariot skapade exakt en faktura, och den är betald
+        // Main flow: the scenario created exactly one invoice, and it is paid
         List<Invoice> created = invoiceService.findAll().stream()
                 .filter(invoice -> !invoicesBefore.contains(invoice.getId()))
                 .collect(Collectors.toList());
@@ -86,20 +86,20 @@ class HeadlessDropInScenarioIntegrationTest {
         assertEquals(WorkOrderType.DROP_IN, order.getType());
         assertEquals(WorkOrderStatus.COMPLETED, order.getStatus());
 
-        // Otillåten statusövergång: samma nyckel som ErrorFacade visar i gränssnittet
+        // Disallowed status transition: the same key that ErrorFacade shows in the UI
         ErrorReport transition = errorOf(results, START_CANCELLED);
 
         assertEquals("error.statusTransitionMsg", transition.getMessageKey());
         assertEquals(ErrorReport.Severity.EXPECTED, transition.getSeverity());
 
-        // Okänt fordon
+        // Unknown vehicle
         ErrorReport notFound = errorOf(results, UNKNOWN_VEHICLE);
 
         assertEquals("error.notFound", notFound.getMessageKey());
         assertEquals(ErrorReport.Severity.EXPECTED, notFound.getSeverity());
     }
 
-    // Hämtar via namn i stället för index, så att testet tål nya steg i mitten
+    // Looks up by name instead of index, so the test tolerates new steps in the middle
     private static ErrorReport errorOf(List<StepResult> results, String stepName) {
         StepResult step = results.stream()
                 .filter(result -> result.getName().equals(stepName))

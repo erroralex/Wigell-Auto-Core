@@ -61,7 +61,7 @@ public class ServiceItem {
         return price;
     }
 
-    // Används för att ändra priset på ett ServiceItem, med validering av det nya priset.
+    // Used to change the price of a ServiceItem, with validation of the new price.
     public void changePrice(Money newPrice) {
         this.price = requireValidPrice(newPrice);
     }

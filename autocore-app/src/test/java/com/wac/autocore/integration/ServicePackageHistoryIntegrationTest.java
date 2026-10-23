@@ -41,10 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * <b>ServicePackageHistoryIntegrationTest</b>
- * <p>Ansvar: Bevisar kundkravet att en ändring i ett tjänstepaket bara påverkar framtida
- * bokningar. En bokning som redan skapats från paketet behåller sina rader och priser.</p>
- * <p>Körs mot en riktig SQLite-fil som Flyway bygger upp. Testmetoden är inte
- * {@code @Transactional}, så allt som läses tillbaka kommer från databasfilen.</p>
+ * <p>Responsibility: Proves the customer requirement that a change to a service package only affects future
+ * bookings. A booking already created from the package keeps its lines and prices.</p>
+ * <p>Runs against a real SQLite file that Flyway builds. The test method is not
+ * {@code @Transactional}, so everything read back comes from the database file.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")
@@ -82,7 +82,7 @@ class ServicePackageHistoryIntegrationTest {
     @DisplayName("Changing a package does not change bookings already made from it")
     void changingPackageDoesNotChangeOldBooking() {
 
-        // Arrange: egna tjänster och paket
+        // Arrange: own services and package
         ServiceItem brakes = serviceItemRepository.save(
                 new ServiceItem("Brake service (test)", "Test", BRAKE_PRICE, 90));
         ServiceItem diagnostics = serviceItemRepository.save(
@@ -91,15 +91,15 @@ class ServicePackageHistoryIntegrationTest {
                 WINTER_CHECK, "Test package", Arrays.asList(brakes.getId(), diagnostics.getId()));
 
         Customer customer = customerRepo.save(
-                new Customer("Test Kund", "070-0000000", "test@example.se"));
+                new Customer("Test Customer", "070-0000000", "test@example.se"));
 
-        // Egen mekaniker, så att överlappskontrollen aldrig krockar med seedade bokningar
+        // A separate mechanic, so the overlap check never clashes with seeded bookings
         Mechanic mechanic = mechanicRepo.save(
-                new Mechanic("Test Mekaniker", "070-0000001", "General service"));
+                new Mechanic("Test Mechanic", "070-0000001", "General service"));
         Vehicle vehicle = vehicleRepo.save(
                 new Vehicle("TST900", "Volvo", "V60", 2020, customer.getId()));
 
-        // Act: boka från paketet
+        // Act: book from the package
         List<Integer> packageIds = idsOf(winter);
         int bookingId = bookingService.create(
                 vehicle.getId(), mechanic.getId(), DATE, LocalTime.of(8, 0),
@@ -108,7 +108,7 @@ class ServicePackageHistoryIntegrationTest {
         Map<Integer, Money> before = pricesById(bookingService.findById(bookingId).get());
         assertEquals(2, before.size(), "Arrange: booking should have the package's 2 lines");
 
-        // Act: lägg till Brake fluid i paketet och höj priset på en tjänst
+        // Act: add Brake fluid to the package and raise the price of a service
         ServiceItem brakeFluid = serviceItemRepository.save(
                 new ServiceItem(BRAKE_FLUID, "Test", BRAKE_FLUID_PRICE, 30));
 
@@ -117,7 +117,7 @@ class ServicePackageHistoryIntegrationTest {
         servicePackageService.update(winter.getId(), WINTER_CHECK, "Test package", newIds);
         serviceItemService.updatePrice(brakes.getId(), BRAKE_PRICE_RAISED);
 
-        // Kontroll: ändringarna har faktiskt gått igenom
+        // Check: the changes have actually gone through
         ServicePackage updated = servicePackageService.findById(winter.getId()).get();
         assertEquals(3, updated.getServices().size(),
                 "Arrange: package should now contain 3 services");
@@ -125,7 +125,7 @@ class ServicePackageHistoryIntegrationTest {
                 serviceItemRepository.findById(brakes.getId()).get().getPrice(),
                 "Arrange: catalogue price should be raised");
 
-        // Assert: den gamla bokningen är orörd
+        // Assert: the old booking is untouched
         Booking reloaded = bookingService.findById(bookingId).get();
         Map<Integer, Money> after = pricesById(reloaded);
 

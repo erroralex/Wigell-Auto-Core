@@ -19,8 +19,8 @@ import java.util.Optional;
 
 /**
  * <b>InvoiceService</b>
- * <p>Ansvar: Skapar och hämtar fakturor. Beloppet räknas från arbetsorderns avtalade priser,
- * som frystes vid bokningen, och aldrig från tjänstekatalogens nuvarande priser.</p>
+ * <p>Responsibility: Creates and fetches invoices. The amount is calculated from the work order's agreed prices,
+ * which were frozen at booking time, and never from the service catalog's current prices.</p>
  */
 @Validated
 @Service
@@ -73,7 +73,7 @@ public class InvoiceService {
 
         DiscountStrategy strategy = selectStrategy(discountCode);
 
-        // Avtalade priser från arbetsorderns rader, inte katalogens nuvarande priser
+        // Agreed prices from the work order's lines, not the catalog's current prices
         for (WorkOrderItem workOrderItem : workOrder.getItems()) {
             Money amount = workOrderItem.getChargedAmount();
 

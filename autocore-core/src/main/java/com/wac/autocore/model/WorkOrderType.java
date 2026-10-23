@@ -1,6 +1,6 @@
 package com.wac.autocore.model;
 
-// Representerar typen av arbetsorder. Språknyckeln används av vyn för översättning, så vyn behöver inga egna typregler.
+// Represents the type of work order. The language key is used by the view for translation, so the view needs no type rules of its own.
 public enum WorkOrderType {
 
     PLANNED("workOrder.type.planned", false),

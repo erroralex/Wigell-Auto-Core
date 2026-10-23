@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>MoneyConverterTest</b>
- * <p>Ansvar: Bevisar att Money sparas som REAL och läses tillbaka oförändrat, och att
- * gamla double-värden i databasen avrundas till två decimaler vid läsning.</p>
+ * <p>Responsibility: Proves that Money is stored as REAL and read back unchanged, and that
+ * old double values in the database are rounded to two decimals when read.</p>
  */
 class MoneyConverterTest {
 

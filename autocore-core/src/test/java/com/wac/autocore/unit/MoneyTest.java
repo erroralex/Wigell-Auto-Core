@@ -17,8 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>MoneyTest</b>
- * <p>Ansvar: Bevisar att belopp är exakta till öret och avrundas likadant överallt:
- * två decimaler, HALF_UP, och att komma och punkt tolkas lika.</p>
+ * <p>Responsibility: Proves that amounts are exact to the öre and are rounded the same way everywhere:
+ * two decimals, HALF_UP, and that comma and period are parsed the same.</p>
  */
 class MoneyTest {
 

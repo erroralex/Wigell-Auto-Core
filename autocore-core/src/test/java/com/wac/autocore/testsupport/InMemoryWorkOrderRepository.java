@@ -66,8 +66,8 @@ public class InMemoryWorkOrderRepository implements WorkOrderRepository {
 
     @Override
     public List<WorkOrder> findCompletedNotInvoiced() {
-        // I livscykeltestet används inte fakturor, så vi kan returnera tomt eller kasta.
-        // Kasta är säkrare så vi märker om den anropas.
+        // Invoices are not used in the lifecycle test, so we could return empty or throw.
+        // Throwing is safer so we notice if it is called.
         throw new UnsupportedOperationException("findCompletedNotInvoiced not needed in lifecycle test");
     }
 }

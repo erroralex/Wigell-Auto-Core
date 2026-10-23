@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * <b>PaymentView</b>
- * <p>Ansvar: Visar och hanterar betalningar i användargränssnittet.</p>
+ * <p>Responsibility: Shows and manages payments in the user interface.</p>
  */
 public class PaymentView extends BaseView {
 
@@ -112,7 +112,7 @@ public class PaymentView extends BaseView {
             if (payment == null)
                 return new SimpleStringProperty("–");
 
-            // Samma nycklar som i ProcessPaymentDialog: CARD/SWISH/CASH översätts vid visning
+            // Same keys as in ProcessPaymentDialog: CARD/SWISH/CASH are translated when displayed
             return new SimpleStringProperty(lang.get("payment.type." + payment.getPaymentType()));
         });
 

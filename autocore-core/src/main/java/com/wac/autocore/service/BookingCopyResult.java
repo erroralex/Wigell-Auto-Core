@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// Samlar bokning och eventuella prisändringar i ett resultatobjekt från BookingService.createFromPrevious().
+// Collects the booking and any price changes in a result object from BookingService.createFromPrevious().
 public final class BookingCopyResult {
 
     private final Booking booking;
     private final List<BookingPriceChange> priceChanges;
 
-    // Hindrar anroparen från att ändra listan med prisändringar genom att skapa en oföränderlig kopia av listan.
+    // Prevents the caller from changing the list of price changes by creating an immutable copy of the list.
     public BookingCopyResult(Booking booking,
                              List<BookingPriceChange> priceChanges) {
         this.booking = booking;

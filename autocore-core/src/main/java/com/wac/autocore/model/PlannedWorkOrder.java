@@ -9,10 +9,10 @@ import java.util.List;
 
 /**
  * <b>PlannedWorkOrder</b>
- * <p>Ansvar: En arbetsorder för en planerad bokning. Ordern bär en kopia av bokningens tjänster
- * ({@link WorkOrderItem}) med namn, avtalat pris och tid, så att verkstaden vet vilka jobb
- * som ska utföras och fakturan kan tas fram utan att läsa tjänstekatalogen.</p>
- * <p>Skapas bara via {@link #createFrom(Booking)}, som ett utkast. Jobben ändras inte efter att ordern skapats.</p>
+ * <p>Responsibility: A work order for a planned booking. The order carries a copy of the booking's services
+ * ({@link WorkOrderItem}) with name, agreed price and duration, so the workshop knows which jobs
+ * are to be performed and the invoice can be produced without reading the service catalog.</p>
+ * <p>Created only via {@link #createFrom(Booking)}, as a draft. The jobs do not change after the order has been created.</p>
  */
 @Entity
 @DiscriminatorValue("PLANNED")
@@ -25,10 +25,10 @@ public class PlannedWorkOrder extends WorkOrder {
         super(bookingId, vehicleId, mechanicId, items);
     }
 
-    /* Fabriksmetod. Skapar en planerad arbetsorder från en bokning. Fordonet, datum, starttid och
-     * alla tjänsterader kopieras, med priser och tider som de avtalades vid bokningen.
-     * Bokningens föreslagna mekaniker (kan saknas) blir förval. Ordern blir ett utkast och
-     * reserverar mekanikern först när den bekräftas. */
+    /* Factory method. Creates a planned work order from a booking. The vehicle, date, start time and
+     * all service lines are copied, with prices and durations as agreed at booking time.
+     * The booking's suggested mechanic (may be missing) becomes the preselection. The order becomes a draft and
+     * reserves the mechanic only when it is confirmed. */
     public static PlannedWorkOrder createFrom(Booking booking) {
         if (booking == null || booking.getItems().isEmpty()) {
             throw new ValidationException("error.workOrder.bookingHasNoServices");
@@ -56,7 +56,7 @@ public class PlannedWorkOrder extends WorkOrder {
         if (getBookingId() == null) {
             throw new ValidationException("error.workOrder.missingBooking");
         }
-        // Kundens tid måste finnas innan mekanikern kan reserveras. Samma nycklar som bokningen.
+        // The customer's time must exist before the mechanic can be reserved. Same keys as the booking.
         if (getPlannedDate() == null) {
             throw new ValidationException("error.dateSelect");
         }
