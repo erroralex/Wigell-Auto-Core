@@ -18,8 +18,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * <b>ServiceItemServiceTest</b>
- * <p>Ansvar: Bevisar att {@link ServiceItemService#updatePrice(int, Money)} samordnar rätt:
- * okänt id och ogiltigt pris sparar ingenting, ett giltigt pris sparas. Själva prisregeln testas i ServiceItemTest.</p>
+ * <p>Responsibility: Proves that {@link ServiceItemService#updatePrice(int, Money)} coordinates correctly:
+ * an unknown id and an invalid price save nothing, a valid price is saved. The price rule itself is tested in ServiceItemTest.</p>
  */
 class ServiceItemServiceTest {
 
@@ -33,7 +33,7 @@ class ServiceItemServiceTest {
     }
 
     @Test
-    @DisplayName("updatePrice med okänt id kastar och sparar ingenting")
+    @DisplayName("updatePrice with an unknown id throws and saves nothing")
     void updatePriceUnknownIdThrowsEntityNotFoundException() {
         when(serviceItemRepo.findById(99)).thenReturn(Optional.empty());
 
@@ -45,9 +45,9 @@ class ServiceItemServiceTest {
     }
 
     @Test
-    @DisplayName("updatePrice med ogiltigt pris kastar, sparar ingenting och behåller priset")
+    @DisplayName("updatePrice with an invalid price throws, saves nothing and keeps the price")
     void updatePriceInvalidPriceThrowsValidationException() {
-        ServiceItem item = new ServiceItem("Oljebyte", "beskrivning", Money.of("899.50"), 45);
+        ServiceItem item = new ServiceItem("Oil change", "description", Money.of("899.50"), 45);
         when(serviceItemRepo.findById(1)).thenReturn(Optional.of(item));
 
         ValidationException e = assertThrows(ValidationException.class,
@@ -59,9 +59,9 @@ class ServiceItemServiceTest {
     }
 
     @Test
-    @DisplayName("updatePrice med giltigt pris ändrar och sparar")
+    @DisplayName("updatePrice with a valid price changes and saves")
     void updatePriceValidPriceUpdatesPrice() {
-        ServiceItem item = new ServiceItem("Oljebyte", "beskrivning", Money.of("899.50"), 45);
+        ServiceItem item = new ServiceItem("Oil change", "description", Money.of("899.50"), 45);
         when(serviceItemRepo.findById(1)).thenReturn(Optional.of(item));
         when(serviceItemRepo.save(item)).thenReturn(item);
 

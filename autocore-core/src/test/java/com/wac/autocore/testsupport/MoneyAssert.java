@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * <b>MoneyAssert</b>
- * <p>Ansvar: Jämför belopp i tester med {@code compareTo}, aldrig med {@code equals}, och ger
- * ett läsbart felmeddelande med båda beloppen.</p>
+ * <p>Responsibility: Compares amounts in tests with {@code compareTo}, never with {@code equals}, and gives
+ * a readable failure message with both amounts.</p>
  */
 public final class MoneyAssert {
 

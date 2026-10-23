@@ -12,10 +12,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <b>ErrorFacade</b>
- * <p>Ansvar: En enda ingång (<b>Facade</b>) för att visa fel i gränssnittet. Texten översätts av {@code ErrorReportFormatter},
- * samma som i headless-läget, så att felen ser likadana ut i båda.</p>
- * <p>Fel som inte fångas alls hamnar här automatiskt via {@link GlobalExceptionHandler}.</p>
- * <p><b>Exempel på användning i en vy:</b></p>
+ * <p>Responsibility: A single entry point (<b>Facade</b>) for showing errors in the UI. The text is translated by {@code ErrorReportFormatter},
+ * the same as in headless mode, so the errors look the same in both.</p>
+ * <p>Errors that are not caught at all end up here automatically via {@link GlobalExceptionHandler}.</p>
+ * <p><b>Example usage in a view:</b></p>
  * <pre>{@code
  * try {
  *     workOrderService.createWorkOrder(booking.getId());
@@ -37,7 +37,7 @@ public final class ErrorFacade {
     private ErrorFacade() {
     }
 
-    // Loggar felet och visar det för användaren.
+    // Logs the error and shows it to the user.
     public static void handle(Throwable error) {
         if (error == null) {
             return;
@@ -58,7 +58,7 @@ public final class ErrorFacade {
         }
     }
 
-    // Översätter rapporten och visar rätt sorts dialog. Körs alltid på JavaFX-tråden.
+    // Translates the report and shows the right kind of dialog. Always runs on the JavaFX thread.
     private static void present(ErrorReport report) {
         if (presenting) {
             log.warn("Error dialog already showing, new error only logged: {}", report.getMessageKey());
@@ -80,7 +80,7 @@ public final class ErrorFacade {
         }
     }
 
-    // Loggar på olika nivåer beroende på allvar.
+    // Logs at different levels depending on severity.
     private static void logReport(ErrorReport report) {
         if (report.isUnexpected()) {
             log.error("Unexpected error ({})", report.getMessageKey(), report.getCause());
@@ -90,8 +90,8 @@ public final class ErrorFacade {
         }
     }
 
-    /* AlertHelper.showException tar ett Exception, men den globala hanteraren
-     * kan få ett Error. Då lindas det in så att stack tracen ändå kan visas.  */
+    /* AlertHelper.showException takes an Exception, but the global handler
+     * can receive an Error. Then it is wrapped so the stack trace can still be shown.  */
     private static Exception asException(Throwable cause) {
         if (cause instanceof Exception) {
             return (Exception) cause;

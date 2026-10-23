@@ -9,7 +9,7 @@ import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
 
 /**
  * <b>DiscountStrategyTest</b>
- * <p>Ansvar: Låser avrundningsregeln. Varje strategi avrundar sin rabatt till öre med HALF_UP.</p>
+ * <p>Responsibility: Locks down the rounding rule. Each strategy rounds its discount to the öre with HALF_UP.</p>
  */
 class DiscountStrategyTest {
 

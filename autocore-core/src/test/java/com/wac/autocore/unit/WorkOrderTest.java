@@ -36,7 +36,7 @@ public class WorkOrderTest {
 
         WorkOrderItem item = workOrder.getItems().get(0);
         assertEquals(1, item.getServiceItemId());
-        assertEquals("Oljebyte", item.getServiceName());
+        assertEquals("Oil change", item.getServiceName());
         assertMoney(Money.of(899), item.getAgreedPrice());
         assertEquals(45, item.getDurationMinutes());
     }
@@ -217,7 +217,7 @@ public class WorkOrderTest {
     void requireCompleteIfConfirmed_allowsIncompleteDraft() {
         TestWorkOrder draft = new TestWorkOrder(1, null);
 
-        draft.requireCompleteIfConfirmed(); // ska inte kasta
+        draft.requireCompleteIfConfirmed(); // should not throw
 
         assertEquals(WorkOrderStatus.DRAFT, draft.getStatus());
     }
@@ -234,7 +234,7 @@ public class WorkOrderTest {
 
     @Test
     void startThrowsStatusTransition_beforeValidation_WhenOrderIsCancelled() {
-        TestWorkOrder workOrder = new TestWorkOrder(1, null); // ofullständigt utkast
+        TestWorkOrder workOrder = new TestWorkOrder(1, null); // incomplete draft
         workOrder.cancel();
 
         assertThrows(IllegalStatusTransitionException.class, workOrder::start);
@@ -244,14 +244,14 @@ public class WorkOrderTest {
         ServiceItem service = mock(ServiceItem.class);
 
         when(service.getId()).thenReturn(id);
-        when(service.getName()).thenReturn("Oljebyte");
+        when(service.getName()).thenReturn("Oil change");
         when(service.getPrice()).thenReturn(price);
         when(service.getEstimatedMinutes()).thenReturn(45);
 
         return service;
     }
 
-    // Ett avslutat original som en reklamation kan skapas från. Mockas eftersom id sätts av databasen.
+    // A completed original that a warranty claim can be created from. Mocked because the id is set by the database.
     private WorkOrder completedOriginal() {
         WorkOrder original = mock(WorkOrder.class);
         when(original.getId()).thenReturn(7);
@@ -261,7 +261,7 @@ public class WorkOrderTest {
     }
 
     private WarrantyWorkOrder warrantyDraft() {
-        return WarrantyWorkOrder.draft(completedOriginal(), "Läcker igen");
+        return WarrantyWorkOrder.draft(completedOriginal(), "Leaking again");
     }
 
     private WorkOrderItem findItem(WorkOrder workOrder, int serviceItemId) {

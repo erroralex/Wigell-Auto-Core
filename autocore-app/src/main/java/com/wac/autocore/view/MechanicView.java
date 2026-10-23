@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * <b>MechanicView</b>
- * <p>Ansvar: Visar och hanterar mekaniker i användargränssnittet.</p>
+ * <p>Responsibility: Shows and manages mechanics in the user interface.</p>
  */
 public class MechanicView extends BaseView {
 

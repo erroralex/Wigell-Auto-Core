@@ -14,10 +14,10 @@ import java.util.UUID;
 
 /**
  * <b>CorrelationAspect</b>
- * <p>Ansvar: Ger varje användaroperation ett korrelations-id i MDC, så att alla loggrader
- * från samma operation kan kopplas ihop. Ligger runt alla publika metoder i service-lagret.</p>
- * <p>Bara det yttersta anropet skapar och städar id:t. Inre service-anrop behåller det.</p>
- * <p>Körs först av alla aspekter, så att även loggning från transaktioner får id:t.</p>
+ * <p>Responsibility: Gives each user operation a correlation id in the MDC, so all log lines
+ * from the same operation can be tied together. Wraps all public methods in the service layer.</p>
+ * <p>Only the outermost call creates and clears the id. Inner service calls keep it.</p>
+ * <p>Runs first of all aspects, so that logging from transactions also gets the id.</p>
  *
  * @see LogKeys
  */
@@ -30,7 +30,7 @@ public class CorrelationAspect {
 
     @Around("execution(public * com.wac.autocore.service..*(..))")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
-        // Inre anrop: id:t finns redan, gör ingenting.
+        // Inner call: the id already exists, do nothing.
         if (MDC.get(LogKeys.CORR_ID) != null) {
             return pjp.proceed();
         }
@@ -57,7 +57,7 @@ public class CorrelationAspect {
         }
     }
 
-    // TODO: byt mot inloggad användare när autentiseringen är klar.
+    // TODO: replace with the logged-in user when authentication is done.
     private String currentUser() {
         return System.getProperty("user.name", "unknown");
     }

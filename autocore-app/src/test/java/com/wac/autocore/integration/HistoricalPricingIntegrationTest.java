@@ -37,20 +37,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>HistoricalPricingIntegrationTest</b>
- * <p>Ansvar: Bevisar att en ändring i tjänstekatalogen aldrig skriver om historiska priser
- * på bokningar, arbetsordrar eller fakturor, varken i fakturahuvudet eller på fakturaraderna.</p>
- * <p>Testerna kör mot en riktig SQLite-fil som Flyway bygger upp, inte mot mockar.
- * Testmetoderna är inte {@code @Transactional}: varje service- och repository-anrop får
- * ett eget persistence context, så allt som läses tillbaka kommer från databasfilen och
- * inte från Hibernates cache.</p>
+ * <p>Responsibility: Proves that a change in the service catalog never rewrites historical prices
+ * on bookings, work orders or invoices, neither in the invoice header nor on the invoice lines.</p>
+ * <p>The tests run against a real SQLite file that Flyway builds, not against mocks.
+ * The test methods are not {@code @Transactional}: each service and repository call gets
+ * its own persistence context, so everything read back comes from the database file and
+ * not from Hibernate's cache.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")
 @DirtiesContext
 class HistoricalPricingIntegrationTest {
 
-    private static final String OIL_CHANGE = "Oljebyte";
-    private static final String TIRE_CHANGE = "Däckbyte";
+    private static final String OIL_CHANGE = "Oil change";
+    private static final String TIRE_CHANGE = "Tire change";
     private static final Money OIL_PRICE = Money.of(899);
     private static final Money OIL_PRICE_RAISED = Money.of(999);
     private static final Money TIRE_PRICE = Money.of(400);
@@ -84,16 +84,16 @@ class HistoricalPricingIntegrationTest {
     @Test
     @DisplayName("Invoice, invoice line and work order keep 899:- when price is raised to 999:-")
     void priceChangeDoesNotRewriteHistoricalRecords() {
-        // Arrange: 10 okt, oljebyte kostar 899:-
+        // Arrange: 10 Oct, an oil change costs 899:-
         PricingScenario scenario = PricingScenario.in(context)
                 .withService(OIL_CHANGE, OIL_PRICE)
                 .withInvoice()
                 .build();
 
-        // Act: 1 nov, priset höjs
+        // Act: 1 Nov, the price is raised
         serviceItemService.updatePrice(scenario.serviceItemId(OIL_CHANGE), OIL_PRICE_RAISED);
 
-        // Assert: katalogen är uppdaterad, historiken är det inte
+        // Assert: the catalog is updated, the history is not
         assertMoney(OIL_PRICE_RAISED,
                 serviceItemRepository.findById(scenario.serviceItemId(OIL_CHANGE)).get().getPrice(),
                 "Catalogue price should be updated to 999:-");
@@ -127,7 +127,7 @@ class HistoricalPricingIntegrationTest {
                 .withInvoice()
                 .build();
 
-        // Bara den ena tjänsten höjs, så att en rad som läser katalogpris syns direkt
+        // Only one of the services is raised, so a line that reads the catalog price shows up immediately
         serviceItemService.updatePrice(scenario.serviceItemId(OIL_CHANGE), OIL_PRICE_RAISED);
 
         assertMoney(OIL_PRICE.add(TIRE_PRICE), scenario.expectedSubtotal(),
@@ -149,8 +149,8 @@ class HistoricalPricingIntegrationTest {
 
         serviceItemService.updatePrice(scenario.serviceItemId(OIL_CHANGE), OIL_PRICE_RAISED);
 
-        // Jämför före/efter i stället för att räkna rabatten själv:
-        // testet bevisar att inget ändras, inte hur rabatten räknas ut
+        // Compares before/after instead of calculating the discount itself:
+        // the test proves that nothing changes, not how the discount is calculated
         Invoice after = invoiceRepo.findById(scenario.invoiceId).get();
         assertMoney(before.getAmount(), after.getAmount(), "Invoice amount changed");
         assertMoney(before.getDiscount(), after.getDiscount(), "Invoice discount changed");
@@ -170,7 +170,7 @@ class HistoricalPricingIntegrationTest {
         String url = jdbcUrl(tempDir.resolve("restart.db"));
         PricingScenario scenario;
 
-        // Första körningen: skapa allt, höj priset och stäng applikationen
+        // First run: create everything, raise the price and close the application
         try (ConfigurableApplicationContext first = startApplication(url)) {
             scenario = PricingScenario.in(first)
                     .withService(OIL_CHANGE, OIL_PRICE)
@@ -182,7 +182,7 @@ class HistoricalPricingIntegrationTest {
                     .updatePrice(scenario.serviceItemId(OIL_CHANGE), OIL_PRICE_RAISED);
         }
 
-        // Andra körningen: ny JVM-kontext, allt läses från filen
+        // Second run: new JVM context, everything is read from the file
         try (ConfigurableApplicationContext second = startApplication(url)) {
             ServiceItem oilChange = second.getBean(ServiceItemRepository.class)
                     .findById(scenario.serviceItemId(OIL_CHANGE)).get();
@@ -190,7 +190,7 @@ class HistoricalPricingIntegrationTest {
 
             assertSnapshotIntact(second, scenario);
 
-            // Relationer
+            // Relations
             Booking booking = second.getBean(BookingService.class).findById(scenario.bookingId).get();
             WorkOrder workOrder = second.getBean(WorkOrderRepository.class).findById(scenario.workOrderId).get();
             Invoice invoice = second.getBean(InvoiceRepo.class).findById(scenario.invoiceId).get();
@@ -205,8 +205,8 @@ class HistoricalPricingIntegrationTest {
     }
 
     /**
-     * Gemensamt bevis som används både direkt och efter omstart: varje rad i bokning,
-     * arbetsorder och faktura har kvar sitt avtalade pris, och summorna stämmer.
+     * Shared proof used both directly and after a restart: every line in the booking,
+     * work order and invoice keeps its agreed price, and the totals add up.
      */
     private static void assertSnapshotIntact(ApplicationContext ctx, PricingScenario scenario) {
         int lineCount = scenario.agreedPrices.size();
@@ -249,7 +249,7 @@ class HistoricalPricingIntegrationTest {
                 "Invoice total should equal the sum of its line totals");
     }
 
-    // Radordningen i databasen är inte garanterad, därför letas rader upp på namn
+    // The row order in the database is not guaranteed, so rows are looked up by name
     private static <T> T lineNamed(List<T> lines, Function<T, String> nameOf, String name) {
         return lines.stream()
                 .filter(line -> name.equals(nameOf.apply(line)))
@@ -268,9 +268,9 @@ class HistoricalPricingIntegrationTest {
     }
 
     /**
-     * Bygger kedjan tjänster -> kund -> fordon -> bokning -> arbetsorder (slutförd) -> faktura
-     * och håller id:na. Allt skapas via service-lagret där det finns en metod för det,
-     * så att testet går samma väg som applikationen.
+     * Builds the chain services -> customer -> vehicle -> booking -> work order (completed) -> invoice
+     * and keeps the ids. Everything is created via the service layer where there is a method for it,
+     * so the test takes the same path as the application.
      */
     private static final class PricingScenario {
         final Map<String, Integer> serviceItemIds;
@@ -338,25 +338,25 @@ class HistoricalPricingIntegrationTest {
             Map<String, Integer> ids = new LinkedHashMap<>();
             for (Map.Entry<String, Money> service : services.entrySet()) {
                 ServiceItem item = serviceItems.save(
-                        new ServiceItem(service.getKey(), "Testtjänst", service.getValue(), 30));
+                        new ServiceItem(service.getKey(), "Test service", service.getValue(), 30));
                 ids.put(service.getKey(), item.getId());
             }
 
-            // Icke-VIP-kund, så att ingen VIP-rabatt påverkar fakturans belopp
+            // Non-VIP customer, so no VIP discount affects the invoice amount
             Customer customer = ctx.getBean(CustomerRepo.class).save(
-                    new Customer("Test Kund", "070-0000000", "test@example.se"));
-            // Egen mekaniker per scenario, så att krockkontrollen vid bekräftelsen aldrig slår till
+                    new Customer("Test Customer", "070-0000000", "test@example.se"));
+            // A separate mechanic per scenario, so the clash check on confirmation never triggers
             Mechanic mechanic = ctx.getBean(MechanicRepository.class).save(
-                    new Mechanic("Test Mekaniker", "070-0000001", "General service"));
+                    new Mechanic("Test Mechanic", "070-0000001", "General service"));
             Vehicle vehicle = ctx.getBean(VehicleRepo.class).save(new Vehicle(
                     "TST" + REG_SEQUENCE.incrementAndGet(), "Volvo", "V60", 2020, customer.getId()));
 
             Booking booking = bookings.create(
                     vehicle.getId(), mechanic.getId(), BOOKING_DATE, LocalTime.of(8, 0),
-                    "Prisrevision", new ArrayList<>(ids.values()));
+                    "Price revision", new ArrayList<>(ids.values()));
 
-            // Arbetsordern går hela vägen till COMPLETED, som en riktig fakturerbar order.
-            // Den skapas som utkast med bokningens föreslagna mekaniker och måste bekräftas före start.
+            // The work order goes all the way to COMPLETED, like a real invoiceable order.
+            // It is created as a draft with the booking's suggested mechanic and must be confirmed before starting.
             int workOrderId = workOrders.createWorkOrder(booking.getId()).getWorkOrder().getId();
 
             workOrders.confirmWorkOrder(workOrderId);

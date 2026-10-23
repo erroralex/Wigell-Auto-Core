@@ -2,9 +2,9 @@ package com.wac.autocore.exception.handler;
 
 /**
  * <b>ErrorReport</b>
- * <p>Ansvar: Resultatet av felkedjan: Vad som ska visas för användaren, uttryckt som språknycklar.
- * Innehåller ingen JavaFX-kod, vilket gör att kedjan kan enhetstestas utan grafiskt gränssnitt.</p>
- * <p>Klassen är oföränderlig: alla fält är {@code final} och {@code messageArgs} kopieras in och ut.</p>
+ * <p>Responsibility: The result of the error chain: what should be shown to the user, expressed as language keys.
+ * Contains no JavaFX code, which means the chain can be unit tested without a graphical interface.</p>
+ * <p>The class is immutable: all fields are {@code final} and {@code messageArgs} is copied in and out.</p>
  */
 public final class ErrorReport {
 

@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 
 /**
  * <b>SideNavigation</b>
- * <p>Ansvar: Bygger sidomenyns navigeringsknappar, markerar aktivt val, byter vy i {@link MainLayout} vid klick och växlar språk.</p>
+ * <p>Responsibility: Builds the side menu's navigation buttons, marks the active choice, switches view in {@link MainLayout} on click and toggles language.</p>
  */
 public class SideNavigation extends VBox {
 
@@ -25,8 +25,8 @@ public class SideNavigation extends VBox {
         this.setSpacing(8);
         this.setPadding(new Insets(20));
 
-        // Bygg en navigeringsknapp för varje sektion definierad i NavigationItem,
-        // så nya sektioner läggs till bara genom att utöka enumen
+        // Build a navigation button for each section defined in NavigationItem,
+        // so new sections are added just by extending the enum
         Button firstButton = null;
         for (NavigationItem item : NavigationItem.values()) {
             Button btn = createNavButton(item);
@@ -36,12 +36,12 @@ public class SideNavigation extends VBox {
             }
         }
 
-        // Trycker ner språkknappen till menyns botten
+        // Pushes the language button down to the bottom of the menu
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
         this.getChildren().addAll(spacer, createLanguageButton());
 
-        // Visa första sektionen som vald vid uppstart
+        // Show the first section as selected at startup
         if (firstButton != null) {
             select(NavigationItem.values()[0], firstButton);
         }
@@ -49,7 +49,7 @@ public class SideNavigation extends VBox {
 
     private Button createNavButton(NavigationItem item) {
         Button btn = new Button();
-        // Bind istället för setText: texten följer med när språket växlas
+        // Bind instead of setText: the text follows along when the language is switched
         btn.textProperty().bind(lang.bind(item.getKey()));
         btn.getStyleClass().add("nav-button");
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -70,7 +70,7 @@ public class SideNavigation extends VBox {
         return btn;
     }
 
-    // Uppdaterar CSS-klass för att visuellt markera vilken sektion som är vald
+    // Updates the CSS class to visually mark which section is selected
     private void setActiveButton(Button newActiveButton) {
         if (activeButton != null) {
             activeButton.getStyleClass().remove("nav-button-active");

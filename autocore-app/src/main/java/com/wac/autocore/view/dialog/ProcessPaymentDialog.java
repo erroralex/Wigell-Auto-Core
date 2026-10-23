@@ -14,7 +14,7 @@ import javafx.util.StringConverter;
 
 /**
  * <b>ProcessPaymentDialog</b>
- * <p>Ansvar: Dialog för att registrera en betalning.</p>
+ * <p>Responsibility: Dialog for registering a payment.</p>
  */
 public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
 
@@ -32,7 +32,7 @@ public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
 
         ComboBox<String> paymentTypeSelection = new ComboBox<>();
 
-        // Värdena sparas som de är (CARD/SWISH/CASH), bara visningen översätts
+        // The values are stored as they are (CARD/SWISH/CASH), only the display is translated
         paymentTypeSelection.getItems().addAll("CARD", "SWISH", "CASH");
         paymentTypeSelection.setPromptText(lang.get("table.paymentType"));
         paymentTypeSelection.setConverter(new StringConverter<String>() {

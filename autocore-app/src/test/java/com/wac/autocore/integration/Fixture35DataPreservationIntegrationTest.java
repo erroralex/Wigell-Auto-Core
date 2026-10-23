@@ -48,12 +48,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>Fixture35DataPreservationIntegrationTest</b>
- * <p>Ansvar: Bevisar att data som skrivits av version 3.5 fortfarande går att läsa efter
- * plattformsbytet. Testet startar kontexten mot en kopia av en riktig 3.5-databas och jämför
- * belopp och datum med värden som lästs direkt ur filen med sqlite3, inte via koden som testas.</p>
- * <p>Originalfilen kopieras alltid till en temporär katalog och rörs aldrig. Checksumman kontrolleras
- * före och efter, så att ett test som råkar skriva till originalet blir rött.</p>
- * <p>Fixturen skapades från main efter PR #136 och får aldrig återskapas från en nyare version.</p>
+ * <p>Responsibility: Proves that data written by version 3.5 can still be read after
+ * the platform switch. The test starts the context against a copy of a real 3.5 database and compares
+ * amounts and dates with values read directly from the file with sqlite3, not via the code under test.</p>
+ * <p>The original file is always copied to a temporary directory and is never touched. The checksum is checked
+ * before and after, so a test that accidentally writes to the original turns red.</p>
+ * <p>The fixture was created from main after PR #136 and must never be recreated from a newer version.</p>
  */
 @SpringBootTest(classes = AutoCoreConfig.class)
 @ActiveProfiles("test")
@@ -65,7 +65,7 @@ class Fixture35DataPreservationIntegrationTest {
 
     private static final String FIXTURE_SHA256 = "e06d3e92ceed28656c84f79c032821d440947288f720e1825653346fbf181b7c";
 
-    // Facit: läses ur fixturen med sqlite3, aldrig ur appen
+    // Expected values: read from the fixture with sqlite3, never from the app
     private static final int CUSTOMER_COUNT = 3;
     private static final int VEHICLE_COUNT = 3;
     private static final int BOOKING_COUNT = 3;
@@ -73,7 +73,7 @@ class Fixture35DataPreservationIntegrationTest {
     private static final int INVOICE_COUNT = 3;
     private static final int PAYMENT_COUNT = 2;
 
-    // En faktura med rabatt WELCOME10 från headless-scenariot
+    // An invoice with the WELCOME10 discount from the headless scenario
     private static final int DISCOUNTED_INVOICE_ID = 3;
     private static final String DISCOUNTED_AMOUNT = "3790.00";
     private static final String DISCOUNTED_DISCOUNT = "379.00";
@@ -81,18 +81,18 @@ class Fixture35DataPreservationIntegrationTest {
     private static final LocalDate DISCOUNTED_INVOICE_DATE = LocalDate.of(2026, 10, 20);
     private static final int DISCOUNTED_LINE_COUNT = 2;
 
-    // En bokning med sluttid som inte är jämn timme
+    // A booking with an end time that is not on the hour
     private static final int BOOKING_ID = 1;
     private static final LocalDate BOOKING_DATE = LocalDate.of(2026, 9, 21);
     private static final LocalTime BOOKING_START = LocalTime.of(8, 0);
     private static final LocalTime BOOKING_END = LocalTime.of(10, 45);
 
-    // En planerad arbetsorder
+    // A planned work order
     private static final int PLANNED_WORK_ORDER_ID = 3;
     private static final LocalDate PLANNED_DATE = LocalDate.of(2026, 9, 28);
     private static final LocalTime PLANNED_START = LocalTime.of(9, 0);
 
-    // Betalningen av den rabatterade fakturan
+    // The payment of the discounted invoice
     private static final int PAYMENT_ID = 2;
     private static final String PAYMENT_AMOUNT = "3411.00";
     private static final LocalDateTime PAYMENT_DATE = LocalDateTime.of(2026, 10, 20, 16, 50);
@@ -110,8 +110,8 @@ class Fixture35DataPreservationIntegrationTest {
     @Autowired private InvoiceRepo invoiceRepo;
     @Autowired private PaymentRepo paymentRepo;
 
-    /* Värdet hämtas först när kontexten byggs. Då är tempDir satt, och kopian skapas innan
-     * Hikari och Flyway öppnar databasen. */
+    /* The value is fetched only when the context is built. By then tempDir is set, and the copy is created before
+     * Hikari and Flyway open the database. */
     @DynamicPropertySource
     static void sqliteFile(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url",
@@ -235,7 +235,7 @@ class Fixture35DataPreservationIntegrationTest {
             try (DigestInputStream dis = new DigestInputStream(in, digest)) {
                 byte[] buffer = new byte[8192];
                 while (dis.read(buffer) != -1) {
-                    // läser bara igenom filen så att digesten uppdateras
+                    // just reads through the file so the digest is updated
                 }
             }
             StringBuilder hex = new StringBuilder();

@@ -84,7 +84,7 @@ public class AdminServiceItemDialog extends Dialog<ServiceItem> {
         });
     }
 
-    // Visar felmeddelandet och hindrar dialogen från att stängas
+    // Shows the error message and prevents the dialog from closing
     private void rejectPrice(ActionEvent event, String messageKey) {
         errorLabel.setText(lang.get(messageKey));
         event.consume();

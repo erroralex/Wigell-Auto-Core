@@ -2,10 +2,10 @@ package com.wac.autocore.exception;
 
 /**
  * <b>EntityNotFoundException</b>
- * <p>Ansvar: Kastas när en entitet som refereras med id inte finns i databasen.
- * Ersätter generiska {@code RuntimeException("... not found")} i tjänstelagret, så att vyn kan
- * skilja "hittades inte" från andra fel.</p>
- * <p><b>Exempel på användning:</b></p>
+ * <p>Responsibility: Thrown when an entity referenced by id does not exist in the database.
+ * Replaces generic {@code RuntimeException("... not found")} in the service layer, so the view can
+ * tell "not found" apart from other errors.</p>
+ * <p><b>Example usage:</b></p>
  * <pre>{@code
  * ServiceItem item = serviceItemRepository.findById(id)
  *         .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound"));
@@ -16,12 +16,12 @@ public class EntityNotFoundException extends DomainException {
     private final String entityName;
     private final Object entityId;
 
-    /* Ansvar: Använder det generiska meddelandet error.notFound */
+    /* Responsibility: Uses the generic message error.notFound */
     public EntityNotFoundException(String entityName, Object entityId) {
         this(entityName, entityId, "error.notFound");
     }
 
-    /* Ansvar: Använder ett mer specifikt meddelande, t.ex. error.serviceNotFound */
+    /* Responsibility: Uses a more specific message, e.g. error.serviceNotFound */
     public EntityNotFoundException(String entityName, Object entityId, String messageKey) {
         super(entityName + " not found: " + entityId, "error.title", messageKey);
         this.entityName = entityName;

@@ -16,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * <b>BookingStatusMigrationTest</b>
- * <p>Ansvar: Bevisar att V11 städar läckta statusvärden på {@code booking}. Testet migrerar
- * först till V10, skriver in rader med status {@code CONFIRMED} och {@code DRAFT}, och kör
- * sedan migrationerna till senaste versionen. Efteråt ska de läckta raderna ha status
- * {@code WORK_ORDER_CREATED}, medan en giltig rad är orörd.</p>
+ * <p>Responsibility: Proves that V11 cleans up leaked status values on {@code booking}. The test first migrates
+ * to V10, inserts rows with status {@code CONFIRMED} and {@code DRAFT}, and then runs
+ * the migrations to the latest version. Afterwards the leaked rows should have status
+ * {@code WORK_ORDER_CREATED}, while a valid row is untouched.</p>
  */
 class BookingStatusMigrationTest {
 
@@ -31,7 +31,7 @@ class BookingStatusMigrationTest {
     void v11RewritesLeakedStatuses() throws SQLException {
         String url = "jdbc:sqlite:" + tempDir.resolve("booking-status-migration.db").toAbsolutePath();
 
-        // Migrera till V10, så V11 inte har körts än
+        // Migrate to V10, so V11 has not run yet
         Flyway.configure()
                 .dataSource(url, null, null)
                 .locations("classpath:db/migration")
@@ -39,7 +39,7 @@ class BookingStatusMigrationTest {
                 .load()
                 .migrate();
 
-        // Skriv in läckta statusar direkt i tabellen
+        // Insert leaked statuses directly into the table
         try (Connection connection = DriverManager.getConnection(url);
              Statement statement = connection.createStatement()) {
 
@@ -62,14 +62,14 @@ class BookingStatusMigrationTest {
                             "VALUES (1, 1, '2026-11-05', '08:00', '09:00', 'Already valid', 'BOOKED')");
         }
 
-        // Kör resten, inklusive V11
+        // Run the rest, including V11
         Flyway.configure()
                 .dataSource(url, null, null)
                 .locations("classpath:db/migration")
                 .load()
                 .migrate();
 
-        // Verifiera att de läckta värdena har skrivits om, och att giltig rad är orörd
+        // Verify that the leaked values have been rewritten, and that the valid row is untouched
         try (Connection connection = DriverManager.getConnection(url);
              Statement statement = connection.createStatement()) {
 

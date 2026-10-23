@@ -16,7 +16,7 @@ import javafx.util.StringConverter;
 
 /**
  * <b>CreateInvoiceDialog</b>
- * <p>Ansvar: Dialog för att skapa en faktura.</p>
+ * <p>Responsibility: Dialog for creating an invoice.</p>
  */
 public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
 

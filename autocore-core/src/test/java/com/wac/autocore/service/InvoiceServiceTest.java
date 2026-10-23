@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * <b>InvoiceServiceTest</b>
- * <p>Ansvar: Låser hur rabatt avrundas per rad och att fakturans summor är summan av raderna.</p>
+ * <p>Responsibility: Locks down how the discount is rounded per line and that the invoice totals are the sum of the lines.</p>
  */
 class InvoiceServiceTest {
 
@@ -67,7 +67,7 @@ class InvoiceServiceTest {
 
         Invoice invoice = invoiceService.create(1, "WELCOME10");
 
-        // Dagens regel: 0,01 + 0,01. Ett enda avrundat 20 % hade gett 0,01.
+        // Today's rule: 0,01 + 0,01. A single rounded 20 % would have given 0,01.
         assertMoney(Money.of("0.02"), invoice.getLines().get(0).getDiscount());
     }
 

@@ -20,11 +20,11 @@ import java.util.Objects;
 
 /**
  * <b>ServicePackageDialog</b>
- * <p>Ansvar: Skapa eller redigera ett servicepaket. Samma dialog för båda lägena; läget väljs med
- * fabriksmetoderna {@link #forCreate} och {@link #forEdit} (<b>Factory Method</b>).</p>
- * <p>Sparar via ServicePackageService när Spara trycks. Vid fel visas felet via ErrorFacade
- * och dialogen förblir öppen, så att användaren kan rätta utan att förlora det som skrivits.</p>
- * <p>Tjänster väljs med {@link ServiceSelectorBox}, som bygger på MultiSelectListView.</p>
+ * <p>Responsibility: Create or edit a service package. The same dialog for both modes; the mode is chosen with
+ * the factory methods {@link #forCreate} and {@link #forEdit} (<b>Factory Method</b>).</p>
+ * <p>Saves via ServicePackageService when Save is pressed. On error the error is shown via ErrorFacade
+ * and the dialog stays open, so the user can correct it without losing what has been written.</p>
+ * <p>Services are selected with {@link ServiceSelectorBox}, which is built on MultiSelectListView.</p>
  */
 public class ServicePackageDialog extends Dialog<ServicePackage> {
 
@@ -42,7 +42,7 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
 
     private ServicePackage savedServicePackage;
 
-    // Fabriksmetoder:
+    // Factory methods:
     public static ServicePackageDialog forCreate(
             ServicePackageService servicePackageService,
             List<ServiceItem> availableServices) {

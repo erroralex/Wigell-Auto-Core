@@ -11,8 +11,8 @@ import java.util.Optional;
 
 /**
  * <b>WorkOrderRepository</b>
- * <p>Ansvar: Databasåtkomst för arbetsordrar. Spring Data genererar implementationen
- * utifrån metodnamnen, så inga SQL-frågor behöver skrivas för hand.</p>
+ * <p>Responsibility: Database access for work orders. Spring Data generates the implementation
+ * from the method names, so no SQL queries need to be written by hand.</p>
  */
 @org.springframework.stereotype.Repository
 public interface WorkOrderRepository extends org.springframework.data.repository.Repository<WorkOrder, Integer> {

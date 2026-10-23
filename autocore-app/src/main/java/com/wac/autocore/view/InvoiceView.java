@@ -27,7 +27,7 @@ import java.time.LocalDate;
 
 /**
  * <b>InvoiceView</b>
- * <p>Ansvar: Visar och hanterar fakturor i användargränssnittet.</p>
+ * <p>Responsibility: Shows and manages invoices in the user interface.</p>
  */
 public class InvoiceView extends BaseView {
 

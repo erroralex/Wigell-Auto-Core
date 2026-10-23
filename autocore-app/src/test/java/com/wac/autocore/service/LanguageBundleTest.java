@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * <b>LanguageBundleTest</b>
- * <p>Ansvar: Kontrollerar språkfilerna i CI: samma nycklar på båda språken, engelsk fallback,
- * korrekt teckenkodning, giltiga MessageFormat-mönster och att alla nycklar som används i koden finns.</p>
+ * <p>Responsibility: Checks the language files in CI: the same keys in both languages, English fallback,
+ * correct character encoding, valid MessageFormat patterns and that all keys used in the code exist.</p>
  */
 class LanguageBundleTest {
 
@@ -43,10 +43,10 @@ class LanguageBundleTest {
 
     private static final Path SOURCE_ROOT = Paths.get("src", "main", "java");
 
-    // lang.get("nyckel" / lang.bind("nyckel" - fångar bara bokstavliga nycklar
+    // lang.get("key" / lang.bind("key" - only catches literal keys
     private static final Pattern KEY_USAGE = Pattern.compile("lang\\.(?:get|bind)\\(\\s*\"([^\"]+)\"");
 
-    // Payment type är en String, inte en enum, så nycklarna kan inte härledas från en enum.
+    // Payment type is a String, not an enum, so the keys cannot be derived from an enum.
     private static final String[] PAYMENT_TYPE_KEYS = {
             "payment.type.CARD", "payment.type.SWISH", "payment.type.CASH"
     };

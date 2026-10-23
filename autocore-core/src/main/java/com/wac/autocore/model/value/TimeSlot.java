@@ -5,8 +5,8 @@ import com.wac.autocore.exception.ValidationException;
 import java.time.LocalTime;
 import java.util.Objects;
 
-// Värdeobjekt för en tidslucka under en dag: starttid + längd i minuter. Immutable.
-// Räknar i minuter från midnatt, så en lucka som passerar midnatt slår inte runt vid jämförelser.
+// Value object for a time slot during a day: start time + length in minutes. Immutable.
+// Counts in minutes from midnight, so a slot that passes midnight does not wrap around in comparisons.
 public final class TimeSlot {
 
     private static final int MINUTES_PER_DAY = 24 * 60;
@@ -31,7 +31,7 @@ public final class TimeSlot {
         return start.plusMinutes(durationMinutes);
     }
 
-    // Samma regel för bokning och arbetsorder: luckan måste sluta före midnatt (00:00 räknas som nästa dag).
+    // Same rule for booking and work order: the slot must end before midnight (00:00 counts as the next day).
     public TimeSlot requireWithinDay() {
         if (!endsWithinDay()) {
             throw new ValidationException("error.booking.pastMidnight");
@@ -43,12 +43,12 @@ public final class TimeSlot {
         return endMinute() < MINUTES_PER_DAY;
     }
 
-    // Angränsande luckor (10–11 och 11–12) överlappar inte.
+    // Adjacent slots (10–11 and 11–12) do not overlap.
     public boolean overlaps(TimeSlot other) {
         return startMinute() < other.endMinute() && endMinute() > other.startMinute();
     }
 
-    // Starttiden ingår, sluttiden inte (samma halvöppna intervall som overlaps). Räknar i hela minuter.
+    // The start time is included, the end time is not (the same half-open interval as overlaps). Counts in whole minutes.
     public boolean contains(LocalTime time) {
         int minute = time.toSecondOfDay() / 60;
         return startMinute() <= minute && minute < endMinute();

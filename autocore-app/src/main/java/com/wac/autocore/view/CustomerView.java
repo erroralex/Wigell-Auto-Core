@@ -20,7 +20,7 @@ import javafx.scene.layout.VBox;
 
 /**
  * <b>CustomerView</b>
- * <p>Ansvar: Visar och hanterar kundinformation i användargränssnittet.</p>
+ * <p>Responsibility: Shows and manages customer information in the user interface.</p>
  */
 public class CustomerView extends BaseView {
 

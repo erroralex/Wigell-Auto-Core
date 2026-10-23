@@ -9,14 +9,14 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 
 /**
- * Testklass som använder sig av ArchUnit för att utföra arkitekturs-tester för autocore-standalone.
+ * Test class that uses ArchUnit to run architecture tests for autocore-standalone.
  */
 public class StandaloneArchitectureTest {
 
     /**
-     * Testet använder {@link ClassFileImporter#importPackages(String...)} för att importera klasser
-     * i och under {@code com.wac.autocore}, och validerar sedan att ingen importerad klass
-     * är beroende av {@code javaFX}, eller klasser i {@code com.wac.autocore.view}.
+     * The test uses {@link ClassFileImporter#importPackages(String...)} to import classes
+     * in and under {@code com.wac.autocore}, and then validates that no imported class
+     * depends on {@code javaFX}, or classes in {@code com.wac.autocore.view}.
      */
     @Test
     void standaloneMustNotDependOnJavaFxOrView() {
@@ -32,11 +32,11 @@ public class StandaloneArchitectureTest {
     }
 
     /**
-     * Testet använder {@link ClassFileImporter#importPackages(String...)} för att importera klasser
-     * i och under {@code com.wac.autocore.standalone}, och validerar sedan att ingen importerad klass
-     * är beroende av klasser i {@code org.springframework..}. {@link ArchRule#allowEmptyShould(boolean)}
-     * tillåter att testet går igenom även när inga klasser har importerats, till exempel om paketet
-     * fortfarande är tomt.
+     * The test uses {@link ClassFileImporter#importPackages(String...)} to import classes
+     * in and under {@code com.wac.autocore.standalone}, and then validates that no imported class
+     * depends on classes in {@code org.springframework..}. {@link ArchRule#allowEmptyShould(boolean)}
+     * allows the test to pass even when no classes have been imported, for example if the package
+     * is still empty.
      */
     @Test
     void standaloneMustNotDependOnSpringOrContext() {
@@ -46,7 +46,7 @@ public class StandaloneArchitectureTest {
 
         ArchRule rule = noClasses()
                 .should().dependOnClassesThat()
-                .resideInAnyPackage("org.springframework..").allowEmptyShould(true); // Tillåter att standalone inte har produktions-klasser.
+                .resideInAnyPackage("org.springframework..").allowEmptyShould(true); // Allows standalone to have no production classes.
 
         rule.check(classes);
     }

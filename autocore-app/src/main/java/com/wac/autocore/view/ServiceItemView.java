@@ -20,7 +20,7 @@ import javafx.scene.layout.VBox;
 
 /**
  * <b>ServiceItemView</b>
- * <p>Ansvar: Visar och hanterar servicepunkter i användargränssnittet.</p>
+ * <p>Responsibility: Shows and manages service items in the user interface.</p>
  */
 public class ServiceItemView extends BaseView {
 

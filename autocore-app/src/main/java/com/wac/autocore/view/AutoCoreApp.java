@@ -15,8 +15,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * <b>AutoCoreApp</b>
- * <p>Ansvar: Startar Spring-kontexten och JavaFX-applikationen, skapar huvudfönstret och kopplar in CSS-stilmallen.
- * Stänger Spring-kontexten (och därmed databasanslutningen) när applikationen avslutas.</p>
+ * <p>Responsibility: Starts the Spring context and the JavaFX application, creates the main window and plugs in the CSS stylesheet.
+ * Closes the Spring context (and thereby the database connection) when the application exits.</p>
  */
 public class AutoCoreApp extends Application {
 
@@ -76,7 +76,7 @@ public class AutoCoreApp extends Application {
             Scene scene = new Scene(layout, WIDTH, HEIGHT);
             scene.setFill(javafx.scene.paint.Color.web("#212121"));
 
-            // Laddar stilmall från samma paket via classpath
+            // Loads the stylesheet from the same package via the classpath
             String cssPath = getClass().getResource("style.css").toExternalForm();
             scene.getStylesheets().add(cssPath);
 
@@ -91,7 +91,7 @@ public class AutoCoreApp extends Application {
                 }
             });
 
-            // Fönstertiteln binds, annars ligger den kvar på svenska efter språkbyte
+            // The window title is bound, otherwise it stays in Swedish after a language switch
             primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
 
             primaryStage.setScene(scene);
@@ -104,7 +104,7 @@ public class AutoCoreApp extends Application {
         }
     }
 
-    // Körs när fönstret stängs. Stänger Spring-kontexten så att databasanslutningen släpps.
+    // Runs when the window is closed. Closes the Spring context so the database connection is released.
     @Override
     public void stop() {
         if (springContext != null) {

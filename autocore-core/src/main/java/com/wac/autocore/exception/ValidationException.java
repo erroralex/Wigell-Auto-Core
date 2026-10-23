@@ -2,8 +2,8 @@ package com.wac.autocore.exception;
 
 /**
  * <b>ValidationException</b>
- * <p>Ansvar: Kastas när indata bryter mot en affärsregel. Rubriken är alltid
- * {@code error.validation}; meddelandet väljs med en befintlig språknyckel.</p>
+ * <p>Responsibility: Thrown when input violates a business rule. The title is always
+ * {@code error.validation}; the message is chosen with an existing language key.</p>
  * <pre>{@code
  * throw new ValidationException("error.requiredField", lang.get("table.regNumber"));
  * }</pre>

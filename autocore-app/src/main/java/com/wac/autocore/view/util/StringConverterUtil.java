@@ -4,13 +4,13 @@ import javafx.util.StringConverter;
 
 import java.util.function.Function;
 
-//Små hjälpmetoder för JavaFX-omvandlare som används i ComboBox.
+//Small helper methods for JavaFX converters used in ComboBox.
 public final class StringConverterUtil {
 
     private StringConverterUtil() {
     }
 
-    // Enbart visning; ComboBox är inte redigerbar, så fromString behövs inte.
+    // Display only; the ComboBox is not editable, so fromString is not needed.
     public static <T> StringConverter<T> display(Function<T, String> toText) {
         return new StringConverter<T>() {
             @Override

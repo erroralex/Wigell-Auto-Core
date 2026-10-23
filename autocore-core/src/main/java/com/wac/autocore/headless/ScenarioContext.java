@@ -5,11 +5,11 @@ import java.util.List;
 
 /**
  * <b>ScenarioContext</b>
- * <p>Ansvar: Delat tillstånd mellan stegen i ett scenario. Ett steg skriver ett värde, t.ex. id:t
- * för en skapad order, och senare steg läser det.</p>
- * <p>Skapas på nytt för varje körning av {@link DropInScenario#run()}, så körningar påverkar
- * inte varandra. Har typade fält i stället för en {@code Map}, så att stavfel upptäcks av
- * kompilatorn.</p>
+ * <p>Responsibility: Shared state between the steps in a scenario. A step writes a value, e.g. the id
+ * of a created order, and later steps read it.</p>
+ * <p>Created anew for each run of {@link DropInScenario#run()}, so runs do not affect
+ * each other. Has typed fields instead of a {@code Map}, so typos are caught by the
+ * compiler.</p>
  */
 public final class ScenarioContext {
 

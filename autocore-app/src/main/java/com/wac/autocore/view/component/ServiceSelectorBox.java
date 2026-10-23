@@ -24,14 +24,14 @@ import java.util.*;
 
 /**
  * ServiceSelectorBox
- * Ansvar: Återanvändbar komponent för att välja flera tjänster. Användaren väljer en tjänst
- * i en ComboBox och klickar Lägg till; valda tjänster visas i en {@link MultiSelectListView}
- * med en Ta bort-knapp per rad, och en summering av pris och tid.
- * Komponenten hämtar ingen data själv: den som skapar den skickar in tillgängliga tjänster,
- * och läser resultatet med {@link #getSelectedServiceIds()} som lämnas till servicelagret.
- * Summeringen är bara visning; sluttid och validering räknas i servicelagret.
- * Tjänster jämförs via id, eftersom {@link ServiceItem} saknar equals/hashCode.
- * Samma tjänst kan inte väljas två gånger.
+ * Responsibility: Reusable component for selecting multiple services. The user picks a service
+ * in a ComboBox and clicks Add; selected services are shown in a {@link MultiSelectListView}
+ * with a Remove button per row, and a summary of price and duration.
+ * The component fetches no data itself: whoever creates it passes in the available services,
+ * and reads the result with {@link #getSelectedServiceIds()}, which is handed to the service layer.
+ * The summary is display only; end time and validation are calculated in the service layer.
+ * Services are compared by id, because {@link ServiceItem} lacks equals/hashCode.
+ * The same service cannot be selected twice.
  */
 public class ServiceSelectorBox extends VBox {
 
@@ -39,24 +39,24 @@ public class ServiceSelectorBox extends VBox {
 
     private static final String ERROR_STYLE_CLASS = "input-error";
 
-    // Tillgängliga tjänster per id, i den ordning de skickades in
+    // Available services by id, in the order they were passed in
     private final Map<Integer, ServiceItem> servicesById = new LinkedHashMap<>();
     private final FilteredList<ServiceItem> selectableServices;
     private final Set<Integer> selectedIds = new HashSet<>();
 
-    // UI-komponenter
+    // UI components
     private final ComboBox<ServiceItem> serviceComboBox = new ComboBox<>();
     private final Button addButton = new Button(lang.get("btn.add"));
-    // MultiSelectListView visar redan valda tjänster med Ta bort-knapp per rad
+    // MultiSelectListView shows the already selected services with a Remove button per row
     private final MultiSelectListView<ServiceItem> selectedListView =
             new MultiSelectListView<>(ServiceSelectorBox::describe);
-    // Label som visar summering av pris och tid för valda tjänster
+    // Label that shows a summary of price and duration for the selected services
     private final Label summaryLabel = new Label();
 
-    // ReadOnlyBooleanWrapper som håller koll på om listan är tom (ingen tjänst vald)
+    // ReadOnlyBooleanWrapper that keeps track of whether the list is empty (no service selected)
     private final ReadOnlyBooleanWrapper empty = new ReadOnlyBooleanWrapper(this, "empty", true);
 
-    // Tar emot en lista av tillgängliga tjänster. Dubbletter ignoreras.
+    // Takes a list of available services. Duplicates are ignored.
     public ServiceSelectorBox(List<ServiceItem> availableServices) {
         Objects.requireNonNull(availableServices, "availableServices");
         for (ServiceItem service : availableServices) {
@@ -65,11 +65,11 @@ public class ServiceSelectorBox extends VBox {
             }
         }
 
-        // Skapar en ObservableList av alla tjänster och en FilteredList som används för ComboBox
+        // Creates an ObservableList of all services and a FilteredList used for the ComboBox
         ObservableList<ServiceItem> allServices = FXCollections.observableArrayList(servicesById.values());
         selectableServices = new FilteredList<>(allServices);
 
-        // Sätter CSS-klass för styling och anropar setup-metoder för ComboBox och Add-knapp
+        // Sets the CSS class for styling and calls the setup methods for the ComboBox and Add button
         getStyleClass().add("service-selector");
         setupComboBox();
         setupAddButton();
@@ -88,7 +88,7 @@ public class ServiceSelectorBox extends VBox {
         onSelectionChanged();
     }
 
-    // Id för valda tjänster i vald ordning. Returnerar en ny kopia vid varje anrop.
+    // Ids of the selected services in the selected order. Returns a new copy on each call.
     public List<Integer> getSelectedServiceIds() {
         List<Integer> ids = new ArrayList<>();
         for (ServiceItem service : selectedListView.getItems()) {
@@ -97,8 +97,8 @@ public class ServiceSelectorBox extends VBox {
         return ids;
     }
 
-    // Ersätter nuvarande val, t.ex. för att visa tjänster som redan finns på en bokning.
-    // Id som inte finns bland tillgängliga tjänster och dubbletter ignoreras.
+    // Replaces the current selection, e.g. to show services that already exist on a booking.
+    // Ids that are not among the available services, and duplicates, are ignored.
     public void selectServiceIds(Collection<Integer> ids) {
         List<ServiceItem> services = new ArrayList<>();
         Set<Integer> added = new HashSet<>();
@@ -113,7 +113,7 @@ public class ServiceSelectorBox extends VBox {
         selectedListView.getItems().setAll(services);
     }
 
-    // Sant när ingen tjänst är vald. Kan bara läsas, t.ex. för att binda en Spara-knapp.
+    // True when no service is selected. Read-only, e.g. for binding a Save button.
     public ReadOnlyBooleanProperty emptyProperty() {
         return empty.getReadOnlyProperty();
     }
@@ -122,7 +122,7 @@ public class ServiceSelectorBox extends VBox {
         return empty.get();
     }
 
-    // Markerar listan med felram (input-error). Tas bort automatiskt när en tjänst läggs till.
+    // Marks the list with an error border (input-error). Removed automatically when a service is added.
     public void setError(boolean error) {
         List<String> styleClasses = selectedListView.getStyleClass();
         if (error) {
@@ -134,7 +134,7 @@ public class ServiceSelectorBox extends VBox {
         }
     }
 
-    // Konfigurerar ComboBox för att visa tillgängliga tjänster
+    // Configures the ComboBox to show the available services
     private void setupComboBox() {
         serviceComboBox.setItems(selectableServices);
         serviceComboBox.setPromptText(lang.get("serviceSelector.prompt"));
@@ -153,7 +153,7 @@ public class ServiceSelectorBox extends VBox {
         });
     }
 
-    // Konfigurerar Add-knappen
+    // Configures the Add button
     private void setupAddButton() {
         addButton.getStyleClass().addAll("btn", "btn-primary");
         addButton.setMinWidth(Region.USE_PREF_SIZE);
@@ -162,7 +162,7 @@ public class ServiceSelectorBox extends VBox {
         addButton.setOnAction(event -> addSelectedService());
     }
 
-    // Lägger till den valda tjänsten i listan om den inte redan finns där
+    // Adds the selected service to the list if it is not already there
     private void addSelectedService() {
         ServiceItem service = serviceComboBox.getValue();
         if (service == null) {
@@ -174,7 +174,7 @@ public class ServiceSelectorBox extends VBox {
         serviceComboBox.setValue(null);
     }
 
-    // Håller id-mängd, ComboBox-filter, tom-status, felmarkering och summering synkroniserade med listan
+    // Keeps the id set, ComboBox filter, empty status, error marking and summary in sync with the list
     private void onSelectionChanged() {
         selectedIds.clear();
         int totalMinutes = 0;
@@ -203,7 +203,7 @@ public class ServiceSelectorBox extends VBox {
                 lang.get("format.minutes", totalMinutes)));
     }
 
-    // Returnerar en beskrivning av tjänsten som visas i ComboBox och summering
+    // Returns a description of the service shown in the ComboBox and the summary
     private static String describe(ServiceItem service) {
         return service.getName()
                 + " – " + lang.get("format.price", service.getPrice())

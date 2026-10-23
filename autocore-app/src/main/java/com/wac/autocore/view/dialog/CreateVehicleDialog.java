@@ -21,7 +21,7 @@ import javafx.util.StringConverter;
 
 /**
  * <b>CreateVehicleDialog</b>
- * <p>Ansvar: Dialog för att skapa ett fordon.</p>
+ * <p>Responsibility: Dialog for creating a vehicle.</p>
  */
 public class CreateVehicleDialog {
 
@@ -44,7 +44,7 @@ public class CreateVehicleDialog {
         this(customerService, vehicleService, null);
     }
 
-    // Med förvald kund, t.ex. när fordonet skapas från en annan dialog.
+    // With a preselected customer, e.g. when the vehicle is created from another dialog.
     public CreateVehicleDialog(CustomerService customerService, VehicleService vehicleService, Customer preselectedCustomer) {
         this.customerService = customerService;
         this.vehicleService = vehicleService;

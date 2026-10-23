@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 /**
  * <b>BookingView</b>
- * <p>Ansvar: Visar och hanterar bokningar i användargränssnittet.</p>
+ * <p>Responsibility: Shows and manages bookings in the user interface.</p>
  */
 public class BookingView extends BaseView {
 
@@ -161,14 +161,14 @@ public class BookingView extends BaseView {
         );
     }
 
-    // Avbokade bokningar döljs tills kryssrutan markeras. Filtret ligger i servicen, vyn väljer bara vilken lista den visar.
+    // Cancelled bookings are hidden until the checkbox is ticked. The filter lives in the service, the view only chooses which list to show.
     private void refreshBookings() {
         bookingObservableList.setAll(showCancelled.isSelected()
                 ? bookingService.listAll()
                 : bookingService.listActive());
     }
 
-    // Förslaget är valfritt, så en bokning utan förslag visar ett tomt fält.
+    // The suggestion is optional, so a booking without a suggestion shows an empty field.
     private String fetchMechanic(Integer mechanicId) {
         if (mechanicId == null) {
             return "";
@@ -282,8 +282,8 @@ public class BookingView extends BaseView {
 
         dialog.showAndWait().ifPresent(result -> {
             try {
-                // createFromPrevious tolkar mechanicId == null som "ärv förslaget". Har användaren rensat förslaget
-                // skapas bokningen i stället med create, som ger samma resultat (dagens priser) men utan förslag.
+                // createFromPrevious interprets mechanicId == null as "inherit the suggestion". If the user has cleared the suggestion,
+                // the booking is instead created with create, which gives the same result (today's prices) but without a suggestion.
                 if (result.getMechanicId() == null) {
                     bookingService.create(
                             result.getVehicleId(),
@@ -358,7 +358,7 @@ public class BookingView extends BaseView {
         });
     }
 
-    // Hjälpmetod. previous kan vara null och ger då en tom dialog
+    // Helper method. previous may be null, which gives an empty dialog
     private CreateBookingDialog newBookingDialog(Booking previous) {
         return new CreateBookingDialog(
                 bookingService,
