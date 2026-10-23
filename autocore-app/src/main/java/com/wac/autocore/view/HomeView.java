@@ -4,6 +4,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 
@@ -12,6 +14,8 @@ import java.net.URL;
  * <p>Ansvar: Startvy som visar logotyp och välkomsttext.</p>
  */
 public class HomeView extends BaseView {
+
+    private static final Logger log = LoggerFactory.getLogger(HomeView.class);
 
     private static final String LOGO_PATH = "assets/wigell-auto-logo.png";
 
@@ -39,7 +43,7 @@ public class HomeView extends BaseView {
             logo.setGraphic(imageView);
             logo.setAlignment(Pos.TOP_CENTER);
         } else {
-            System.err.println("Could not load " + LOGO_PATH + ". Using text placeholder.");
+            log.warn("Could not load logo {}, using text placeholder", LOGO_PATH);
             logo.textProperty().bind(lang.bind("app.title"));
         }
         return logo;

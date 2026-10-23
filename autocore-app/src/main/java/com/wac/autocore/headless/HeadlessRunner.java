@@ -22,6 +22,9 @@ import java.util.Locale;
  * <p>Blev något steg inte som förväntat kastas ett undantag i stället för {@code System.exit}:
  * Spring stänger då kontexten och processen avslutas med felkod, och tester som laddar
  * profilen dödar inte test-JVM:en.</p>
+ * <p>Rapporten skrivs med {@code System.out} med avsikt. Den är programmets utdata till användaren,
+ * inte diagnostik. Headless-profilen loggar bara till fil, så via loggern skulle rapporten inte synas
+ * i terminalen.</p>
  */
 @Component
 @Profile("headless")
