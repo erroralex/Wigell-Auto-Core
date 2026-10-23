@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <!-- Spring Boot's color converter: %clr(...) colors the level in the console, turned off when output is not a terminal -->
+    <conversionRule conversionWord="clr"
+                    class="org.springframework.boot.logging.logback.ColorConverter"/>
+
     <!--
-        A shared pattern for all appenders.
+        Two patterns with the same content:
+        LOG_PATTERN is used by the file log and is uncolored, so no ANSI codes end up in the file.
+        CONSOLE_PATTERN is used by the console and is the same pattern colored with %clr.
         The MDC keys in %X{...} are defined in
         com.wac.autocore.logging.LogKeys (autocore-core).
-        The names must match exactly. If a key is changed there, it must be changed here as well.
+        The names must match exactly. If a key is changed there, it must be changed in BOTH patterns here.
     -->
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
+
+    <property name="CONSOLE_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
 
     <!-- Console: used by dev and test, not headless -->
     <springProfile name="!headless">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>${LOG_PATTERN}</pattern>
+                <pattern>${CONSOLE_PATTERN}</pattern>
                 <charset>UTF-8</charset>
             </encoder>
         </appender>
@@ -28,7 +37,7 @@
         </root>
     </springProfile>
 
-    <!-- Headless: rolling file log -->
+    <!-- Headless: rolling file log, uncolored -->
     <springProfile name="headless">
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>logs/autocore-headless.log</file>

@@ -155,12 +155,31 @@ java -jar autocore-app/target/autocore-app-4.0.0.jar
 > The database file `autocore.db` is created in the folder you start from. Start from the root of the repo so
 > the same database is used every time.
 
+## Logging
+
+Logging is configured in `autocore-app/src/main/resources/logback-spring.xml`, with one profile per run mode:
+
+| Profile | Output | Level |
+|---|---|---|
+| default (dev) | Console, colored | `com.wac` DEBUG, everything else INFO |
+| `test` | Console | WARN |
+| `headless` | File, `logs/autocore-headless.log`, uncolored | INFO |
+
+Every line contains time, level, logger and the MDC fields `corrId`, `op`, `user` and `wo`.
+
+**Colors in IntelliJ:** Spring Boot only turns on colors when output goes to a terminal, and with Java 21
+IntelliJ's console does not count as one. Add the following to the run configuration's VM options:
+
+    -Dspring.output.ansi.enabled=always
+
+The same applies to Git Bash. There, pass `--spring.output.ansi.enabled=always` after the jar file.
+Do not set it in `application.properties`, since ANSI codes would then end up in test and CI logs.
+
 # Running without a UI (headless)
 
 The application's services can run without JavaFX. Headless mode runs a complete drop-in flow
 (create, add services and mechanic, confirm, start, complete, invoice, pay) followed by
 two disallowed operations, and prints the result with the same error keys and texts as the UI.
-
 ```bash
 ./mvnw clean package
 java -jar autocore-app/target/autocore-app-4.0.0.jar --spring.profiles.active=headless
