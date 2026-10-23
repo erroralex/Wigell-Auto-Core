@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  * <b>LocalizedError</b>
- * <p>Ansvar: Resultatet av en översatt {@link ErrorReport}, färdig att visa i en dialog eller skriva ut.</p>
+ * <p>Responsibility: The result of a translated {@link ErrorReport}, ready to show in a dialog or print.</p>
  */
 public final class LocalizedError {
 

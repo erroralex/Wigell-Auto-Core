@@ -28,19 +28,19 @@ import static org.mockito.Mockito.when;
 
 /**
  * <b>BookingTest</b>
- * <p>Ansvar: Bevisar att {@link Booking} äger sina regler: låset, minst en tjänst, avtalade priser (snapshots),
- * sluttid från snapshot-minuter, krav på datum och starttid, att bokningen inte passerar midnatt,
- * att raderna är skrivskyddade, att {@code copyAsNew} använder dagens priser och att avbokning
- * bara tillåts innan arbetsorder finns.
- * Den föreslagna mekanikern är valfri och kan bytas, men är ingen reservation.</p>
- * <p>Tjänsterna är mockar med unika id, eftersom riktiga {@link ServiceItem} får id 0 tills de sparas
- * och då skulle räknas som samma tjänst.</p>
+ * <p>Responsibility: Proves that {@link Booking} owns its rules: the lock, at least one service, agreed prices (snapshots),
+ * end time from snapshot minutes, required date and start time, that the booking does not pass midnight,
+ * that the lines are read-only, that {@code copyAsNew} uses today's prices and that cancellation
+ * is only allowed before a work order exists.
+ * The suggested mechanic is optional and can be changed, but is not a reservation.</p>
+ * <p>The services are mocks with unique ids, because real {@link ServiceItem}s get id 0 until they are saved
+ * and would then count as the same service.</p>
  */
 class BookingTest {
 
     private static final LocalDate DATE = LocalDate.of(2026, 11, 2);
     private static final LocalTime EIGHT = LocalTime.of(8, 0);
-    private static final String DESCRIPTION = "Service inför vintern";
+    private static final String DESCRIPTION = "Winter service";
 
     private ServiceItem oil;
     private ServiceItem brakes;
@@ -48,15 +48,15 @@ class BookingTest {
 
     @BeforeEach
     void setUp() {
-        oil = service(1, "Oljebyte", "899.50", 45);
-        brakes = service(2, "Bromsinspektion", "1295.00", 60);
-        diag = service(3, "Diagnostik", "598.50", 60);
+        oil = service(1, "Oil change", "899.50", 45);
+        brakes = service(2, "Brake inspection", "1295.00", 60);
+        diag = service(3, "Diagnostics", "598.50", 60);
     }
 
-    // ----- Konstruktorn -----
+    // ----- The constructor -----
 
     @Test
-    @DisplayName("Spec-exempel: tre tjänster från 08:00 ger 2 793,00 kr, 165 min och slut 10:45")
+    @DisplayName("Spec example: three services from 08:00 give 2 793,00 kr, 165 min and end 10:45")
     void constructorCalculatesTotalsAndEndTimeForSpecExample() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil, brakes, diag));
 
@@ -68,7 +68,7 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("Konstruktorn kräver tjänst, datum och starttid och avvisar en bokning som slutar vid midnatt (22:00 + 120 min)")
+    @DisplayName("The constructor requires a service, date and start time and rejects a booking that ends at midnight (22:00 + 120 min)")
     void constructorEnforcesBookingRules() {
         assertMessageKey("error.serviceSelect",
                 () -> new Booking(1, 2, DATE, EIGHT, DESCRIPTION, null));
@@ -78,7 +78,7 @@ class BookingTest {
                 () -> new Booking(1, 2, null, EIGHT, DESCRIPTION, Arrays.asList(oil)));
         assertMessageKey("error.startTimeSelect",
                 () -> new Booking(1, 2, DATE, null, DESCRIPTION, Arrays.asList(oil)));
-        // Gränsfallen (före, exakt och efter midnatt) testas i TimeSlotTest.
+        // The edge cases (before, exactly at and after midnight) are tested in TimeSlotTest.
         assertMessageKey("error.booking.pastMidnight",
                 () -> new Booking(1, 2, DATE, LocalTime.of(22, 0), DESCRIPTION, Arrays.asList(brakes, diag)));
     }
@@ -86,7 +86,7 @@ class BookingTest {
     // ----- update -----
 
     @Test
-    @DisplayName("update behåller avtalat pris för befintlig tjänst och snapshotar bara nya tjänster till dagens pris")
+    @DisplayName("update keeps the agreed price for an existing service and snapshots only new services at today's price")
     void updateKeepsExistingSnapshotsAndSnapshotsOnlyNewServices() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil, brakes));
         when(oil.getPrice()).thenReturn(Money.of("999.50"));
@@ -101,7 +101,7 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("update tar bort avvalda tjänster och räknar sluttid från snapshot-minuter, inte katalogens")
+    @DisplayName("update removes deselected services and calculates the end time from snapshot minutes, not the catalog's")
     void updateRemovesDeselectedServicesAndUsesSnapshotDuration() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil, brakes));
         when(oil.getEstimatedMinutes()).thenReturn(90);
@@ -114,23 +114,23 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("update ändrar fordon, mekaniker, datum, starttid och beskrivning")
+    @DisplayName("update changes vehicle, mechanic, date, start time and description")
     void updateChangesAllFields() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
         LocalDate newDate = DATE.plusDays(1);
 
-        booking.update(3, 4, newDate, LocalTime.of(10, 0), "Ny beskrivning", Arrays.asList(oil));
+        booking.update(3, 4, newDate, LocalTime.of(10, 0), "New description", Arrays.asList(oil));
 
         assertEquals(3, booking.getVehicleId());
         assertEquals(4, booking.getMechanicId());
         assertEquals(newDate, booking.getDate());
         assertEquals(LocalTime.of(10, 0), booking.getStartTime());
         assertEquals(LocalTime.of(10, 45), booking.getEndTime());
-        assertEquals("Ny beskrivning", booking.getDescription());
+        assertEquals("New description", booking.getDescription());
     }
 
     @Test
-    @DisplayName("update kräver tjänst, datum och starttid")
+    @DisplayName("update requires a service, date and start time")
     void updateRequiresServicesDateAndStartTime() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
 
@@ -145,12 +145,12 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("En misslyckad update lämnar bokningen helt oförändrad")
+    @DisplayName("A failed update leaves the booking completely unchanged")
     void failedUpdateLeavesBookingUnchanged() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
 
         assertMessageKey("error.booking.pastMidnight",
-                () -> booking.update(3, 4, DATE.plusDays(1), LocalTime.of(23, 0), "Ny beskrivning",
+                () -> booking.update(3, 4, DATE.plusDays(1), LocalTime.of(23, 0), "New description",
                         Arrays.asList(brakes, diag)));
 
         assertEquals(1, booking.getVehicleId());
@@ -162,10 +162,10 @@ class BookingTest {
         assertEquals(Arrays.asList(1), serviceIds(booking));
     }
 
-    // ----- Föreslagen mekaniker -----
+    // ----- Suggested mechanic -----
 
     @Test
-    @DisplayName("Den föreslagna mekanikern är valfri och update kan byta och ta bort den")
+    @DisplayName("The suggested mechanic is optional and update can change and remove it")
     void suggestedMechanicIsOptionalAndCanBeChangedAndCleared() {
         Booking booking = new Booking(1, null, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
         assertNull(booking.getMechanicId());
@@ -177,10 +177,10 @@ class BookingTest {
         assertNull(booking.getMechanicId());
     }
 
-    // ----- Låset -----
+    // ----- The lock -----
 
     @Test
-    @DisplayName("update på en bokning som är låst av en pågående arbetsorder eller avbokad kastar BookingLockedException och ändrar ingenting")
+    @DisplayName("update on a booking that is locked by an ongoing work order or cancelled throws BookingLockedException and changes nothing")
     void updateOnLockedBookingThrows() {
         Booking inProgress = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
         inProgress.followWorkOrder(WorkOrderStatus.IN_PROGRESS);
@@ -196,7 +196,7 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("En avbruten arbetsorder låser upp bokningen igen (semantik från #123)")
+    @DisplayName("A cancelled work order unlocks the booking again (semantics from #123)")
     void updateIsAllowedAgainAfterWorkOrderIsCancelled() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
         booking.followWorkOrder(WorkOrderStatus.IN_PROGRESS);
@@ -207,10 +207,10 @@ class BookingTest {
         assertEquals(Arrays.asList(1, 2), serviceIds(booking));
     }
 
-    // ----- Avbokning -----
+    // ----- Cancellation -----
 
     @Test
-    @DisplayName("cancel på en bokad bokning ger status CANCELLED")
+    @DisplayName("cancel on a booked booking gives status CANCELLED")
     void cancelFromBookedSetsCancelled() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
 
@@ -220,7 +220,7 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("cancel kastar BookingLockedException när bokningen har en arbetsorder eller redan är avbokad")
+    @DisplayName("cancel throws BookingLockedException when the booking has a work order or is already cancelled")
     void cancelFromOtherStatusesThrows() {
         for (WorkOrderStatus workOrderStatus : Arrays.asList(
                 WorkOrderStatus.DRAFT, WorkOrderStatus.IN_PROGRESS, WorkOrderStatus.COMPLETED)) {
@@ -228,7 +228,7 @@ class BookingTest {
             booking.followWorkOrder(workOrderStatus);
             BookingStatus before = booking.getStatus();
 
-            assertThrows(BookingLockedException.class, booking::cancel, "Från " + before);
+            assertThrows(BookingLockedException.class, booking::cancel, "From " + before);
             assertEquals(before, booking.getStatus());
         }
 
@@ -240,7 +240,7 @@ class BookingTest {
     // ----- applyWorkOrderPlan -----
 
     @Test
-    @DisplayName("applyWorkOrderPlan flyttar en bokning med arbetsorder och behåller avtalade priser")
+    @DisplayName("applyWorkOrderPlan moves a booking with a work order and keeps the agreed prices")
     void applyWorkOrderPlanFollowsOrderAndKeepsSnapshots() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil, brakes));
         booking.followWorkOrder(WorkOrderStatus.CONFIRMED);
@@ -261,7 +261,7 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("applyWorkOrderPlan kastar BookingLockedException när bokningen inte har en planerbar arbetsorder")
+    @DisplayName("applyWorkOrderPlan throws BookingLockedException when the booking does not have a plannable work order")
     void applyWorkOrderPlanRequiresWorkOrderCreated() {
         Booking booked = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
         assertThrows(BookingLockedException.class,
@@ -283,7 +283,7 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("applyWorkOrderPlan följer samma regler som update: tjänst, datum, starttid och midnatt")
+    @DisplayName("applyWorkOrderPlan follows the same rules as update: service, date, start time and midnight")
     void applyWorkOrderPlanUsesBookingRules() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
         booking.followWorkOrder(WorkOrderStatus.DRAFT);
@@ -300,10 +300,10 @@ class BookingTest {
         assertEquals(Arrays.asList(1), serviceIds(booking));
     }
 
-    // ----- Skrivskyddade rader -----
+    // ----- Read-only lines -----
 
     @Test
-    @DisplayName("getItems() är skrivskyddad")
+    @DisplayName("getItems() is read-only")
     void itemsAreReadOnly() {
         Booking booking = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil));
         List<BookingServiceItem> items = booking.getItems();
@@ -314,11 +314,11 @@ class BookingTest {
     // ----- copyAsNew -----
 
     @Test
-    @DisplayName("copyAsNew använder dagens katalogpris, nytt datum och ny tid, och lämnar originalet orört")
+    @DisplayName("copyAsNew uses today's catalog price, a new date and a new time, and leaves the original untouched")
     void copyAsNewUsesCurrentCatalogPrices() {
         Booking original = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil, brakes));
         original.followWorkOrder(WorkOrderStatus.COMPLETED);
-        ServiceItem oilToday = service(1, "Oljebyte", "999.50", 45);
+        ServiceItem oilToday = service(1, "Oil change", "999.50", 45);
         LocalDate newDate = DATE.plusWeeks(1);
 
         Booking copy = original.copyAsNew(newDate, LocalTime.of(9, 0), Arrays.asList(oilToday, brakes, diag));
@@ -340,7 +340,7 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("copyAsNew kastar om en tjänst inte längre finns i katalogen")
+    @DisplayName("copyAsNew throws if a service no longer exists in the catalog")
     void copyAsNewThrowsWhenServiceIsMissingFromCatalog() {
         Booking original = new Booking(1, 2, DATE, EIGHT, DESCRIPTION, Arrays.asList(oil, brakes));
 
@@ -350,7 +350,7 @@ class BookingTest {
         assertEquals("error.serviceNotFound", e.getMessageKey());
     }
 
-    // ----- Hjälpmetoder -----
+    // ----- Helper methods -----
 
     private static ServiceItem service(int id, String name, String price, int minutes) {
         ServiceItem item = mock(ServiceItem.class);
@@ -371,7 +371,7 @@ class BookingTest {
         return booking.getItems().stream()
                 .filter(i -> i.getServiceItemId() == serviceItemId)
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Tjänst " + serviceItemId + " saknas i bokningen"));
+                .orElseThrow(() -> new AssertionError("Service " + serviceItemId + " is missing from the booking"));
     }
 
     private static void assertMessageKey(String expectedKey, Executable action) {

@@ -16,19 +16,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>TableRebuildMigrationTest</b>
- * <p>Ansvar: Bevisar att V7 och V13 körs utanför Flyways transaktion, så som deras
- * {@code .sql.conf}-filer anger. Båda skripten bygger om en föräldratabell och slår av
- * FK-kontrollen med {@code PRAGMA foreign_keys = OFF}. SQLite ignorerar den PRAGMA:n inuti
- * en transaktion, så om Flyway inte läser {@code .conf}-filen stoppar FK-kontrollen
- * {@code DROP TABLE} och migreringen fallerar.</p>
+ * <p>Responsibility: Proves that V7 and V13 run outside Flyway's transaction, as their
+ * {@code .sql.conf} files specify. Both scripts rebuild a parent table and turn off
+ * the FK check with {@code PRAGMA foreign_keys = OFF}. SQLite ignores that PRAGMA inside
+ * a transaction, so if Flyway does not read the {@code .conf} file the FK check stops
+ * {@code DROP TABLE} and the migration fails.</p>
  *
- * <p>Anslutningen öppnas med {@code foreign_keys=true}, precis som appens Hikari-pool.
- * Utan det är FK-kontrollen avslagen i SQLite och testet skulle gå igenom även om
- * {@code .conf}-filen ignorerades.</p>
+ * <p>The connection is opened with {@code foreign_keys=true}, just like the app's Hikari pool.
+ * Without it the FK check is disabled in SQLite and the test would pass even if
+ * the {@code .conf} file were ignored.</p>
  *
- * <p>Testet migrerar först till versionen före ombyggnaden, skriver in barnrader som pekar
- * på tabellen som byggs om, och kör sedan resten. Efteråt ska raderna finnas kvar med
- * samma kopplingar och {@code PRAGMA foreign_key_check} vara tom.</p>
+ * <p>The test first migrates to the version before the rebuild, inserts child rows that point
+ * to the table being rebuilt, and then runs the rest. Afterwards the rows should still exist with
+ * the same links and {@code PRAGMA foreign_key_check} should be empty.</p>
  */
 class TableRebuildMigrationTest {
 
@@ -134,7 +134,7 @@ class TableRebuildMigrationTest {
     }
 
     /**
-     * Migrerar till {@code target}, eller till senaste versionen om target är null.
+     * Migrates to {@code target}, or to the latest version if target is null.
      */
     private void migrate(String url, String target) {
         var config = Flyway.configure()

@@ -14,11 +14,11 @@ import java.util.Objects;
 
 /**
  * ServicePackageSelectorBox
- * Ansvar: Återanvändbar komponent för att välja ett servicepaket.
- * Komponenten hämtar ingen data själv: den som skapar den skickar in tillgängliga paket,
- * och läser resultatet med {@link #getSelectedPackage()} eller
+ * Responsibility: Reusable component for selecting a service package.
+ * The component fetches no data itself: whoever creates it passes in the available packages,
+ * and reads the result with {@link #getSelectedPackage()} or
  * {@link #selectedPackageProperty()}.
- * När ett paket väljs ansvarar anroparen (dialogen) för att fylla på sin ServiceSelectorBox.
+ * When a package is selected, the caller (the dialog) is responsible for filling its ServiceSelectorBox.
  */
 public class ServicePackageSelectorBox extends VBox {
 

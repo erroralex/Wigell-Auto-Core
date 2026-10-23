@@ -11,15 +11,15 @@ import java.util.Objects;
 
 /**
  * <b>WorkOrderChange</b>
- * <p>Ansvar: En skillnad mellan två arbetsordrar, t.ex. en avbruten order och den nya ordern som skapas
- * från bokningen vid återöppning. Oföränderligt värdeobjekt.</p>
- * <p>Ändringar av en tjänst bär raderna före och efter ({@code null} när raden saknas på ena sidan).
- * Byte av mekaniker eller fordon bär id:n före och efter, flytt av datum eller starttid bär värdena före och efter.
- * Vyn översätter id till namn och formaterar beloppen.</p>
- * <p>{@link #between(WorkOrder, WorkOrder)} jämför två arbetsordrar och listar vad som skiljer: fordon, mekaniker,
- * datum, starttid, borttagna tjänster, ändrat avtalat pris eller tid och tillagda tjänster. Raderna matchas på tjänstens id.
- * Används vid återöppning för att informera om vad som har ändrats i bokningen sedan ordern avbröts.
- * Jämförelsen spärrar ingenting.</p>
+ * <p>Responsibility: A difference between two work orders, e.g. a cancelled order and the new order created
+ * from the booking on reopening. Immutable value object.</p>
+ * <p>Changes to a service carry the lines before and after ({@code null} when the line is missing on one side).
+ * A change of mechanic or vehicle carries the ids before and after, a move of date or start time carries the values before and after.
+ * The view translates ids to names and formats the amounts.</p>
+ * <p>{@link #between(WorkOrder, WorkOrder)} compares two work orders and lists what differs: vehicle, mechanic,
+ * date, start time, removed services, changed agreed price or duration and added services. The lines are matched on the service id.
+ * Used on reopening to inform about what has changed in the booking since the order was cancelled.
+ * The comparison blocks nothing.</p>
  */
 public final class WorkOrderChange {
 
@@ -55,7 +55,7 @@ public final class WorkOrderChange {
         this.currentStartTime = currentStartTime;
     }
 
-    // Ordningen är fast: fordon, mekaniker, datum, starttid, de tidigare raderna i sin ordning och sist de tillagda tjänsterna.
+    // The order is fixed: vehicle, mechanic, date, start time, the previous lines in their order and finally the added services.
     public static List<WorkOrderChange> between(WorkOrder previous, WorkOrder current) {
         Objects.requireNonNull(previous, "previous must not be null");
         Objects.requireNonNull(current, "current must not be null");
@@ -131,7 +131,7 @@ public final class WorkOrderChange {
         return type;
     }
 
-    // Namnet på tjänsten som ändringen gäller, eller null vid byte av mekaniker eller fordon
+    // The name of the service the change concerns, or null for a change of mechanic or vehicle
     public String getServiceName() {
         if (currentItem != null) {
             return currentItem.getServiceName();

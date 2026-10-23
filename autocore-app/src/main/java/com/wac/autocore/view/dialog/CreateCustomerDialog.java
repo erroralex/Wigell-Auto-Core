@@ -18,7 +18,7 @@ import javafx.scene.layout.GridPane;
 
 /**
  * <b>CreateCustomerDialog</b>
- * <p>Ansvar: Dialog för att skapa en ny kund.</p>
+ * <p>Responsibility: Dialog for creating a new customer.</p>
  */
 public class CreateCustomerDialog {
 

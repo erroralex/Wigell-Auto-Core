@@ -1,13 +1,13 @@
 package com.wac.autocore.logging;
 
 /**
- * Nycklar för MDC (Mapped Diagnostic Context) som används för att spåra
- * en användaroperation genom loggen.
+ * Keys for the MDC (Mapped Diagnostic Context) used to trace
+ * a user operation through the log.
  *
- * <p><b>Viktigt:</b> värdena måste stämma exakt med {@code %X{...}} i
- * {@code LOG_PATTERN} i {@code autocore-app/src/main/resources/logback-spring.xml}.
- * Byter du namn på en nyckel här måste mönstret ändras där också,
- * annars blir fältet tomt i loggen utan att något kompileringsfel uppstår.
+ * <p><b>Important:</b> the values must match {@code %X{...}} in
+ * {@code LOG_PATTERN} in {@code autocore-app/src/main/resources/logback-spring.xml}
+ * exactly. If you rename a key here, the pattern must be changed there as well,
+ * otherwise the field is empty in the log without any compilation error.
  *
  * @see "autocore-app/src/main/resources/logback-spring.xml"
  * @see org.slf4j.MDC
@@ -20,6 +20,6 @@ public final class LogKeys {
     public static final String WORK_ORDER_ID = "workOrderId";
 
     private LogKeys() {
-        // Ska inte instansieras
+        // Not meant to be instantiated
     }
 }

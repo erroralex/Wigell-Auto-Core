@@ -5,7 +5,7 @@ import java.time.LocalTime;
 
 /**
  * <b>MechanicDoubleBookingException</b>
- * <p>Kastas när en mekaniker redan är bokad under vald tid. Är ett DomainException så att den globala felhanteringen visar rätt översatt text.</p>
+ * <p>Thrown when a mechanic is already booked during the selected time. It is a DomainException so the global error handling shows the correct translated text.</p>
  */
 public class MechanicDoubleBookingException extends DomainException {
 

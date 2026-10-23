@@ -1,4 +1,4 @@
-/* JavaFX-rot: gemensam typografi, färgpalett och fokusfärger för hela applikationen. */
+/* JavaFX root: shared typography, color palette and focus colors for the whole application. */
 .root {
     -fx-font-family: "Segoe UI", "System";
     -fx-background-color: #E2E0D8;
@@ -10,12 +10,12 @@
     -fx-text-fill: #2E332B;
 }
 
-/* Används av MainLayout som applikationens yttre BorderPane. */
+/* Used by MainLayout as the application's outer BorderPane. */
 .main-layout {
     -fx-background-color: #E2E0D8;
 }
 
-/* Används av SideNavigation för menyn till vänster. */
+/* Used by SideNavigation for the menu on the left. */
 .side-navigation {
     -fx-background-color: #EDEBE5;
     -fx-padding: 1.5em;
@@ -25,15 +25,15 @@
     -fx-pref-width: 17em;
 }
 
-/* Används av samtliga huvudvyer som gemensam innehållsyta. */
+/* Used by all main views as the shared content area. */
 .content-area {
     -fx-background-color: #E2E0D8;
     -fx-padding: 1.85em;
 }
 
 /*
- * .nav-button används av SideNavigation, .btn av applikationens åtgärdsknappar
- * och .button läggs automatiskt på alla JavaFX Button-kontroller.
+ * .nav-button is used by SideNavigation, .btn by the application's action buttons
+ * and .button is added automatically to all JavaFX Button controls.
  */
 .nav-button,
 .btn,
@@ -47,14 +47,14 @@
     -fx-font-weight: 600;
 }
 
-/* Hover för navigationsknappar, egna .btn-knappar och JavaFX Button. */
+/* Hover for navigation buttons, custom .btn buttons and JavaFX Button. */
 .nav-button:hover,
 .btn:hover,
 .button:hover {
     -fx-background-color: #C7C3B2;
 }
 
-/* Fokusmarkering för knappar och JavaFX:s vanliga formulärkontroller. */
+/* Focus highlight for buttons and JavaFX's standard form controls. */
 .nav-button:focused,
 .btn:focused,
 .button:focused,
@@ -66,7 +66,7 @@
     -fx-focus-color: #55624F;
 }
 
-/* Aktiv navigationsknapp i SideNavigation och primärknappar i vyer och formulärdialoger. */
+/* Active navigation button in SideNavigation and primary buttons in views and form dialogs. */
 .nav-button-active,
 .btn-primary {
     -fx-background-color: #55624F;
@@ -74,52 +74,52 @@
     -fx-text-fill: #F2F2F2;
 }
 
-/* Hover för primärknappar och den aktiva navigationsknappen. */
+/* Hover for primary buttons and the active navigation button. */
 .btn-primary:hover,
 .nav-button-active:hover {
     -fx-background-color: #7C8068;
     -fx-border-color: #7C8068;
 }
 
-/* Används av avbryt/stäng-knappar i Kund-, Fordons- och Mekanikerbokningsvyerna. */
+/* Used by cancel/close buttons in the Customer, Vehicle and MechanicBookings views. */
 .btn-secondary {
     -fx-background-color: #EDEBE5;
     -fx-border-color: #B9B6A5;
 }
 
 
-/* JavaFX lägger automatiskt .label på alla Label-kontroller. */
+/* JavaFX automatically adds .label to all Label controls. */
 .label {
     -fx-text-fill: #2E332B;
 }
 
-/* Används av BookingView för beskrivande sekundärtext. */
+/* Used by BookingView for descriptive secondary text. */
 .text-secondary {
     -fx-text-fill: #5C6156;
 }
 
 
-/* Används för rubriker i applikationens huvudvyer. */
+/* Used for headings in the application's main views. */
 .text-title {
     -fx-font-size: 2.45em;
     -fx-font-weight: 700;
 }
 
-/* Används av CreateBookingDialog för röda valideringsmeddelanden. */
+/* Used by CreateBookingDialog for red validation messages. */
 .text-error {
     -fx-text-fill: #E57373;
     -fx-font-weight: 700;
 }
 
-/* Används av HomeView och MechanicBookingsView för framträdande innehållstext. */
+/* Used by HomeView and MechanicBookingsView for prominent content text. */
 .text-content {
     -fx-font-size: 1.7em;
     -fx-font-weight: 700;
 }
 
 /*
- * .input används av sökfält och formulärfält. Övriga selektorer läggs automatiskt
- * på motsvarande JavaFX-kontroller.
+ * .input is used by search fields and form fields. The other selectors are added automatically
+ * to the corresponding JavaFX controls.
  */
 .input,
 .text-field,
@@ -134,12 +134,12 @@
     -fx-background-radius: 0.45em;
 }
 
-/* Används för ogiltiga fält i Boknings-, Kund- och Fordonsdialogerna. */
+/* Used for invalid fields in the Booking, Customer and Vehicle dialogs. */
 .input-error {
     -fx-border-color: #E57373;
 }
 
-/* JavaFX lägger automatiskt .table-view på tabellerna i huvudvyerna. */
+/* JavaFX automatically adds .table-view to the tables in the main views. */
 .table-view {
     -fx-background-color: #EDEBE5;
     -fx-border-color: #B9B6A5;
@@ -147,75 +147,75 @@
     -fx-background-radius: 0.6em;
 }
 
-/* JavaFX:s bakgrund bakom tabellernas kolumnrubriker. */
+/* JavaFX's background behind the tables' column headers. */
 .table-view .column-header-background {
     -fx-background-color: #D8D5C9;
 }
 
-/* JavaFX:s enskilda kolumnrubriker och utfyllnad efter sista kolumnen. */
+/* JavaFX's individual column headers and the filler after the last column. */
 .table-view .column-header,
 .table-view .filler {
     -fx-background-color: #D8D5C9;
     -fx-border-color: #B9B6A5;
 }
 
-/* JavaFX:s tabellrader i samtliga TableView-kontroller. */
+/* JavaFX's table rows in all TableView controls. */
 .table-view .table-row-cell {
     -fx-background-color: #EDEBE5;
     -fx-text-background-color: #2E332B;
 }
 
-/* Hover för JavaFX:s tabellrader med innehåll; tomma utfyllnadsrader påverkas inte. */
+/* Hover for JavaFX's table rows with content; empty filler rows are not affected. */
 .table-view .table-row-cell:filled:hover {
     -fx-background-color: #7C8068;
     -fx-text-background-color: #F2F2F2;
 }
 
-/* Markerad rad med innehåll i JavaFX:s tabeller. */
+/* Selected row with content in JavaFX's tables. */
 .table-view .table-row-cell:filled:selected {
     -fx-background-color: #55624F;
     -fx-text-background-color: #F2F2F2;
 }
 
-/* Markerad rad använder hover-färgen under muspekaren, som den aktiva navigationsknappen. */
+/* A selected row uses the hover color under the mouse pointer, like the active navigation button. */
 .table-view .table-row-cell:filled:selected:hover {
     -fx-background-color: #7C8068;
     -fx-text-background-color: #F2F2F2;
 }
 
-/* JavaFX lägger automatiskt .dialog-pane på alla formulärdialoger och Alerts. */
+/* JavaFX automatically adds .dialog-pane to all form dialogs and Alerts. */
 .dialog-pane {
     -fx-background-color: #D8D5C9;
 }
 
-/* Formulärinnehåll i dialogerna för Bokning, Kund, Fordon, Faktura, Betalning och Arbetsorder. */
+/* Form content in the dialogs for Booking, Customer, Vehicle, Invoice, Payment and Work Order. */
 .dialog-pane > VBox.content,
 .dialog-pane > GridPane.content {
     -fx-padding: 1.23em;
 }
 
-/* JavaFX:s rubrikpanel i dialoger som har en header. */
+/* JavaFX's header panel in dialogs that have a header. */
 .dialog-pane .header-panel {
     -fx-background-color: #D8D5C9;
 }
 
-/* JavaFX:s vanliga innehållstext i dialoger och Alerts. */
+/* JavaFX's regular content text in dialogs and Alerts. */
 .dialog-pane .content.label {
     -fx-text-fill: #2E332B;
 }
 
-/* Innehåll och rubrik i JavaFX Alerts av typen ERROR. */
+/* Content and header in JavaFX Alerts of type ERROR. */
 .alert.error.dialog-pane .content.label,
 .alert.error.dialog-pane .header-panel .label {
     -fx-font-weight: 700;
 }
 
-/* JavaFX lägger automatiskt .alert på informations-, fel- och bekräftelsedialoger. */
+/* JavaFX automatically adds .alert to information, error and confirmation dialogs. */
 .alert {
     -fx-background-color: #D8D5C9;
 }
 
-/* JavaFX lägger automatiskt .list-view på listan över serviceposter i Arbetsorderdialogen. */
+/* JavaFX automatically adds .list-view to the list of service items in the Work Order dialog. */
 .list-view {
     -fx-background-color: #EDEBE5;
     -fx-border-color: #B9B6A5;
@@ -223,73 +223,73 @@
     -fx-background-radius: 0.45em;
 }
 
-/* JavaFX:s celler i ListView-kontroller. */
+/* JavaFX's cells in ListView controls. */
 .list-cell {
     -fx-background-color: #EDEBE5;
     -fx-text-fill: #2E332B;
 }
 
-/* Hover för celler med innehåll i JavaFX ListView. */
+/* Hover for cells with content in JavaFX ListView. */
 .list-cell:filled:hover {
     -fx-background-color: #D8D5C9;
 }
 
-/* Markerad cell med innehåll i JavaFX ListView. */
+/* Selected cell with content in JavaFX ListView. */
 .list-cell:filled:selected {
     -fx-background-color: #55624F;
     -fx-text-fill: #F2F2F2;
 }
 
-/* Fokusram för JavaFX ListView. */
+/* Focus border for JavaFX ListView. */
 .list-view:focused {
     -fx-border-color: #55624F;
 }
 
-/* ServiceSelector: rad med ComboBox och Lägg till-knapp i Arbetsorderdialogen. */
+/* ServiceSelector: row with ComboBox and Add button in the Work Order dialog. */
 .service-selector {
     -fx-spacing: 0.6em;
 }
 
-/* Raden med ComboBox och Lägg till-knapp. */
+/* The row with ComboBox and Add button. */
 .service-selector-picker {
     -fx-spacing: 0.6em;
     -fx-alignment: center-left;
 }
 
-/* MultiSelectListView: storlek i em istället för ListView:s fasta standardhöjd. */
+/* MultiSelectListView: size in em instead of ListView's fixed default height. */
 .multi-select-list {
     -fx-pref-width: 28em;
     -fx-pref-height: 12em;
     -fx-min-height: 6em;
 }
 
-/* MultiSelectListView: celler med text och Ta bort-knapp i Arbetsorderdialogen. */
+/* MultiSelectListView: cells with text and a Remove button in the Work Order dialog. */
 .multi-select-cell {
     -fx-padding: 0.3em 0.5em;
 }
 
-/* MultiSelectListView: en rad med text till vänster, Ta bort-knapp till höger i Arbetsorderdialogen. */
+/* MultiSelectListView: a row with text on the left and a Remove button on the right in the Work Order dialog. */
 .multi-select-row {
     -fx-spacing: 0.6em;
     -fx-alignment: center-left;
 }
 
-/* Kompaktare Ta bort-knapp så att raden inte blir för hög. */
+/* A more compact Remove button so the row does not become too tall. */
 .multi-select-remove {
     -fx-padding: 0.25em 0.7em;
 }
 
-/* .label sätter mörk text explicit; ljus text krävs på den gröna markerade raden. */
+/* .label sets dark text explicitly; light text is required on the green selected row. */
 .multi-select-list .list-cell:filled:selected .label {
     -fx-text-fill: #F2F2F2;
 }
 
-/* .list-view står efter .input-error och skulle annars skriva över felramen. */
+/* .list-view comes after .input-error and would otherwise override the error border. */
 .multi-select-list.input-error {
     -fx-border-color: #E57373;
 }
 
-/* Används av HomeView för skuggan bakom logotypen. */
+/* Used by HomeView for the shadow behind the logo. */
 .home-logo {
     -fx-effect: dropshadow(
             gaussian,
@@ -302,7 +302,7 @@
 
 }
 
-/* Används av InvoiceView för innehåll i fakturadetaljerna. */
+/* Used by InvoiceView for the content in the invoice details. */
 .invoice-detail-content {
     -fx-padding: 1.2em;
     -fx-spacing: 0.8em;

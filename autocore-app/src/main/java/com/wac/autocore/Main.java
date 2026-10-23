@@ -9,16 +9,16 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * <b>Main</b>
- * <p>Ansvar: Startpunkt för applikationen. Väljer läge innan Spring startar:</p>
+ * <p>Responsibility: Entry point of the application. Chooses the mode before Spring starts:</p>
  * <ul>
- *   <li><b>Gränssnitt</b> (standard): startar JavaFX via {@link AutoCoreApp}.</li>
- *   <li><b>Headless</b> ({@code --spring.profiles.active=headless}): startar bara Spring-kontexten,
- *       kör scenariot i {@code HeadlessRunner} och avslutar processen.</li>
+ *   <li><b>UI</b> (default): starts JavaFX via {@link AutoCoreApp}.</li>
+ *   <li><b>Headless</b> ({@code --spring.profiles.active=headless}): starts only the Spring context,
+ *       runs the scenario in {@code HeadlessRunner} and exits the process.</li>
  * </ul>
- * <p>Profilen kontrolleras här och inte av Spring, eftersom valet måste göras innan kontexten
- * finns. Den kan anges som programargument, systemegenskap eller miljövariabel.</p>
- * <p>{@code AutoCoreApp} refereras bara i gränssnittsgrenen. I headless-läget laddas den därför
- * aldrig, och JavaFX behövs inte för att köra applikationen.</p>
+ * <p>The profile is checked here and not by Spring, because the choice must be made before the context
+ * exists. It can be given as a program argument, system property or environment variable.</p>
+ * <p>{@code AutoCoreApp} is referenced only in the UI branch. In headless mode it is therefore
+ * never loaded, and JavaFX is not needed to run the application.</p>
  */
 public class Main {
 
@@ -55,7 +55,7 @@ public class Main {
                 || containsHeadless(System.getenv("SPRING_PROFILES_ACTIVE"));
     }
 
-    // Klarar null och kommaseparerade listor, t.ex. "test,headless"
+    // Handles null and comma-separated lists, e.g. "test,headless"
     private static boolean containsHeadless(String profiles) {
         if (profiles == null) {
             return false;

@@ -2,7 +2,7 @@ package com.wac.autocore.model;
 
 /**
  * <b>WorkOrderChangeType</b>
- * <p>Ansvar: Vilken sorts skillnad {@link WorkOrderChange#between(WorkOrder, WorkOrder)} har hittat mellan två arbetsordrar.</p>
+ * <p>Responsibility: What kind of difference {@link WorkOrderChange#between(WorkOrder, WorkOrder)} has found between two work orders.</p>
  */
 public enum WorkOrderChangeType {
     VEHICLE_CHANGED,

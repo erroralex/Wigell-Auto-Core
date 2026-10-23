@@ -34,8 +34,8 @@ public class MechanicService {
         return mechanicRepository.findById(id);
     }
 
-    // Upptagen just nu = en arbetsorder som reserverar mekanikern pågår enligt planerad tid (regeln ligger i WorkOrder).
-    // Bokningens mekaniker är bara ett förslag och räknas inte.
+    // Busy right now = a work order that reserves the mechanic is in progress according to the planned time (the rule lives in WorkOrder).
+    // The booking's mechanic is only a suggestion and does not count.
     public boolean isBusyNow(Integer mechanicId) {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
@@ -43,7 +43,7 @@ public class MechanicService {
                 .anyMatch(o -> o.reservesMechanicAt(today, now));
     }
 
-    // Bokningar där mekanikern är föreslagen.
+    // Bookings where the mechanic is suggested.
     public List<Booking> listBookingsByMechanicId(int mechanicId) {
         return bookingRepository.findByMechanicId(mechanicId);
     }

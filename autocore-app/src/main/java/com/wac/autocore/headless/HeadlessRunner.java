@@ -15,16 +15,16 @@ import java.util.Locale;
 
 /**
  * <b>HeadlessRunner</b>
- * <p>Ansvar: Kör {@link DropInScenario} när applikationen startas med profilen {@code headless},
- * och skriver ut varje steg. Fel översätts av {@link ErrorReportFormatter}, samma som i
- * gränssnittet, och språknyckeln skrivs ut så att den kan jämföras med UI:t.</p>
- * <p>Språk väljs med {@code --headless.lang=en} (standard är svenska).</p>
- * <p>Blev något steg inte som förväntat kastas ett undantag i stället för {@code System.exit}:
- * Spring stänger då kontexten och processen avslutas med felkod, och tester som laddar
- * profilen dödar inte test-JVM:en.</p>
- * <p>Rapporten skrivs med {@code System.out} med avsikt. Den är programmets utdata till användaren,
- * inte diagnostik. Headless-profilen loggar bara till fil, så via loggern skulle rapporten inte synas
- * i terminalen.</p>
+ * <p>Responsibility: Runs {@link DropInScenario} when the application is started with the {@code headless} profile,
+ * and prints each step. Errors are translated by {@link ErrorReportFormatter}, the same as in
+ * the UI, and the language key is printed so it can be compared with the UI.</p>
+ * <p>The language is chosen with {@code --headless.lang=en} (default is Swedish).</p>
+ * <p>If any step did not go as expected, an exception is thrown instead of {@code System.exit}:
+ * Spring then closes the context and the process exits with an error code, and tests that load
+ * the profile do not kill the test JVM.</p>
+ * <p>The report is written with {@code System.out} on purpose. It is the program's output to the user,
+ * not diagnostics. The headless profile only logs to file, so through the logger the report would not
+ * show in the terminal.</p>
  */
 @Component
 @Profile("headless")
@@ -44,7 +44,7 @@ public class HeadlessRunner implements CommandLineRunner {
         ErrorReportFormatter formatter = new ErrorReportFormatter(translator);
 
         System.out.println();
-        System.out.println("=== Wigell AutoCore - headless drop-in-flöde ===");
+        System.out.println("=== Wigell AutoCore - headless drop-in flow ===");
 
         List<StepResult> results = scenario.run();
         for (StepResult result : results) {
@@ -53,10 +53,10 @@ public class HeadlessRunner implements CommandLineRunner {
 
         long asExpected = results.stream().filter(StepResult::isAsExpected).count();
         System.out.println();
-        System.out.println(asExpected + " av " + results.size() + " steg blev som förväntat");
+        System.out.println(asExpected + " of " + results.size() + " steps went as expected");
 
         if (asExpected != results.size()) {
-            throw new IllegalStateException("Headless-scenariot blev inte som förväntat");
+            throw new IllegalStateException("The headless scenario did not go as expected");
         }
     }
 
@@ -64,10 +64,10 @@ public class HeadlessRunner implements CommandLineRunner {
         return "en".equalsIgnoreCase(lang) ? ResourceBundleTranslator.ENGLISH : ResourceBundleTranslator.SWEDISH;
     }
 
-    // [OK]/[FEL] i stället för symboler, så att utskriften fungerar även i Windows-konsolen
+    // [OK]/[ERR] instead of symbols, so the output also works in the Windows console
     private void print(StepResult result, ErrorReportFormatter formatter) {
-        String status = result.isAsExpected() ? "[OK] " : "[FEL]";
-        String note = result.isExpectedFailure() ? "  (förväntat fel)" : "";
+        String status = result.isAsExpected() ? "[OK] " : "[ERR]";
+        String note = result.isExpectedFailure() ? "  (expected error)" : "";
         System.out.println(status + " " + result.getName() + note);
 
         ErrorReport error = result.getError();
@@ -76,10 +76,10 @@ public class HeadlessRunner implements CommandLineRunner {
             System.out.println("       [" + error.getMessageKey() + "] "
                     + text.getTitle() + ": " + text.getMessage());
 
-            // Oväntade fel (t.ex. NullPointerException) visar också den tekniska orsaken för felsökning
+            // Unexpected errors (e.g. NullPointerException) also show the technical cause for troubleshooting
             if (error.isUnexpected() && error.getCause() != null) {
                 Throwable cause = error.getCause();
-                System.out.println("       Orsak: " + cause.getClass().getSimpleName()
+                System.out.println("       Cause: " + cause.getClass().getSimpleName()
                         + (cause.getMessage() == null ? "" : " - " + cause.getMessage()));
             }
         }

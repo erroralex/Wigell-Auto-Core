@@ -25,14 +25,14 @@ import java.util.Map;
 
 /**
  * <b>VehicleView</b>
- * <p>Ansvar: Visar och hanterar fordon i användargränssnittet.</p>
+ * <p>Responsibility: Shows and manages vehicles in the user interface.</p>
  */
 public class VehicleView extends BaseView {
 
     private final CustomerService customerService;
     private final VehicleService vehicleService;
 
-    // Markörobjekt för "alla kunder". Namnet visas aldrig, texten kommer från converter nedan
+    // Marker object for "all customers". The name is never shown, the text comes from the converter below
     private static final Customer ALL_CUSTOMERS = new Customer("", "", "");
 
     private final TableView<Vehicle> vehicleTable = new TableView<>();
@@ -138,7 +138,7 @@ public class VehicleView extends BaseView {
                 if (customer == null) {
                     return "";
                 }
-                // Markörobjektet översätts här, eftersom ett static-fält inte kan följa språkbyten
+                // The marker object is translated here, because a static field cannot follow language switches
                 return customer == ALL_CUSTOMERS ? lang.get("vehicle.allCustomers") : customer.getName();
             }
 

@@ -4,12 +4,12 @@ import java.util.Objects;
 
 /**
  * <b>ErrorHandler</b>
- * <p>Ansvar: Ett led i felkedjan (<b>Chain of Responsibility</b>). Varje led avgör om det kan hantera
- * ett fel; annars skickas felet vidare till nästa led.</p>
- * <p>{@link #resolve(Throwable)} är en <b>Template Method</b>: själva genomgången av kedjan är fast
- * och {@code final}, medan subklasserna bara fyller i stegen {@link #canHandle(Throwable)} och
+ * <p>Responsibility: A link in the error chain (<b>Chain of Responsibility</b>). Each link decides whether it can handle
+ * an error; otherwise the error is passed on to the next link.</p>
+ * <p>{@link #resolve(Throwable)} is a <b>Template Method</b>: the traversal of the chain itself is fixed
+ * and {@code final}, while the subclasses only fill in the steps {@link #canHandle(Throwable)} and
  * {@link #createReport(Throwable)}.</p>
- * <p><b>Exempel på hur en kedja byggs:</b></p>
+ * <p><b>Example of how a chain is built:</b></p>
  * <pre>{@code
  * ErrorHandler head = new DomainErrorHandler();
  * head.linkWith(new DataAccessErrorHandler())
@@ -22,7 +22,7 @@ public abstract class ErrorHandler {
     private static final int MAX_CAUSE_DEPTH = 20;
     private ErrorHandler next;
 
-    // Kopplar på nästa led och returnerar det, så att kedjan kan byggas flytande
+    // Attaches the next link and returns it, so the chain can be built fluently
     public ErrorHandler linkWith(ErrorHandler next) {
         this.next = Objects.requireNonNull(next, "next");
         return next;

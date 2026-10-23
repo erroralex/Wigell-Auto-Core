@@ -24,12 +24,12 @@ import java.util.function.Supplier;
 
 /**
  * <b>CreateWorkOrderDialog</b>
- * <p>Ansvar: Dialog för att skapa en arbetsorder av någon av typerna i {@link WorkOrderType}.
- * Vilka fält som visas, vad som saknas och vilket resultat som byggs registreras per typ.
- * För drop-in kan användaren även registrera en ny kund eller ett nytt fordon via de befintliga dialogerna.
- * Själva arbetsordern skapas av vyn utifrån {@link Result}.</p>
- * <p>Kund och fordon väljs via {@link CustomerVehiclePicker}. Regeln för problembeskrivning
- * kommer från domänen, så dialogen visar samma fel som modellen kastar.</p>
+ * <p>Responsibility: Dialog for creating a work order of any of the types in {@link WorkOrderType}.
+ * Which fields are shown, what is missing and which result is built are registered per type.
+ * For drop-in the user can also register a new customer or a new vehicle via the existing dialogs.
+ * The work order itself is created by the view based on {@link Result}.</p>
+ * <p>Customer and vehicle are selected via {@link CustomerVehiclePicker}. The rule for the problem description
+ * comes from the domain, so the dialog shows the same error that the model throws.</p>
  */
 public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> {
 
@@ -76,7 +76,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         setTitle(lang.get("workOrder.new"));
         setHeaderText(lang.get("workOrder.create"));
 
-        // Hämta css-styling och applicera på nya dialog:
+        // Fetch the CSS styling and apply it to the new dialog:
         DialogUtil.applyTheme(this);
 
         getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
@@ -118,7 +118,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         originalWorkOrderCombo.setMaxWidth(Double.MAX_VALUE);
         originalWorkOrderCombo.setConverter(StringConverterUtil.display(this::describeOriginalWorkOrder));
 
-        // Samma regel styr både Spara-knappen och förklaringen till varför den är avstängd.
+        // The same rule controls both the Save button and the explanation of why it is disabled.
         StringBinding hint = Bindings.createStringBinding(() -> {
                     String key = missingSelectionKey();
                     return key == null ? null : lang.get(key);
@@ -138,8 +138,8 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         saveButton.getStyleClass().addAll("btn", "btn-primary");
         cancelButton.getStyleClass().addAll("btn", "btn-secondary");
 
-        // Domänen avgör om problembeskrivningen räcker. Vid fel visas domänens meddelande
-        // och dialogen hålls öppen så att användaren inte förlorar det som fyllts i.
+        // The domain decides whether the problem description is sufficient. On error the domain's message is shown
+        // and the dialog is kept open so the user does not lose what has been filled in.
         saveButton.addEventFilter(ActionEvent.ACTION, event -> {
             WorkOrderType type = typeCombo.getValue();
             if (type == null) {
@@ -180,7 +180,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         });
     }
 
-    // Allt som skiljer typerna åt i dialogen. Ny typ = ett nytt block här.
+    // Everything that differs between the types in the dialog. New type = a new block here.
     private void registerTypes() {
         fieldsByType.put(WorkOrderType.PLANNED, Arrays.asList(bookingLabel, bookingCombo));
         hintByType.put(WorkOrderType.PLANNED,
@@ -220,7 +220,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         }
     }
 
-    // Visar eller döljer noder och tar bort dem ur layouten när de är dolda.
+    // Shows or hides nodes and removes them from the layout when they are hidden.
     private static void setShown(boolean shown, Node... nodes) {
         for (Node node : nodes) {
             node.setVisible(shown);
@@ -228,7 +228,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         }
     }
 
-    // Returnerar översättningsnyckel för det som saknas, eller null när typen går att spara.
+    // Returns the translation key for what is missing, or null when the type can be saved.
     private String missingSelectionKey() {
         WorkOrderType type = typeCombo.getValue();
         if (type == null) {
@@ -254,7 +254,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
 
         Booking booking = workOrder.getBookingId() == null ? null : bookingsById.get(workOrder.getBookingId());
 
-        // Bokningsdatum först, annars planerat datum; saknas båda visas en översatt platshållare.
+        // Booking date first, otherwise the planned date; if both are missing a translated placeholder is shown.
         LocalDate date = booking != null ? booking.getDate() : null;
         if (date == null) {
             date = workOrder.getPlannedDate();
@@ -272,7 +272,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         private final String problemDescription;
         private final List<Integer> serviceItemIds;
 
-        // Fabriker i stället för konstruktor: varje typ har olika obligatoriska fält.
+        // Factories instead of a constructor: each type has different required fields.
         private Result(WorkOrderType type,
                        Booking booking,
                        Vehicle vehicle,

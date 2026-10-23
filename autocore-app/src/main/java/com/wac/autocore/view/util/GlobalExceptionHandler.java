@@ -5,11 +5,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <b>GlobalExceptionHandler</b>
- * <p>Ansvar: Fångar alla undantag som ingen annan kod har fångat och skickar dem vidare till {@link ErrorFacade}.
- * Utan den skrivs sådana fel bara ut i konsolen och användaren ser ingenting.</p>
- * <p>Fångade och ofångade fel går därmed samma väg: felkedja, loggning och feldialog.</p>
- * <p>Om själva felhanteringen misslyckas loggas både det ursprungliga felet och hanteringsfelet via SLF4J.
- * Bara om loggningen också misslyckas skrivs en sista rad till System.err.</p>
+ * <p>Responsibility: Catches all exceptions that no other code has caught and passes them on to {@link ErrorFacade}.
+ * Without it, such errors are only printed to the console and the user sees nothing.</p>
+ * <p>Caught and uncaught errors thereby take the same path: error chain, logging and error dialog.</p>
+ * <p>If the error handling itself fails, both the original error and the handling error are logged via SLF4J.
+ * Only if logging also fails is a final line written to System.err.</p>
  */
 public final class GlobalExceptionHandler implements Thread.UncaughtExceptionHandler {
 
@@ -18,14 +18,14 @@ public final class GlobalExceptionHandler implements Thread.UncaughtExceptionHan
     private GlobalExceptionHandler() {
     }
 
-    // Registrerar hanteraren som standard för alla trådar, måste anropas från JavaFX-tråden, t.ex först i start()
+    // Registers the handler as the default for all threads, must be called from the JavaFX thread, e.g. first in start()
     public static void install() {
         GlobalExceptionHandler handler = new GlobalExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(handler);
         Thread.currentThread().setUncaughtExceptionHandler(handler);
     }
 
-    // Anropas av JVM:en när ett undantag når toppen av en tråd utan att ha fångats.
+    // Called by the JVM when an exception reaches the top of a thread without having been caught.
     @Override
     public void uncaughtException(Thread thread, Throwable error) {
         try {
@@ -34,8 +34,8 @@ public final class GlobalExceptionHandler implements Thread.UncaughtExceptionHan
             logHandlingFailure(thread, error, handlingFailed);
         }
     }
-
-    // Loggar originalfelet som suppressed på hanteringsfelet, så att båda hamnar i samma loggpost.
+  
+    // Logs the original error as suppressed on the handling error, so both end up in the same log entry.
     private static void logHandlingFailure(Thread thread, Throwable error, Throwable handlingFailed) {
         try {
             if (handlingFailed != error) {
@@ -43,7 +43,7 @@ public final class GlobalExceptionHandler implements Thread.UncaughtExceptionHan
             }
             log.error("Error handling failed for uncaught exception in thread {}", thread.getName(), handlingFailed);
         } catch (Throwable loggingFailed) {
-            // System.err som sista utväg
+            // Last resort: logging itself failed, so System.err is the only channel left.
             System.err.println("Logging failed for uncaught exception in thread " + thread.getName() + ": " + error);
         }
     }

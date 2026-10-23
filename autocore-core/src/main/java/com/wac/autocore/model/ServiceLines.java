@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
-// Gemensam regel för bokningens och arbetsorderns tjänsterader:
-// en vald tjänst som redan har en rad behåller den (avtalat pris och tid), en ny tjänst snapshotas
-// från katalogen och en tjänst som inte längre väljs tas bort. Samma tjänst vald två gånger ger en rad.
-// Returnerar en ny lista och rör inte de befintliga raderna, så att anroparen kan validera klart innan den skriver.
+// Common rule for the booking's and the work order's service lines:
+// a selected service that already has a line keeps it (agreed price and duration), a new service is snapshotted
+// from the catalog and a service that is no longer selected is removed. The same service selected twice gives one line.
+// Returns a new list and does not touch the existing lines, so the caller can finish validating before it writes.
 final class ServiceLines {
 
     private ServiceLines() {

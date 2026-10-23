@@ -29,8 +29,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * <b>WorkOrderStatusTest</b>
- * <p>Ansvar: Bevisar att livscykelreglerna stämmer. Den förväntade tabellen är
- * skriven för hand efter kravet, så att en oavsiktligt ändrad regel i enumen gör testet rött.</p>
+ * <p>Responsibility: Proves that the lifecycle rules are correct. The expected table is
+ * written by hand from the requirement, so an unintentionally changed rule in the enum turns the test red.</p>
  */
 class WorkOrderStatusTest {
 
@@ -190,7 +190,7 @@ class WorkOrderStatusTest {
         ServiceItem service = mock(ServiceItem.class);
 
         when(service.getId()).thenReturn(id);
-        when(service.getName()).thenReturn("Oljebyte");
+        when(service.getName()).thenReturn("Oil change");
         when(service.getPrice()).thenReturn(price);
         when(service.getEstimatedMinutes()).thenReturn(45);
 

@@ -14,14 +14,14 @@ public interface ServiceItemRepository extends org.springframework.data.reposito
     Optional<ServiceItem> findById(Integer id);
     ServiceItem save(ServiceItem serviceItem);
 
-    // Enda platsen som slår upp en vald tjänst; ett okänt id ger samma felnyckel överallt.
+    // The only place that looks up a selected service; an unknown id gives the same error key everywhere.
     default ServiceItem requireById(int id) {
         return findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ServiceItem", id, "error.serviceNotFound"));
     }
 
-    // Slår upp valda tjänster i vald ordning. En saknad lista blir tom, så att domänen avgör om tjänster krävs.
-    // Dubbletter tas inte bort här: domänen (ServiceLines, ServicePackage) äger den regeln.
+    // Looks up selected services in the selected order. A missing list becomes empty, so the domain decides whether services are required.
+    // Duplicates are not removed here: the domain (ServiceLines, ServicePackage) owns that rule.
     default List<ServiceItem> requireAllById(List<Integer> ids) {
         List<ServiceItem> services = new ArrayList<>();
         if (ids != null) {
