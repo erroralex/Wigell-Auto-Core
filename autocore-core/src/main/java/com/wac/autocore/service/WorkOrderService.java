@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.logging.LogKeys;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.DropInWorkOrder;
@@ -19,12 +20,15 @@ import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
@@ -45,6 +49,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class WorkOrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkOrderService.class);
 
     private final WorkOrderRepository workOrderRepository;
     private final BookingRepository bookingRepository;
@@ -115,7 +121,12 @@ public class WorkOrderService {
         }
 
         WorkOrder workOrder = plannedWorkOrderFor(booking);
-        return scheduleResult(workOrderRepository.save(workOrder));
+
+        WorkOrder saved = workOrderRepository.save(workOrder);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
+            log.info("Created work order");
+        }
+        return scheduleResult(saved);
     }
 
     // Gemensamt för createWorkOrder och reopenWorkOrder: bokningen måste vara ledig och fordonet finnas.
@@ -144,7 +155,11 @@ public class WorkOrderService {
         WarrantyWorkOrder warranty =
                 WarrantyWorkOrder.draft(original, problemDescription);
 
-        return workOrderRepository.save(warranty);
+        WarrantyWorkOrder saved = workOrderRepository.save(warranty);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
+            log.info("Created warranty work order from {}", originalWorkOrderId);
+        }
+        return saved;
     }
 
     // Skapar en drop-in-order (bil utan bokning) och sparar den som utkast.
@@ -160,21 +175,33 @@ public class WorkOrderService {
         // Tjänsterna kopieras som snapshots så senare prisändringar inte påverkar ordern.
         DropInWorkOrder dropIn = DropInWorkOrder.draft(vehicleId, problemDescription);
         dropIn.replaceItems(serviceItemRepository.requireAllById(serviceItemIds));
-        return workOrderRepository.save(dropIn);
+
+        DropInWorkOrder saved = workOrderRepository.save(dropIn);
+
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
+            log.info("Created drop-in work order");
+        }
+        return saved;
     }
 
     public void startWorkOrder(@Positive int id) {
-        WorkOrder workOrder = require(id);
-        workOrder.start();
-        syncBooking(workOrder);
-        workOrderRepository.save(workOrder);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
+            log.info("Starting work order");
+            WorkOrder workOrder = require(id);
+            workOrder.start();
+            syncBooking(workOrder);
+            workOrderRepository.save(workOrder);
+        }
     }
 
     public void completeWorkOrder(@Positive int id) {
-        WorkOrder workOrder = require(id);
-        workOrder.complete();
-        syncBooking(workOrder);
-        workOrderRepository.save(workOrder);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
+            log.info("Completing work order");
+            WorkOrder workOrder = require(id);
+            workOrder.complete();
+            syncBooking(workOrder);
+            workOrderRepository.save(workOrder);
+        }
     }
 
     // Bokningens status följer arbetsordern. Hämtning, regel och sparning ligger i BookingService,
@@ -190,11 +217,14 @@ public class WorkOrderService {
 
     // Bekräftelsen reserverar mekanikern, så en krock stoppar den och inget sparas.
     public void confirmWorkOrder(@Positive int id) {
-        WorkOrder workOrder = require(id);
-        workOrder.confirm();
-        rejectConflictsIfReserved(scheduleResult(workOrder));
-        syncBooking(workOrder);
-        workOrderRepository.save(workOrder);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
+            log.info("Confirming work order");
+            WorkOrder workOrder = require(id);
+            workOrder.confirm();
+            rejectConflictsIfReserved(scheduleResult(workOrder));
+            syncBooking(workOrder);
+            workOrderRepository.save(workOrder);
+        }
     }
 
     // En avbruten planerad order öppnas som en ny order från bokningen som den ser ut nu, eftersom bokningen
@@ -202,17 +232,20 @@ public class WorkOrderService {
     // kundinstruktioner följer med, och resultatet listar vad som skiljer mot den avbrutna ordern.
     // Övriga ordrar återöppnas som utkast (samma order). Bokningen förblir då låst: DRAFT mappar till WORK_ORDER_CREATED.
     public WorkOrderReopenResult reopenWorkOrder(@Positive int id) {
-        WorkOrder workOrder = require(id);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
+            log.info("Reopening work order");
+            WorkOrder workOrder = require(id);
 
-        if (workOrder.getType() == WorkOrderType.PLANNED && workOrder.getStatus() == WorkOrderStatus.CANCELLED) {
-            return recreateFromBooking(workOrder);
+            if (workOrder.getType() == WorkOrderType.PLANNED && workOrder.getStatus() == WorkOrderStatus.CANCELLED) {
+                return recreateFromBooking(workOrder);
+            }
+
+            workOrder.reopen();
+            syncBooking(workOrder);
+            workOrderRepository.save(workOrder);
+            return new WorkOrderReopenResult(WorkOrderScheduleResult.withoutConflicts(workOrder),
+                    Collections.<WorkOrderChange>emptyList());
         }
-
-        workOrder.reopen();
-        syncBooking(workOrder);
-        workOrderRepository.save(workOrder);
-        return new WorkOrderReopenResult(WorkOrderScheduleResult.withoutConflicts(workOrder),
-                Collections.<WorkOrderChange>emptyList());
     }
 
     private WorkOrderReopenResult recreateFromBooking(WorkOrder cancelled) {
@@ -228,15 +261,21 @@ public class WorkOrderService {
         reopened.setCustomerInstructions(cancelled.getCustomerInstructions());
 
         WorkOrder saved = workOrderRepository.save(reopened);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
+            log.info("Recreated work order from cancelled {}", cancelled.getId());
+        }
         return new WorkOrderReopenResult(scheduleResult(saved), WorkOrderChange.between(cancelled, saved));
     }
 
     // Avbryter ordern och släpper bokningen (BOOKED), så den kan få en ny order, t.ex med annan mekaniker.
     public void cancelWorkOrder(@Positive int id) {
-        WorkOrder workOrder = require(id);
-        workOrder.cancel();
-        syncBooking(workOrder);
-        workOrderRepository.save(workOrder);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
+            log.info("Cancelling work order");
+            WorkOrder workOrder = require(id);
+            workOrder.cancel();
+            syncBooking(workOrder);
+            workOrderRepository.save(workOrder);
+        }
     }
 
     // Mekaniker är valfri. Ett utkast som krockar sparas med varning; en bekräftad order som krockar stoppas.
@@ -248,31 +287,34 @@ public class WorkOrderService {
                                                    String customerInstructions,
                                                    String comments,
                                                    Map<Integer, Boolean> chargeFlags) {
-        WorkOrder workOrder = require(id);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
+            log.info("Updating work order");
+            WorkOrder workOrder = require(id);
 
-        if (mechanicId != null) {
-            requireMechanic(mechanicId);
+            if (mechanicId != null) {
+                requireMechanic(mechanicId);
+            }
+
+            workOrder.replaceItems(serviceItemRepository.requireAllById(serviceItemIds));
+
+            workOrder.applyChargeFlags(chargeFlags);
+
+            workOrder.setMechanicId(mechanicId);
+            workOrder.setPlannedDate(plannedDate);
+            workOrder.setPlannedStartTime(plannedStartTime);
+            workOrder.setCustomerInstructions(customerInstructions);
+            workOrder.setComments(comments);
+
+            // En bekräftad order får inte redigeras till ofullständig
+            workOrder.requireCompleteIfConfirmed();
+
+            WorkOrderScheduleResult result = scheduleResult(workOrder);
+
+            rejectConflictsIfReserved(result);
+            followBooking(workOrder);
+            workOrderRepository.save(workOrder);
+            return result;
         }
-
-        workOrder.replaceItems(serviceItemRepository.requireAllById(serviceItemIds));
-
-        workOrder.applyChargeFlags(chargeFlags);
-
-        workOrder.setMechanicId(mechanicId);
-        workOrder.setPlannedDate(plannedDate);
-        workOrder.setPlannedStartTime(plannedStartTime);
-        workOrder.setCustomerInstructions(customerInstructions);
-        workOrder.setComments(comments);
-
-        // En bekräftad order får inte redigeras till ofullständig
-        workOrder.requireCompleteIfConfirmed();
-
-        WorkOrderScheduleResult result = scheduleResult(workOrder);
-
-        rejectConflictsIfReserved(result);
-        followBooking(workOrder);
-        workOrderRepository.save(workOrder);
-        return result;
     }
 
     // Bokningen följer orderns datum, starttid och tjänster så att kalendern och kontrollen av fordonet stämmer.
