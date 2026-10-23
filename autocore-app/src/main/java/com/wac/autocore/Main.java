@@ -24,11 +24,15 @@ public class Main {
 
     private static final String PROFILE_ARG = "--spring.profiles.active=";
     private static final String HEADLESS = "headless";
+    private static final java.util.logging.Logger JAVAFX_LOGGER =
+            java.util.logging.Logger.getLogger("javafx");
 
     public static void main(String[] args) {
         if (isHeadless(args)) {
             runHeadless(args);
         } else {
+            JAVAFX_LOGGER.setFilter(rec -> rec.getMessage() == null
+                    || !rec.getMessage().startsWith("Unsupported JavaFX configuration"));
             AutoCoreApp.main(args);
         }
     }
