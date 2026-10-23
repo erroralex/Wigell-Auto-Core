@@ -22,6 +22,9 @@ import java.util.Locale;
  * <p>If any step did not go as expected, an exception is thrown instead of {@code System.exit}:
  * Spring then closes the context and the process exits with an error code, and tests that load
  * the profile do not kill the test JVM.</p>
+ * <p>The report is written with {@code System.out} on purpose. It is the program's output to the user,
+ * not diagnostics. The headless profile only logs to file, so through the logger the report would not
+ * show in the terminal.</p>
  */
 @Component
 @Profile("headless")
