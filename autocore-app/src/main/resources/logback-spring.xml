@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <!-- Spring Boots färgkonverterare: %clr(...) färgar nivån i konsolen, stängs av när utdata inte är en terminal -->
+    <conversionRule conversionWord="clr"
+                    class="org.springframework.boot.logging.logback.ColorConverter"/>
+
     <!--
-        Ett gemensamt mönster för alla appenders.
+        Två mönster med samma innehåll:
+        LOG_PATTERN används av filloggen och är ofärgat, så att inga ANSI-koder hamnar i filen.
+        CONSOLE_PATTERN används av konsolen och är samma mönster med färg via %clr.
         MDC-nycklarna i %X{...} definieras i
         com.wac.autocore.logging.LogKeys (autocore-core).
-        Namnen måste stämma exakt. Ändras en nyckel där måste den ändras här också.
+        Namnen måste stämma exakt. Ändras en nyckel där måste den ändras i BÅDA mönstren här.
     -->
     <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
+
+    <property name="CONSOLE_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
 
     <!-- Konsol: används av dev och test, inte headless -->
     <springProfile name="!headless">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>${LOG_PATTERN}</pattern>
+                <pattern>${CONSOLE_PATTERN}</pattern>
                 <charset>UTF-8</charset>
             </encoder>
         </appender>
@@ -28,7 +37,7 @@
         </root>
     </springProfile>
 
-    <!-- Headless: roterande fillogg -->
+    <!-- Headless: roterande fillogg, ofärgad -->
     <springProfile name="headless">
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>logs/autocore-headless.log</file>

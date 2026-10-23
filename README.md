@@ -152,7 +152,27 @@ java -jar autocore-app/target/autocore-app-4.0.0.jar
  
 > Databasfilen `autocore.db` skapas i den mapp du startar från. Starta från repots rot så
 > används samma databas varje gång.
- 
+
+## Loggning
+
+Loggningen styrs av `autocore-app/src/main/resources/logback-spring.xml`, med en profil per körläge:
+
+| Profil | Utdata | Nivå |
+|---|---|---|
+| standard (dev) | Konsol, färgad | `com.wac` DEBUG, övrigt INFO |
+| `test` | Konsol | WARN |
+| `headless` | Fil, `logs/autocore-headless.log`, ofärgad | INFO |
+
+Varje rad innehåller tid, nivå, logger och MDC-fälten `corrId`, `op`, `user` och `wo`.
+
+**Färger i IntelliJ:** Spring Boot slår bara på färg när utdata går till en terminal, och med Java 21
+räknas IntelliJ:s konsol inte som det. Lägg till följande i run configurationens VM options:
+
+    -Dspring.output.ansi.enabled=always
+
+Samma sak gäller Git Bash. Där skickar du `--spring.output.ansi.enabled=always` efter jar-filen.
+Sätt det inte i `application.properties`, eftersom ANSI-koder då hamnar i test- och CI-loggarna.
+
 # Köra utan gränssnitt (headless)
  
 Applikationens tjänster kan köras utan JavaFX. Headless-läget kör ett komplett drop-in-flöde
