@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 // Used in rules such as @PreAuthorize("@access.can('WORK_ORDER_WRITE')").
 // Reads the current authentication only, never a role passed in by the caller.
 // Denies access when nobody is logged in, the user is anonymous, or the role or permission is unknown.
-// Flow: DbUserDetailsService supplies ROLE_<role> authorities -> @PreAuthorize calls access.can(...)
+// Flow: AppUserDetailsService supplies ROLE_<role> authorities -> @PreAuthorize calls access.can(...)
 // -> AccessEvaluator maps the role and permission -> AccessPolicy decides.
 @Component("access")
 public class AccessEvaluator {
