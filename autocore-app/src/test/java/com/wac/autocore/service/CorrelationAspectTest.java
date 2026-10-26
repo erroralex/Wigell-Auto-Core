@@ -1,6 +1,7 @@
 package com.wac.autocore.service;
 
 import com.wac.autocore.logging.CorrelationAspect;
+import com.wac.autocore.logging.CorrelationIds;
 import com.wac.autocore.logging.LogKeys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -94,6 +95,26 @@ class CorrelationAspectTest {
         assertThrows(IllegalStateException.class, () -> outer().fail());
 
         assertNull(MDC.get(LogKeys.CORR_ID));
+    }
+
+    @Test
+    @DisplayName("A failed operation tags the exception with its corrId")
+    void failureIsTaggedWithCorrId() {
+        IllegalStateException thrown =
+                assertThrows(IllegalStateException.class, () -> outer().fail());
+
+        assertNull(MDC.get(LogKeys.CORR_ID));
+        assertNotNull(CorrelationIds.find(thrown));
+    }
+
+    @Test
+    @DisplayName("The corrId is found through a wrapping exception")
+    void wrappedFailureStillFindsCorrId() {
+        IllegalStateException thrown =
+                assertThrows(IllegalStateException.class, () -> outer().fail());
+        RuntimeException wrapped = new RuntimeException("wrapped", thrown);
+
+        assertEquals(CorrelationIds.find(thrown), CorrelationIds.find(wrapped));
     }
 
     private OuterFake outer() {

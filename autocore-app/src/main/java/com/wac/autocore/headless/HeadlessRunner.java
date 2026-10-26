@@ -5,6 +5,7 @@ import com.wac.autocore.i18n.ErrorReportFormatter;
 import com.wac.autocore.i18n.LocalizedError;
 import com.wac.autocore.i18n.ResourceBundleTranslator;
 import com.wac.autocore.i18n.Translator;
+import com.wac.autocore.logging.CorrelationIds;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -25,6 +26,9 @@ import java.util.Locale;
  * <p>The report is written with {@code System.out} on purpose. It is the program's output to the user,
  * not diagnostics. The headless profile only logs to file, so through the logger the report would not
  * show in the terminal.</p>
+ * <p>Unexpected errors print the same reference as the UI dialog (the operation's correlation id),
+ * followed by the technical cause. The UI hides the cause from end users; headless keeps it because
+ * it is a developer tool run from the terminal.</p>
  */
 @Component
 @Profile("headless")
@@ -48,7 +52,7 @@ public class HeadlessRunner implements CommandLineRunner {
 
         List<StepResult> results = scenario.run();
         for (StepResult result : results) {
-            print(result, formatter);
+            print(result, formatter, translator);
         }
 
         long asExpected = results.stream().filter(StepResult::isAsExpected).count();
@@ -65,7 +69,7 @@ public class HeadlessRunner implements CommandLineRunner {
     }
 
     // [OK]/[ERR] instead of symbols, so the output also works in the Windows console
-    private void print(StepResult result, ErrorReportFormatter formatter) {
+    private void print(StepResult result, ErrorReportFormatter formatter, Translator translator) {
         String status = result.isAsExpected() ? "[OK] " : "[ERR]";
         String note = result.isExpectedFailure() ? "  (expected error)" : "";
         System.out.println(status + " " + result.getName() + note);
@@ -76,9 +80,12 @@ public class HeadlessRunner implements CommandLineRunner {
             System.out.println("       [" + error.getMessageKey() + "] "
                     + text.getTitle() + ": " + text.getMessage());
 
-            // Unexpected errors (e.g. NullPointerException) also show the technical cause for troubleshooting
+            // Unexpected errors show the reference like the UI, plus the technical cause since headless is a developer tool
             if (error.isUnexpected() && error.getCause() != null) {
                 Throwable cause = error.getCause();
+                String reference = CorrelationIds.find(cause);
+                System.out.println("       " + translator.get("error.reference") + " "
+                        + (reference == null ? "-" : reference));
                 System.out.println("       Cause: " + cause.getClass().getSimpleName()
                         + (cause.getMessage() == null ? "" : " - " + cause.getMessage()));
             }
