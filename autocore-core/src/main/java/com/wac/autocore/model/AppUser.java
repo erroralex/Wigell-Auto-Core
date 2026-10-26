@@ -30,7 +30,8 @@ public class AppUser {
     @Column(nullable = false)
     private boolean enabled = true;
 
-    protected AppUser() {}
+    protected AppUser() {
+    }
 
     public AppUser(String username, String passwordHash, String role, boolean enabled) {
         this.username = username;
@@ -75,10 +76,11 @@ public class AppUser {
         this.enabled = enabled;
     }
 
+    /* Returns a technical representation for logs and debugging.
+     * The username identifies a person and is left out. Role and enabled are kept
+     * because they are useful when debugging access problems */
     @Override
     public String toString() {
-        return id + " - " + username +
-                " | Role: " + role +
-                " | Enabled: " + (enabled ? "Yes" : "No");
+        return "AppUser{id=" + id + ", role=" + role + ", enabled=" + enabled + "}";
     }
 }

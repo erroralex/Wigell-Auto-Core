@@ -1,6 +1,10 @@
 package com.wac.autocore.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "vehicle")
@@ -16,7 +20,8 @@ public class Vehicle {
     private int year;
     private int customerId;
 
-    protected Vehicle() {}
+    protected Vehicle() {
+    }
 
     public Vehicle(String registrationNumber, String brand,
                    String model, int year, int customerId) {
@@ -71,12 +76,10 @@ public class Vehicle {
         this.customerId = customerId;
     }
 
+    /* Returns a technical representation for logs and debugging.
+     * The registration number is left out: it can be traced to the owner and counts as personal data */
     @Override
     public String toString() {
-        return id + " - " +
-                registrationNumber + " | " +
-                brand + " " + model +
-                " | Year: " + year +
-                " | Customer ID: " + customerId;
+        return "Vehicle{id=" + id + ", customerId=" + customerId + "}";
     }
 }

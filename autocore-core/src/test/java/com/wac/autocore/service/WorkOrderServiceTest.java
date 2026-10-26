@@ -329,7 +329,11 @@ public class WorkOrderServiceTest {
         stubOrder(order);
         when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(busy));
 
-        assertThrows(MechanicDoubleBookingException.class, () -> update(order, 7, EIGHT));
+        MechanicDoubleBookingException error = assertThrows(MechanicDoubleBookingException.class,
+                () -> update(order, 7, EIGHT));
+
+        // The message goes to the log, so it must identify the mechanic by id, not by name
+        assertFalse(error.getMessage().contains(MECHANIC.getName()));
         verify(workOrderRepository, never()).save(any());
     }
 
@@ -351,7 +355,10 @@ public class WorkOrderServiceTest {
         stubOrder(draft);
         when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(busy));
 
-        assertThrows(MechanicDoubleBookingException.class, () -> workOrderService.confirmWorkOrder(1));
+        MechanicDoubleBookingException error = assertThrows(MechanicDoubleBookingException.class,
+                () -> workOrderService.confirmWorkOrder(1));
+
+        assertEquals(7, error.getMechanicId());
         verify(workOrderRepository, never()).save(any());
     }
 

@@ -1,6 +1,10 @@
 package com.wac.autocore.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "mechanic")
@@ -14,7 +18,8 @@ public class Mechanic {
     private String phone;
     private String specialization;
 
-    protected Mechanic() {}
+    protected Mechanic() {
+    }
 
     public Mechanic(String name, String phone, String specialization) {
         this.name = name;
@@ -50,10 +55,10 @@ public class Mechanic {
         this.specialization = specialization;
     }
 
+    /* Returns a technical representation for logs and debugging.
+     * Contains only the id; name and phone are personal data and must not reach log files */
     @Override
     public String toString() {
-        return id + " - " + name +
-                " | Phone: " + phone +
-                " | Specialization: " + specialization;
+        return "Mechanic{id=" + id + "}";
     }
 }
