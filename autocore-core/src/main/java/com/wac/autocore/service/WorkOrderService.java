@@ -7,7 +7,6 @@ import com.wac.autocore.logging.LogKeys;
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.DropInWorkOrder;
-import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.PlannedWorkOrder;
 import com.wac.autocore.model.WarrantyWorkOrder;
 import com.wac.autocore.model.WorkOrder;
@@ -358,15 +357,8 @@ public class WorkOrderService {
     private void rejectConflictsIfReserved(WorkOrderScheduleResult result) {
         WorkOrder workOrder = result.getWorkOrder();
         if (workOrder.getStatus().reservesMechanic() && !result.getMechanicConflicts().isEmpty()) {
-            throw new MechanicDoubleBookingException(mechanicName(workOrder.getMechanicId()),
+            throw new MechanicDoubleBookingException(workOrder.getMechanicId(),
                     workOrder.getPlannedDate(), workOrder.getPlannedStartTime(), workOrder.getPlannedEndTime());
         }
-    }
-
-    // The name is only needed in the error message. Falls back to the id if the mechanic cannot be read.
-    private String mechanicName(int mechanicId) {
-        return mechanicRepository.findById(mechanicId)
-                .map(Mechanic::getName)
-                .orElse(String.valueOf(mechanicId));
     }
 }
