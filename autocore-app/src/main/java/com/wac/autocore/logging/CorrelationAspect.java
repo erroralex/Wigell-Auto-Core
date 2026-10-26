@@ -10,8 +10,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 /**
  * <b>CorrelationAspect</b>
  * <p>Responsibility: Gives each user operation a correlation id in the MDC, so all log lines
@@ -37,7 +35,7 @@ public class CorrelationAspect {
             return pjp.proceed();
         }
 
-        MDC.put(LogKeys.CORR_ID, UUID.randomUUID().toString().substring(0, 8));
+        MDC.put(LogKeys.CORR_ID, CorrelationIds.newId());
         MDC.put(LogKeys.OP, pjp.getSignature().getDeclaringType().getSimpleName()
                 + "." + pjp.getSignature().getName());
         MDC.put(LogKeys.USER, currentUser());

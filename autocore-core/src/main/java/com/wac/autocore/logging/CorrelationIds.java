@@ -2,6 +2,7 @@ package com.wac.autocore.logging;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import java.util.WeakHashMap;
 
 /**
@@ -44,5 +45,10 @@ public class CorrelationIds {
             depth++;
         }
         return null;
+    }
+
+    // Creates a new short correlation id. The only place where the id format is defined.
+    public static String newId() {
+        return UUID.randomUUID().toString().substring(0, 8);
     }
 }

@@ -5,10 +5,13 @@ import com.wac.autocore.exception.handler.ErrorHandlerChain;
 import com.wac.autocore.exception.handler.ErrorReport;
 import com.wac.autocore.i18n.ErrorReportFormatter;
 import com.wac.autocore.i18n.LocalizedError;
+import com.wac.autocore.logging.CorrelationIds;
+import com.wac.autocore.logging.LogKeys;
 import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * <b>ErrorFacade</b>
@@ -44,22 +47,35 @@ public final class ErrorFacade {
         }
 
         final ErrorReport report = CHAIN.resolve(error);
-        logReport(report);
+        final String reference = resolveReference(error);
+        logReport(report, reference);
 
         if (Platform.isFxApplicationThread()) {
-            present(report);
+            present(report, reference);
             return;
         }
 
         try {
-            Platform.runLater(() -> present(report));
+            Platform.runLater(() -> present(report, reference));
         } catch (IllegalStateException toolkitNotRunning) {
             log.error("Could not show error alert, JavaFX not running", toolkitNotRunning);
         }
     }
 
+    // Picks the id the user will see: the failed operation's id, else the current one, else a new one.
+    private static String resolveReference(Throwable error) {
+        String id = CorrelationIds.find(error);
+        if (id == null) {
+            id = MDC.get(LogKeys.CORR_ID);
+        }
+        if (id == null) {
+            id = CorrelationIds.newId();
+        }
+        return id;
+    }
+
     // Translates the report and shows the right kind of dialog. Always runs on the JavaFX thread.
-    private static void present(ErrorReport report) {
+    private static void present(ErrorReport report, String reference) {
         if (presenting) {
             log.warn("Error dialog already showing, new error only logged: {}", report.getMessageKey());
             return;
@@ -80,13 +96,23 @@ public final class ErrorFacade {
         }
     }
 
-    // Logs at different levels depending on severity.
-    private static void logReport(ErrorReport report) {
-        if (report.isUnexpected()) {
-            log.error("Unexpected error ({})", report.getMessageKey(), report.getCause());
-        } else {
-            log.info("Business error ({}): {}", report.getMessageKey(),
-                    report.getCause() == null ? "null" : report.getCause().getMessage());
+    // Logs at different levels depending on severity, with the reference as corrId so the log line can be found.
+    private static void logReport(ErrorReport report, String reference) {
+        String previous = MDC.get(LogKeys.CORR_ID);
+        MDC.put(LogKeys.CORR_ID, reference);
+        try {
+            if (report.isUnexpected()) {
+                log.error("Unexpected error ({})", report.getMessageKey(), report.getCause());
+            } else {
+                log.info("Business error ({}): {}", report.getMessageKey(),
+                        report.getCause() == null ? "null" : report.getCause().getMessage());
+            }
+        } finally {
+            if (previous == null) {
+                MDC.remove(LogKeys.CORR_ID);
+            } else {
+                MDC.put(LogKeys.CORR_ID, previous);
+            }
         }
     }
 
