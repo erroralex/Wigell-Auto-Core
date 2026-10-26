@@ -32,6 +32,8 @@ public class Main {
         if (isHeadless(args)) {
             runHeadless(args);
         } else {
+            SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_GLOBAL);
+
             JAVAFX_LOGGER.setFilter(rec -> rec.getMessage() == null
                     || !rec.getMessage().startsWith("Unsupported JavaFX configuration"));
             AutoCoreApp.main(args);
