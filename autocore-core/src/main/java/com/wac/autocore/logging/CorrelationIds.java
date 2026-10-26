@@ -10,7 +10,8 @@ import java.util.WeakHashMap;
  * <p>Responsibility: Remembers which correlation id an exception was thrown under, so the id
  * survives after {@link CorrelationAspect} has cleared the MDC.</p>
  * <p>Keys are held weakly: once nothing references the exception, the entry is removed by the GC.
- * {@link Throwable} does not override {@code equals}, so lookups are by identity.</p>
+ * Lookups use {@code equals}. This assumes exception types keep {@link Throwable}'s identity-based
+ * {@code equals}, which holds for the JDK and Spring exceptions used here.</p>
  *
  * @see LogKeys#CORR_ID
  */

@@ -18,9 +18,10 @@ import org.slf4j.MDC;
  * <p>Responsibility: A single entry point (<b>Facade</b>) for showing errors in the UI. The text is translated by {@code ErrorReportFormatter},
  * the same as in headless mode, so the errors look the same in both.</p>
  * <p>Errors that are not caught at all end up here automatically via {@link GlobalExceptionHandler}.</p>
- * <p>Unexpected errors never show internal details. The user sees a general text and a reference
- * (the operation's correlation id, see {@link com.wac.autocore.logging.CorrelationIds}). The same id
- * is put in the MDC when the error is logged, so the reference leads straight to the stack trace.</p>
+ * <p>Unexpected errors never show internal details. The user sees a general text and a reference:
+ * the failed operation's correlation id (see {@link com.wac.autocore.logging.CorrelationIds}), or a new
+ * id if the error did not come from the service layer. The same id is put in the MDC when the error is
+ * logged, so the reference leads straight to the stack trace.</p>
  * <p><b>Example usage in a view:</b></p>
  * <pre>{@code
  * try {
@@ -65,22 +66,17 @@ public final class ErrorFacade {
         }
     }
 
-    // Picks the id the user will see: the failed operation's id, else the current one, else a new one.
+    // The failed operation's id if the error came out of the service layer, otherwise a new id
     private static String resolveReference(Throwable error) {
         String id = CorrelationIds.find(error);
-        if (id == null) {
-            id = MDC.get(LogKeys.CORR_ID);
-        }
-        if (id == null) {
-            id = CorrelationIds.newId();
-        }
-        return id;
+        return id != null ? id : CorrelationIds.newId();
     }
 
     // Translates the report and shows the right kind of dialog. Always runs on the JavaFX thread.
     private static void present(ErrorReport report, String reference) {
         if (presenting) {
-            log.warn("Error dialog already showing, new error only logged: {}", report.getMessageKey());
+            log.warn("Error dialog already showing, new error only logged: {} (reference {})",
+                    report.getMessageKey(), reference);
             return;
         }
         presenting = true;
