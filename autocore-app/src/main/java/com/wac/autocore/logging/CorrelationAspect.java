@@ -18,6 +18,8 @@ import java.util.UUID;
  * from the same operation can be tied together. Wraps all public methods in the service layer.</p>
  * <p>Only the outermost call creates and clears the id. Inner service calls keep it.</p>
  * <p>Runs first of all aspects, so that logging from transactions also gets the id.</p>
+ * <p>When an operation fails, the id is attached to the exception via {@link CorrelationIds},
+ * so the UI can show it as a reference after the MDC has been cleared.</p>
  *
  * @see LogKeys
  */
@@ -47,6 +49,7 @@ public class CorrelationAspect {
             log.debug("Done in {} ms", elapsedMs(start));
             return result;
         } catch (Throwable t) {
+            CorrelationIds.tag(t, MDC.get(LogKeys.CORR_ID));
             log.debug("Failed after {} ms: {}", elapsedMs(start), t.toString());
             throw t;
         } finally {
