@@ -12,6 +12,10 @@ import javafx.stage.Stage;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * <b>AutoCoreApp</b>
@@ -49,6 +53,12 @@ public class AutoCoreApp extends Application {
 
 
         try {
+            // TODO: replace lines below with the login dialog.
+            String devUser = springContext.getEnvironment().getProperty("autocore.dev-user", "admin");
+            UserDetails user = springContext.getBean(UserDetailsService.class).loadUserByUsername(devUser);
+            SecurityContextHolder.getContext().setAuthentication(
+                    UsernamePasswordAuthenticationToken.authenticated(user, null, user.getAuthorities()));
+
             AutoCoreApp.primaryStage = primaryStage;
 
             InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
