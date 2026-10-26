@@ -85,7 +85,8 @@ public final class ErrorFacade {
             LocalizedError error = FORMATTER.format(report);
 
             if (report.isUnexpected()) {
-                AlertHelper.showException(error.getTitle(), error.getMessage(), asException(report.getCause()));
+                AlertHelper.showUnexpected(error.getTitle(), error.getMessage(),
+                        LanguageManager.getInstance().get("error.reference"), reference);
             } else {
                 AlertHelper.showError(error.getTitle(), error.getMessage());
             }
@@ -114,14 +115,5 @@ public final class ErrorFacade {
                 MDC.put(LogKeys.CORR_ID, previous);
             }
         }
-    }
-
-    /* AlertHelper.showException takes an Exception, but the global handler
-     * can receive an Error. Then it is wrapped so the stack trace can still be shown.  */
-    private static Exception asException(Throwable cause) {
-        if (cause instanceof Exception) {
-            return (Exception) cause;
-        }
-        return new RuntimeException(cause);
     }
 }

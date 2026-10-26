@@ -1,14 +1,15 @@
 package com.wac.autocore.view.util;
 
 import com.wac.autocore.view.i18n.LanguageManager;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.GridPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Optional;
 
 /**
@@ -16,7 +17,7 @@ import java.util.Optional;
  * <p>Responsibility: Helper class for showing dialogs and warnings in the user interface.</p>
  * <p><b>Example usage:</b></p>
  * <pre>{@code
-LanguageManager lang = LanguageManager.getInstance();
+ * LanguageManager lang = LanguageManager.getInstance();
  * if (nameField.getText().isEmpty()) {
  *     AlertHelper.showError(lang.get("error.validation"), lang.get("error.requiredField", lang.get("table.name")));
  *     return;
@@ -29,7 +30,6 @@ public class AlertHelper {
 
     private AlertHelper() {
     }
-
 
     // Shows a simple error message with an OK button
     public static void showError(String title, String message) {
@@ -77,32 +77,28 @@ public class AlertHelper {
         return result.isPresent() && result.get() == accept;
     }
 
-    // Shows an error message with an expandable stack trace, for unexpected errors
-    public static void showException(String title, String message, Exception e) {
+    // Shows an unexpected error without technical details. The reference is selectable so the user can copy it to IT
+    public static void showUnexpected(String title, String message, String referenceLabel, String reference) {
         Alert alert = new Alert(Alert.AlertType.ERROR, "", okButton());
         alert.setTitle(title);
-        alert.setHeaderText(message);
-        alert.setContentText(e.toString());
+        alert.setHeaderText(null);
+
+        Label messageLabel = new Label(message);
+        messageLabel.setWrapText(true);
+
+        TextField referenceField = new TextField(reference);
+        referenceField.setEditable(false);
+        referenceField.setFocusTraversable(false);
+        referenceField.setPrefColumnCount(reference.length() + 2);
+
+        HBox referenceRow = new HBox(8, new Label(referenceLabel), referenceField);
+        referenceRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox content = new VBox(12, messageLabel, referenceRow);
+        content.setPrefWidth(420);
+
+        alert.getDialogPane().setContent(content);
         DialogUtil.applyTheme(alert);
-
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
-
-        TextArea textArea = new TextArea(stackTrace);
-        textArea.setEditable(false);
-        textArea.setWrapText(false);
-        textArea.setMaxWidth(Double.MAX_VALUE);
-        textArea.setMaxHeight(Double.MAX_VALUE);
-
-        GridPane content = new GridPane();
-        content.setMaxWidth(Double.MAX_VALUE);
-        content.add(textArea, 0, 0);
-
-        // Hidden by default behind the "Show Details" button (Alert's built-in behavior)
-        alert.getDialogPane().setExpandableContent(content);
-
         alert.showAndWait();
     }
 
