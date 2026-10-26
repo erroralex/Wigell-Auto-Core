@@ -7,6 +7,7 @@ import com.wac.autocore.model.value.Money;
 import com.wac.autocore.model.value.TimeSlot;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -74,10 +75,10 @@ public class Booking {
     }
 
 
-     // Changes the whole booking in one step.
-     // Existing services keep their agreed price and duration,
-     // new services are snapshotted at today's price and deselected services are removed.
-     // If anything is invalid an exception is thrown and the booking is left unchanged.
+    // Changes the whole booking in one step.
+    // Existing services keep their agreed price and duration,
+    // new services are snapshotted at today's price and deselected services are removed.
+    // If anything is invalid an exception is thrown and the booking is left unchanged.
     public void update(int vehicleId, Integer mechanicId, LocalDate date,
                        LocalTime startTime, String description, List<ServiceItem> services) {
         ensureEditable();
@@ -89,7 +90,8 @@ public class Booking {
      * mechanic and description are kept. Same rules as {@link #update}: at least one service, kept agreed
      * prices, snapshot of new services, end time from snapshots and not past midnight.
      *
-     * @throws BookingLockedException if the booking does not have a work order that is still being planned
+     * @throws BookingLockedException
+     *         if the booking does not have a work order that is still being planned
      */
     public void applyWorkOrderPlan(LocalDate date, LocalTime startTime, List<ServiceItem> services) {
         if (status != BookingStatus.WORK_ORDER_CREATED) {
@@ -103,7 +105,8 @@ public class Booking {
      * date and a new start time. The services are fetched from {@code currentCatalog}, so the copy gets today's
      * price and duration. The copy is built via the constructor and therefore follows the same rules as a new booking.
      *
-     * @throws EntityNotFoundException if one of the booking's services is missing from the catalog
+     * @throws EntityNotFoundException
+     *         if one of the booking's services is missing from the catalog
      */
     public Booking copyAsNew(LocalDate date, LocalTime startTime, List<ServiceItem> currentCatalog) {
         List<ServiceItem> services = new ArrayList<>();
@@ -229,16 +232,15 @@ public class Booking {
         if (status == BookingStatus.CANCELLED) {
             throw new BookingLockedException(id, status);
         }
-        status =  BookingStatus.forWorkOrder(workOrderStatus);
+        status = BookingStatus.forWorkOrder(workOrderStatus);
     }
 
+    /* Returns a technical representation for logs and debugging.
+     * The description is free text entered by staff and can contain anything,
+     * including customer details, so it is left out */
     @Override
     public String toString() {
-        return id + " - Vehicle ID: " + vehicleId +
-                " | Mechanic ID: " + mechanicId +
-                " | Date: " + date + " " + startTime + "-" + endTime +
-                " | Description: " + description +
-                " | Status: " + status;
+        return "Booking{id=" + id + ", vehicleId=" + vehicleId + ", mechanicId=" + mechanicId
+                + ", date=" + date + ", status=" + status + "}";
     }
-
 }

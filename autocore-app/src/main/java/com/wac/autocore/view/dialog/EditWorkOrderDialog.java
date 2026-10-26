@@ -6,19 +6,34 @@ import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderItem;
 import com.wac.autocore.service.WorkOrderScheduleResult;
 import com.wac.autocore.service.WorkOrderService;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.component.ServiceSelectorBox;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.StringConverterUtil;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 // The dialog saves by itself via WorkOrderService (the same pattern as feature/movingValidationRulesFromDialogs):
@@ -117,17 +132,7 @@ public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
     private void setupFields(List<Mechanic> mechanics, LocalTime startTime) {
         mechanicComboBox.getItems().setAll(mechanics);
         mechanicComboBox.setMaxWidth(Double.MAX_VALUE);
-        mechanicComboBox.setConverter(new StringConverter<Mechanic>() {
-            @Override
-            public String toString(Mechanic mechanic) {
-                return mechanic == null ? "" : mechanic.toString();
-            }
-
-            @Override
-            public Mechanic fromString(String string) {
-                return null;
-            }
-        });
+        mechanicComboBox.setConverter(StringConverterUtil.display(Mechanic::getName));
 
         if (workOrder.getMechanicId() != null) {
             mechanicComboBox.getItems().stream()
