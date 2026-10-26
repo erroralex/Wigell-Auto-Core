@@ -9,10 +9,14 @@ import com.wac.autocore.logging.CorrelationIds;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 /**
  * <b>HeadlessRunner</b>
@@ -50,7 +54,7 @@ public class HeadlessRunner implements CommandLineRunner {
         System.out.println();
         System.out.println("=== Wigell AutoCore - headless drop-in flow ===");
 
-        List<StepResult> results = scenario.run();
+        List<StepResult> results = runAsSystem(scenario::run);
         for (StepResult result : results) {
             print(result, formatter, translator);
         }
@@ -61,6 +65,18 @@ public class HeadlessRunner implements CommandLineRunner {
 
         if (asExpected != results.size()) {
             throw new IllegalStateException("The headless scenario did not go as expected");
+        }
+    }
+
+    // Runs the scenario as a system ADMIN on this thread only. The context is always cleared afterwards.
+    private List<StepResult> runAsSystem(Supplier<List<StepResult>> action) {
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated("headless", null,
+                        AuthorityUtils.createAuthorityList("ROLE_ADMIN")));
+        try {
+            return action.get();
+        } finally {
+            SecurityContextHolder.clearContext();
         }
     }
 
