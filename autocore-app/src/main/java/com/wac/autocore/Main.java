@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 /**
@@ -31,6 +32,8 @@ public class Main {
         if (isHeadless(args)) {
             runHeadless(args);
         } else {
+            SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_GLOBAL);
+
             JAVAFX_LOGGER.setFilter(rec -> rec.getMessage() == null
                     || !rec.getMessage().startsWith("Unsupported JavaFX configuration"));
             AutoCoreApp.main(args);
