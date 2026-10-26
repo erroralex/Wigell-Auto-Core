@@ -30,7 +30,8 @@ public class Customer {
     @Convert(converter = NumericBooleanConverter.class)
     private boolean vip = false;
 
-    protected Customer() {}
+    protected Customer() {
+    }
 
     public Customer(String name, String phone, String email) {
         this.name = name;
@@ -74,11 +75,11 @@ public class Customer {
         this.vip = vip;
     }
 
+    /* Returns a technical representation for logs and debugging.
+     * Deliberately contains only the id so that no personal data
+     * (name, phone, email) can leak into log files */
     @Override
     public String toString() {
-        return id + " - " + name +
-                " | Phone: " + phone +
-                " | Email: " + email +
-                " | VIP: " + (vip ? "Yes" : "No");
+        return "Customer{id=" + id + "}";
     }
 }

@@ -7,6 +7,7 @@ import com.wac.autocore.i18n.ErrorReportFormatter;
 import com.wac.autocore.i18n.LocalizedError;
 import com.wac.autocore.logging.CorrelationIds;
 import com.wac.autocore.logging.LogKeys;
+import com.wac.autocore.logging.SafeLog;
 import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.application.Platform;
 import org.slf4j.Logger;
@@ -97,6 +98,8 @@ public final class ErrorFacade {
     }
 
     // Logs at different levels depending on severity, with the reference as corrId so the log line can be found.
+    // Expected errors are logged via SafeLog, since their messages can contain user input.
+    // Unexpected errors keep the stack trace: it is needed to find the cause, and the reference ties it to the user's report.
     private static void logReport(ErrorReport report, String reference) {
         String previous = MDC.get(LogKeys.CORR_ID);
         MDC.put(LogKeys.CORR_ID, reference);
@@ -104,8 +107,7 @@ public final class ErrorFacade {
             if (report.isUnexpected()) {
                 log.error("Unexpected error ({})", report.getMessageKey(), report.getCause());
             } else {
-                log.info("Business error ({}): {}", report.getMessageKey(),
-                        report.getCause() == null ? "null" : report.getCause().getMessage());
+                log.info("Business error ({}): {}", report.getMessageKey(), SafeLog.describe(report.getCause()));
             }
         } finally {
             if (previous == null) {
