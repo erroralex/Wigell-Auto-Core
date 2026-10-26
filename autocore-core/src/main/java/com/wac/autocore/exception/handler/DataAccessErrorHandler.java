@@ -9,8 +9,9 @@ import org.springframework.dao.DataAccessException;
  * <p>Spring translates JDBC and Hibernate errors into the common hierarchy
  * {@link DataAccessException}. That is why it is enough to look for that type, regardless of which
  * database or ORM framework is underneath.</p>
- * <p>The error counts as unexpected: the user gets an understandable message, but the technical
- * detail is also shown because it is needed for troubleshooting.</p>
+ * <p>The error counts as unexpected: the user gets an understandable message and a reference id,
+ * but no technical details. The full error, including the stack trace, is logged at ERROR with the
+ * same correlation id, so IT can find it from the reference.</p>
  */
 public class DataAccessErrorHandler extends ErrorHandler {
 

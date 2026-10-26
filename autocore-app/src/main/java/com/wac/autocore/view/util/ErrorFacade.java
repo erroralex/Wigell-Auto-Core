@@ -18,6 +18,9 @@ import org.slf4j.MDC;
  * <p>Responsibility: A single entry point (<b>Facade</b>) for showing errors in the UI. The text is translated by {@code ErrorReportFormatter},
  * the same as in headless mode, so the errors look the same in both.</p>
  * <p>Errors that are not caught at all end up here automatically via {@link GlobalExceptionHandler}.</p>
+ * <p>Unexpected errors never show internal details. The user sees a general text and a reference
+ * (the operation's correlation id, see {@link com.wac.autocore.logging.CorrelationIds}). The same id
+ * is put in the MDC when the error is logged, so the reference leads straight to the stack trace.</p>
  * <p><b>Example usage in a view:</b></p>
  * <pre>{@code
  * try {
