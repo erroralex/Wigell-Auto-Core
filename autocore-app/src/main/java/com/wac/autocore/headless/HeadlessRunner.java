@@ -54,6 +54,7 @@ public class HeadlessRunner implements CommandLineRunner {
         System.out.println();
         System.out.println("=== Wigell AutoCore - headless drop-in flow ===");
 
+        // Run the scenario as a system ADMIN, so it can do everything without logging in.
         List<StepResult> results = runAsSystem(scenario::run);
         for (StepResult result : results) {
             print(result, formatter, translator);
