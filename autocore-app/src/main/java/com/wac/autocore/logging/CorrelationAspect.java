@@ -48,7 +48,7 @@ public class CorrelationAspect {
             return result;
         } catch (Throwable t) {
             CorrelationIds.tag(t, MDC.get(LogKeys.CORR_ID));
-            log.debug("Failed after {} ms: {}", elapsedMs(start), t.toString());
+            log.debug("Failed after {} ms: {}", elapsedMs(start), SafeLog.describe(t));
             throw t;
         } finally {
             MDC.remove(LogKeys.CORR_ID);

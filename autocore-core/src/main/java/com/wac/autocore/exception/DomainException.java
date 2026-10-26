@@ -11,7 +11,8 @@ import java.util.Objects;
  * services do not need to know about {@code LanguageManager} or JavaFX, and switching language works
  * because the text is looked up only when it is shown.</p>
  * <p>{@link #getMessage()} contains a technical message in English for logs,
- * not for the user.</p>
+ * not for the user. It is logged as is (see {@code SafeLog}), so it must contain
+ * only ids, statuses and keys, never names, contact details or user-entered text.</p>
  */
 public abstract class DomainException extends RuntimeException {
 
@@ -33,12 +34,16 @@ public abstract class DomainException extends RuntimeException {
         this.messageArgs = messageArgs == null ? new Object[0] : messageArgs.clone();
     }
 
-    /** Responsibility: Language key for the error dialog's title, e.g. {@code error.booking}. */
+    /**
+     * Responsibility: Language key for the error dialog's title, e.g. {@code error.booking}.
+     */
     public String getTitleKey() {
         return titleKey;
     }
 
-    /** Responsibility: Language key for the message to the user, e.g. {@code error.mechanicBusy}. */
+    /**
+     * Responsibility: Language key for the message to the user, e.g. {@code error.mechanicBusy}.
+     */
     public String getMessageKey() {
         return messageKey;
     }
