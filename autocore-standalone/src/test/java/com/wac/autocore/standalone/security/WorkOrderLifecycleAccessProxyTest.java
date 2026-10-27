@@ -4,7 +4,6 @@ import com.wac.autocore.exception.PermissionDeniedException;
 import com.wac.autocore.exception.handler.ErrorHandlerChain;
 import com.wac.autocore.exception.handler.ErrorReport;
 import com.wac.autocore.model.DropInWorkOrder;
-import com.wac.autocore.security.Permission;
 import com.wac.autocore.security.Role;
 import com.wac.autocore.service.WorkOrderLifecycle;
 import com.wac.autocore.service.WorkOrderScheduleResult;
@@ -84,7 +83,7 @@ class WorkOrderLifecycleAccessProxyTest {
         PermissionDeniedException e = assertThrows(PermissionDeniedException.class,
                 () -> proxy.createDropIn(1, "test", List.of()));
 
-        assertEquals("error.accessDeniedMsg", e.getMessageKey());
+        assertEquals("error.accessDenied", e.getMessageKey());
         assertTrue(target.calls.isEmpty());
     }
 
@@ -104,9 +103,8 @@ class WorkOrderLifecycleAccessProxyTest {
         ErrorReport report = ErrorHandlerChain.createDefault().resolve(e);
 
         assertFalse(report.isUnexpected());
-        assertEquals("error.accessDenied", report.getTitleKey());
-        assertEquals("error.accessDeniedMsg", report.getMessageKey());
-        assertArrayEquals(new Object[]{Role.READ_ONLY, Permission.WORK_ORDER_WRITE},
-                report.getMessageArgs());
+        assertEquals("error.title", report.getTitleKey());
+        assertEquals("error.accessDenied", report.getMessageKey());
+        assertEquals(0, report.getMessageArgs().length);
     }
 }

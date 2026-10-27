@@ -1,21 +1,24 @@
 package com.wac.autocore.exception.handler;
 
 import com.wac.autocore.exception.IllegalStatusTransitionException;
+import com.wac.autocore.exception.PermissionDeniedException;
 import com.wac.autocore.model.WorkOrderStatus;
+import com.wac.autocore.security.Permission;
+import com.wac.autocore.security.Role;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Path;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -108,5 +111,16 @@ public class ErrorHandlerChainTest {
         return violation;
     }
 
+    @Test
+    @DisplayName("Permission denied without Spring gives the same text as Spring's access denied")
+    void permissionDeniedMatchesSpringAccessDenied() {
+        ErrorHandler chain = ErrorHandlerChain.createDefault();
+        ErrorReport fromProxy = chain.resolve(
+                new PermissionDeniedException(Role.READ_ONLY, Permission.WORK_ORDER_WRITE));
+        ErrorReport fromSpring = chain.resolve(new AccessDeniedException("denied"));
 
+        assertEquals(fromSpring.getTitleKey(), fromProxy.getTitleKey());
+        assertEquals(fromSpring.getMessageKey(), fromProxy.getMessageKey());
+        assertFalse(fromProxy.isUnexpected());
+    }
 }

@@ -13,7 +13,7 @@ class StandaloneMessagesTest {
         Translator sv = new ResourceBundleTranslator(ResourceBundleTranslator.SWEDISH);
         Translator en = new ResourceBundleTranslator(ResourceBundleTranslator.ENGLISH);
 
-        assertEquals("Åtkomst nekad", sv.get("error.accessDenied"));
-        assertEquals("Access denied", en.get("error.accessDenied"));
+        assertEquals("Du saknar behörighet för den här åtgärden.", sv.get("error.accessDenied"));
+        assertEquals("You do not have permission to perform this action.", en.get("error.accessDenied"));
     }
 }
