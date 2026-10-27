@@ -12,6 +12,7 @@ import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 // the mechanic is reserved only on the work order (see WorkOrderService).
 @Validated
 @Service
+@PreAuthorize("@access.can('DATA_READ')") // Ensures that only users with 'DATA_READ' permission can access the service methods.
 public class BookingService {
 
     private final BookingRepository bookingRepository;
@@ -65,6 +67,7 @@ public class BookingService {
     }
 
     @Transactional
+    @PreAuthorize("@access.can('BOOKING_WRITE')") // Ensures that only users with 'BOOKING_WRITE' permission can create bookings.
     public Booking create(@Positive @NotNull(message="error.booking.noSelectedVehicle") Integer vehicleId,
                           @Positive (message="error.booking.noSelectedMechanic") Integer mechanicId,
                           LocalDate date,
@@ -84,6 +87,7 @@ public class BookingService {
     // Creates a new booking with data from a previous booking.
     // If mechanic, vehicle, description or services are not given, they are inherited from the previous booking.
     @Transactional
+    @PreAuthorize("@access.can('BOOKING_WRITE')")
     public BookingCopyResult createFromPrevious(int previousBookingId,
                                                 LocalDate date,
                                                 LocalTime startTime,
@@ -124,6 +128,7 @@ public class BookingService {
     }
 
     @Transactional
+    @PreAuthorize("@access.can('BOOKING_WRITE')")
     public Booking update(@Positive @NotNull(message="error.noBooking")Integer bookingId,
                           @Positive @NotNull(message="error.vehicleSelect") Integer vehicleId,
                           @Positive Integer mechanicId,
@@ -146,6 +151,7 @@ public class BookingService {
     // The booking follows its work order: date, start time and services. Called by WorkOrderService in the same transaction,
     // so an error here (vehicle busy, midnight) also rolls back the order's change.
     @Transactional
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')") // Booking follows the work order, so the user must have permission to change the work order.
     public Booking followWorkOrder(@Positive @NotNull(message="error.noBooking") Integer bookingId,
                                    LocalDate date, LocalTime startTime,
                                    List<@NotNull @Positive Integer> serviceItemIds) {
@@ -161,6 +167,7 @@ public class BookingService {
     // The booking's status follows its work order. Called by WorkOrderService in the same transaction.
     // A missing booking gives the same error as when the plan follows the order, instead of being silently ignored.
     @Transactional
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public Booking followWorkOrderStatus(@Positive @NotNull(message="error.noBooking") Integer bookingId, WorkOrderStatus workOrderStatus) {
         Booking booking = requireBooking(bookingId);
         booking.followWorkOrder(workOrderStatus);
@@ -169,6 +176,7 @@ public class BookingService {
 
     // Soft delete: the row and the booking number remain, only the status changes. The domain decides whether it is allowed.
     @Transactional
+    @PreAuthorize("@access.can('BOOKING_WRITE')")
     public Booking cancel(@Positive @NotNull(message="error.noBooking") Integer bookingId) {
         Booking booking = requireBooking(bookingId);
         booking.cancel();
