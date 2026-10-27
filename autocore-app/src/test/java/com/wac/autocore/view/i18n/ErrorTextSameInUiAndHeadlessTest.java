@@ -11,10 +11,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * <b>ErrorTextSameInUiAndHeadlessTest</b>
@@ -52,6 +55,30 @@ class ErrorTextSameInUiAndHeadlessTest {
             LocalizedError fromHeadless = new ErrorReportFormatter(new ResourceBundleTranslator(locale)).format(report);
 
             assertEquals(fromHeadless, fromUi, "Language: " + locale);
+        }
+    }
+
+    @Test
+    @DisplayName("Not authenticated and access denied give different texts, equal in UI and headless, in both languages")
+    void securityErrorsSameInUiAndHeadlessButDifferentFromEachOther() {
+        ErrorReport notAuthenticated = ErrorHandlerChain.createDefault().resolve(
+                new AuthenticationCredentialsNotFoundException("no authentication"));
+        ErrorReport accessDenied = ErrorHandlerChain.createDefault().resolve(
+                new AccessDeniedException("denied"));
+
+        for (Locale locale : new Locale[]{ResourceBundleTranslator.SWEDISH, ResourceBundleTranslator.ENGLISH}) {
+            LanguageManager ui = LanguageManager.getInstance();
+            ui.setLocale(locale);
+            ResourceBundleTranslator headless = new ResourceBundleTranslator(locale);
+
+            LocalizedError notAuthenticatedUi = new ErrorReportFormatter(ui).format(notAuthenticated);
+            LocalizedError accessDeniedUi = new ErrorReportFormatter(ui).format(accessDenied);
+
+            assertEquals(new ErrorReportFormatter(headless).format(notAuthenticated), notAuthenticatedUi,
+                    "Not authenticated, language: " + locale);
+            assertEquals(new ErrorReportFormatter(headless).format(accessDenied), accessDeniedUi,
+                    "Access denied, language: " + locale);
+            assertNotEquals(notAuthenticatedUi, accessDeniedUi, "Language: " + locale);
         }
     }
 }
