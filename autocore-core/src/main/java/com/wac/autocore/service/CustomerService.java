@@ -58,7 +58,7 @@ public class CustomerService {
         return customerRepo.save(customer);
     }
 
-    @PreAuthorize("@access.can('CUSTOMER_WRITE')")
+    @PreAuthorize("@access.can('CUSTOMER_DELETE')") // Ensure that only users with 'CUSTOMER_DELETE' permission can delete customers
     public void deleteById(@Positive @NotNull(message="error.customerNull") Integer id) {
         requireExists(id);
         customerRepo.deleteById(id);
