@@ -1,5 +1,6 @@
 package com.wac.autocore.service;
 
+import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
@@ -8,15 +9,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Optional;
 
 import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * <b>InvoiceServiceTest</b>
@@ -126,5 +126,35 @@ class InvoiceServiceTest {
                 () -> invoiceService.create(1, null));
 
         assertEquals("error.invoice.alreadyInvoiced", ex.getMessageKey());
+    }
+
+    @Test
+    @DisplayName("markPaid marks the invoice as paid and saves it")
+    void markPaidMarksInvoiceAsPaid() {
+        Invoice invoice = new Invoice(1, LocalDate.now());
+        when(invoiceRepo.findById(3)).thenReturn(Optional.of(invoice));
+
+        Invoice result = invoiceService.markPaid(3);
+
+        assertTrue(result.isPaid());
+        verify(invoiceRepo).save(invoice);
+    }
+
+    @Test
+    @DisplayName("markPaid throws when the invoice does not exist")
+    void markPaidUnknownInvoiceThrows() {
+        when(invoiceRepo.findById(99)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> invoiceService.markPaid(99));
+    }
+
+    @Test
+    @DisplayName("markPaid rejects an invoice that is already paid")
+    void markPaidAlreadyPaidThrows() {
+        Invoice invoice = new Invoice(1, LocalDate.now());
+        invoice.markPaid();
+        when(invoiceRepo.findById(3)).thenReturn(Optional.of(invoice));
+
+        assertThrows(ValidationException.class, () -> invoiceService.markPaid(3));
     }
 }
