@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class StandaloneAutoCoreTest {
+class StandaloneAutoCoreTest {
 
     @ParameterizedTest
     @EnumSource(Role.class)

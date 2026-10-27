@@ -25,6 +25,7 @@ import com.wac.autocore.standalone.repository.InMemoryWorkOrderRepository;
 import com.wac.autocore.standalone.security.WorkOrderLifecycleAccessProxy;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <b>StandaloneAutoCore</b>
@@ -48,6 +49,8 @@ public final class StandaloneAutoCore {
     private final ServiceItemService serviceItemService;
 
     public StandaloneAutoCore(Role role) {
+        this.role = Objects.requireNonNull(role, "role");
+
         InMemoryWorkOrderRepository workOrderRepo = new InMemoryWorkOrderRepository();
         InMemoryBookingRepository bookingRepo = new InMemoryBookingRepository(workOrderRepo);
         InMemoryMechanicRepository mechanicRepo = new InMemoryMechanicRepository();
@@ -73,8 +76,6 @@ public final class StandaloneAutoCore {
         this.serviceItemService = new ServiceItemService(serviceItemRepo);
 
         this.workOrderLifecycle = new WorkOrderLifecycleAccessProxy(workOrderService, role);
-
-        this.role = role;
     }
 
     private DropInScenario dropInScenario() {
