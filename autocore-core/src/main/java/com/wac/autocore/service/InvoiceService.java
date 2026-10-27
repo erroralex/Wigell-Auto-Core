@@ -6,6 +6,7 @@ import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.repository.InvoiceRepo;
 import com.wac.autocore.service.discount.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +26,7 @@ import java.util.Optional;
 @Validated
 @Service
 @Transactional
+@PreAuthorize("@access.can('DATA_READ')") // Ensures that only users with 'DATA_READ' permission can access the service methods.
 public class InvoiceService {
 
     private final InvoiceRepo invoiceRepo;
@@ -42,6 +44,7 @@ public class InvoiceService {
         this.customerService = customerService;
     }
 
+    @PreAuthorize("@access.can('INVOICE_CREATE')") // Ensures that only users with 'INVOICE_CREATE' permission can create invoices.
     public Invoice create(@Positive @NotNull(message="error.invoice.noWorkOrder") Integer workOrderId,
                           @Pattern(
                                   regexp = "^(?:[A-Z]+\\d+)?$",
@@ -96,7 +99,12 @@ public class InvoiceService {
         return invoiceRepo.findAll();
     }
 
-    public Invoice update(Invoice invoice) {
+    // Replaces the previous invoice update-method to mark an invoice as paid with authentication and authorization checks as methods above.
+    @PreAuthorize("@access.can('PAYMENT_REGISTER')")
+    public Invoice markPaid(@Positive @NotNull(message="error.payment.noInvoiceId") Integer invoiceId) {
+        Invoice invoice = invoiceRepo.findById(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("Invoice", invoiceId));
+        invoice.markPaid();
         return invoiceRepo.save(invoice);
     }
 

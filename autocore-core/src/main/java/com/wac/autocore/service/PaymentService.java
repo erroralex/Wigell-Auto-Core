@@ -4,6 +4,7 @@ import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.repository.PaymentRepo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +18,7 @@ import java.util.List;
 @Validated
 @Service
 @Transactional
+@PreAuthorize("@access.can('DATA_READ')") // Ensures that only users with 'DATA_READ' permission can access the service methods.
 public class PaymentService {
 
     private final PaymentRepo paymentRepo;
@@ -31,6 +33,7 @@ public class PaymentService {
         return paymentRepo.findAll();
     }
 
+    @PreAuthorize("@access.can('PAYMENT_REGISTER')") // Ensures that only users with 'PAYMENT_REGISTER' permission can register payments.
     public Payment processPayment(@Positive @NotNull(message="error.payment.noInvoiceId") Integer invoiceId,
                                   @NotBlank(message="error.payment.emptyPaymentType")
                                   @Pattern(
@@ -44,8 +47,7 @@ public class PaymentService {
 
         Payment payment = Payment.successful(invoiceId, invoice.getTotalAmount(), paymentType);
 
-        invoice.markPaid();
-        invoiceService.update(invoice);
+        invoiceService.markPaid(invoiceId);
 
         return paymentRepo.save(payment);
     }

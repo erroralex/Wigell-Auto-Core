@@ -23,6 +23,7 @@ import jakarta.validation.constraints.Positive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
 @Validated
 @Service
 @Transactional
+@PreAuthorize("@access.can('DATA_READ')") // Ensures that only users with 'DATA_READ' permission can access the service methods.
 public class WorkOrderService implements WorkOrderLifecycle {
 
     private static final Logger log = LoggerFactory.getLogger(WorkOrderService.class);
@@ -113,6 +115,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
     // Creates a planned work order for a booking and saves it as a draft.
     // The booking's suggested mechanic, time and services, with agreed prices, are inherited from the booking.
     // If the mechanic has a clash, the draft is saved anyway and the result contains the warning and the next available time.
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')") // Ensures that only users with 'WORK_ORDER_WRITE' permission can create work orders.
     public WorkOrderScheduleResult createWorkOrder(@Positive(message = "error.notFound") int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
@@ -149,6 +152,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
     }
 
     // Creates a warranty order from a previous work order and saves it as a draft.
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public WarrantyWorkOrder createWarranty(@Positive int originalWorkOrderId,
                                             String problemDescription) {
         WorkOrder original = require(originalWorkOrderId);
@@ -167,6 +171,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
     // The service checks that the vehicle exists, the model validates the rest.
     // Services are optional for a draft; null is treated as "no services".
     @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public DropInWorkOrder createDropIn(int vehicleId,
                                         String problemDescription,
                                         List<Integer> serviceItemIds) {
@@ -188,6 +193,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
     }
 
     @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public void startWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Starting work order");
@@ -199,6 +205,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
     }
 
     @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public void completeWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Completing work order");
@@ -222,6 +229,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
 
     // Confirmation reserves the mechanic, so a clash stops it and nothing is saved.
     @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public void confirmWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Confirming work order");
@@ -237,6 +245,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
     // may have changed while the order was cancelled. The cancelled order remains as history. Comments and
     // customer instructions are carried over, and the result lists what differs from the cancelled order.
     // Other orders are reopened as drafts (the same order). The booking then remains locked: DRAFT maps to WORK_ORDER_CREATED.
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public WorkOrderReopenResult reopenWorkOrder(@Positive int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Reopening work order");
@@ -275,6 +284,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
 
     // Cancels the order and releases the booking (BOOKED), so it can get a new order, e.g. with another mechanic.
     @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public void cancelWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Cancelling work order");
@@ -287,6 +297,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
 
     // Mechanic is optional. A draft that clashes is saved with a warning; a confirmed order that clashes is stopped.
     @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public WorkOrderScheduleResult updateWorkOrder(int id,
                                                    List<Integer> serviceItemIds,
                                                    Integer mechanicId,

@@ -6,6 +6,7 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.ServicePackage;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.ServicePackageRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +26,7 @@ import java.util.Optional;
 @Validated
 @Service
 @Transactional
+@PreAuthorize("@access.can('DATA_READ')") // Ensures that only users with 'DATA_READ' permission can access the service methods.
 public class ServicePackageService {
 
     private final ServicePackageRepository packageRepository;
@@ -45,6 +47,8 @@ public class ServicePackageService {
         return packageRepository.findById(id);
     }
 
+    @Transactional
+    @PreAuthorize("@access.can('SERVICE_CATALOG_WRITE')") // Ensures that only users with 'SERVICE_CATALOG_WRITE' permission can create service packages.
     public ServicePackage create(@NotBlank(message = "error.servicePackage.nameRequired") String name,
                                  String description,
                                  @NotEmpty(message = "error.servicePackage.noServices") List<@Positive Integer> serviceItemIds) {
@@ -56,6 +60,8 @@ public class ServicePackageService {
         return packageRepository.save(servicePackage);
     }
 
+    @Transactional
+    @PreAuthorize("@access.can('SERVICE_CATALOG_WRITE')")
     public ServicePackage update(@Positive @NotNull(message = "error.servicePackage.nullValue") Integer id,
                                  @NotBlank(message = "error.servicePackage.nameRequired")String name,
                                  String description,
@@ -76,6 +82,8 @@ public class ServicePackageService {
         return packageRepository.save(servicePackage);
     }
 
+    @Transactional
+    @PreAuthorize("@access.can('SERVICE_CATALOG_WRITE')")
     public void delete(@Positive @NotNull(message = "error.servicePackage.nullValue") Integer id) {
         ServicePackage servicePackage = packageRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("ServicePackage", id, "error.servicePackage.notFound"));
