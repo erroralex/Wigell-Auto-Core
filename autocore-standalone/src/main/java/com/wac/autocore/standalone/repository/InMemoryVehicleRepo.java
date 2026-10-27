@@ -1,4 +1,4 @@
-package com.wac.autocore.testsupport;
+package com.wac.autocore.standalone.repository;
 
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.VehicleRepo;
