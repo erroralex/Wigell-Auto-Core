@@ -35,12 +35,12 @@ public final class ScenarioReportPrinter {
         results.forEach(this::printStep);
         long asExpected = results.stream().filter(StepResult::isAsExpected).count();
         out.println();
-        out.println(asExpected + " of " + results.size() + " steps went as expected");
+        out.println(translator.get("scenario.summary", asExpected, results.size()));
     }
 
     private void printStep(StepResult result) {
         String status = result.isAsExpected() ? "[OK] " : "[ERR]";
-        String note = result.isExpectedFailure() ? "  (expected error)" : "";
+        String note = result.isExpectedFailure() ? "  " + translator.get("scenario.expectedError") : "";
         out.println(status + " " + result.getName() + note);
 
         ErrorReport error = result.getError();

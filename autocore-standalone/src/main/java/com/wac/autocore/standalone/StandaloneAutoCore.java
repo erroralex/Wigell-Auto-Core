@@ -2,6 +2,7 @@ package com.wac.autocore.standalone;
 
 import com.wac.autocore.headless.DropInScenario;
 import com.wac.autocore.headless.StepResult;
+import com.wac.autocore.model.Invoice;
 import com.wac.autocore.security.AccessPolicy;
 import com.wac.autocore.security.Permission;
 import com.wac.autocore.security.Role;
@@ -89,5 +90,10 @@ public final class StandaloneAutoCore {
             return dropInScenario().run();
         }
         return new ReadOnlyScenario(vehicleService, workOrderLifecycle).run();
+    }
+
+    // The invoices created by the run, for the report.
+    public List<Invoice> invoices() {
+        return invoiceService.findAll();
     }
 }
