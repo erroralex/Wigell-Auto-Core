@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory {@link WorkOrderRepository} for running AutoCore without a database.
+ */
 public class InMemoryWorkOrderRepository implements WorkOrderRepository {
 
     private final Map<Integer, WorkOrder> store = new LinkedHashMap<>();

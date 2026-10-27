@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * In-memory {@link ServiceItemRepository} for running AutoCore without a database.
+ */
 public class InMemoryServiceItemRepository implements ServiceItemRepository {
 
     private final Map<Integer, ServiceItem> store = new LinkedHashMap<>();

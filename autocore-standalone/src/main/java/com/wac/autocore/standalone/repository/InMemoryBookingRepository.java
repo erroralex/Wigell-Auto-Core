@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory {@link BookingRepository} for running AutoCore without a database.
+ */
 public class InMemoryBookingRepository implements BookingRepository {
 
     private final Map<Integer, Booking> store = new LinkedHashMap<>();

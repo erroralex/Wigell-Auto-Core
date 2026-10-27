@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * In-memory {@link MechanicRepository} for running AutoCore without a database.
+ */
 public class InMemoryMechanicRepository implements MechanicRepository {
 
     private final Map<Integer, Mechanic> store = new LinkedHashMap<>();

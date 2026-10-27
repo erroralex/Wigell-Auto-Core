@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory {@link VehicleRepo} for running AutoCore without a database.
+ */
 public class InMemoryVehicleRepo implements VehicleRepo {
 
     private final Map<Integer, Vehicle> store = new LinkedHashMap<>();
