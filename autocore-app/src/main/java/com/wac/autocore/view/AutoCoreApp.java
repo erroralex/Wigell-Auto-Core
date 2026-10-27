@@ -12,16 +12,10 @@ import javafx.stage.Stage;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
-/**
- * <b>AutoCoreApp</b>
- * <p>Responsibility: Starts the Spring context and the JavaFX application, creates the main window and plugs in the CSS stylesheet.
- * Closes the Spring context (and thereby the database connection) when the application exits.</p>
- */
 public class AutoCoreApp extends Application {
 
     private static Stage primaryStage;
@@ -34,6 +28,9 @@ public class AutoCoreApp extends Application {
 
     private static final double BASE_FONT_SIZE = 13;
     private double currentZoom = 1.0;
+
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
 
     private ConfigurableApplicationContext springContext;
 
@@ -51,15 +48,40 @@ public class AutoCoreApp extends Application {
     public void start(Stage primaryStage) {
         GlobalExceptionHandler.install();
 
+        AutoCoreApp.primaryStage = primaryStage;
 
+        LoginView loginView = new LoginView();
+
+        loginView.getLoginButton().setOnAction(e -> {
+            try {
+                AuthenticationManager authManager = springContext.getBean(AuthenticationManager.class);
+                var auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(
+                        loginView.getUsername(),
+                        loginView.getPassword()
+                ));
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                showMainLayout();
+
+            } catch (Exception ex) {
+                loginView.showError(lang.get("error.login.invalidUsernameOrPassword"));
+            }
+        });
+
+        Scene scene = new Scene(loginView, WIDTH, HEIGHT);
+        scene.setFill(javafx.scene.paint.Color.web("#212121"));
+
+        String cssPath = getClass().getResource("style.css").toExternalForm();
+        scene.getStylesheets().add(cssPath);
+
+        primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
+        primaryStage.show();
+    }
+
+    private void showMainLayout() {
         try {
-            // TODO: replace lines below with the login dialog.
-            String devUser = springContext.getEnvironment().getProperty("autocore.dev-user", "admin");
-            UserDetails user = springContext.getBean(UserDetailsService.class).loadUserByUsername(devUser);
-            SecurityContextHolder.getContext().setAuthentication(
-                    UsernamePasswordAuthenticationToken.authenticated(user, null, user.getAuthorities()));
-
-            AutoCoreApp.primaryStage = primaryStage;
+            Scene currentScene = primaryStage.getScene();
 
             InvoiceService invoiceService = springContext.getBean(InvoiceService.class);
             PaymentService paymentService = springContext.getBean(PaymentService.class);
@@ -83,15 +105,9 @@ public class AutoCoreApp extends Application {
                     servicePackageService
             );
 
-            Scene scene = new Scene(layout, WIDTH, HEIGHT);
-            scene.setFill(javafx.scene.paint.Color.web("#212121"));
+            currentScene.setRoot(layout);
 
-            // Loads the stylesheet from the same package via the classpath
-            String cssPath = getClass().getResource("style.css").toExternalForm();
-            scene.getStylesheets().add(cssPath);
-
-            // UI Ctrl-scroll Zoom
-            scene.addEventFilter(ScrollEvent.SCROLL, event -> {
+            currentScene.addEventFilter(ScrollEvent.SCROLL, event -> {
                 if (event.isControlDown()) {
                     double factor = event.getDeltaY() > 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
                     currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom * factor));
@@ -101,20 +117,15 @@ public class AutoCoreApp extends Application {
                 }
             });
 
-            // The window title is bound, otherwise it stays in Swedish after a language switch
             primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
-
-            primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
             primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
-            primaryStage.show();
 
         } catch (Exception e) {
             ErrorFacade.handle(e);
         }
     }
 
-    // Runs when the window is closed. Closes the Spring context so the database connection is released.
     @Override
     public void stop() {
         if (springContext != null) {
