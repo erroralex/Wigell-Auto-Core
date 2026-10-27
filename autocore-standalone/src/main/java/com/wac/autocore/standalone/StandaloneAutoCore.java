@@ -50,6 +50,9 @@ public final class StandaloneAutoCore {
         InMemoryInvoiceRepo invoiceRepo = new InMemoryInvoiceRepo();
         InMemoryPaymentRepo paymentRepo = new InMemoryPaymentRepo();
 
+        // Seed data, saved straight to the repositories before any service runs.
+        StandaloneSeedData.seed(customerRepo, vehicleRepo, mechanicRepo, serviceItemRepo);
+
         CustomerService customerService = new CustomerService(customerRepo);
         this.vehicleService = new VehicleService(vehicleRepo, customerRepo);
         BookingService bookingService =
