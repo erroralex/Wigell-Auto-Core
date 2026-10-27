@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.repository.CustomerRepo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @Validated
 @Service
+@PreAuthorize("@access.can('DATA_READ')") // Ensure that only users with 'DATA_READ' permission can access this service
 public class CustomerService {
 
     private final CustomerRepo customerRepo;
@@ -37,6 +39,7 @@ public class CustomerService {
         return customerRepo.existsById(id);
     }
 
+    @PreAuthorize("@access.can('CUSTOMER_WRITE')") // Ensure that only users with 'CUSTOMER_WRITE' permission can create customers
     public Customer create(@NotBlank(message = "error.customer.nameRequired") String name,
                            @NotBlank(message = "error.customer.phoneRequired") String phone,
                            @Email(message = "error.invalidEmail") String email) {
@@ -44,6 +47,7 @@ public class CustomerService {
         return customerRepo.save(new Customer(name.trim(), phone.trim(), normalizeEmail(email)));
     }
 
+    @PreAuthorize("@access.can('CUSTOMER_WRITE')")
     public Customer update(@NotNull @Valid Customer customer) {
         requireExists(customer.getId());
 
@@ -54,6 +58,7 @@ public class CustomerService {
         return customerRepo.save(customer);
     }
 
+    @PreAuthorize("@access.can('CUSTOMER_DELETE')") // Ensure that only users with 'CUSTOMER_DELETE' permission can delete customers
     public void deleteById(@Positive @NotNull(message="error.customerNull") Integer id) {
         requireExists(id);
         customerRepo.deleteById(id);
