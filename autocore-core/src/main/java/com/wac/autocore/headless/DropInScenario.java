@@ -1,6 +1,5 @@
 package com.wac.autocore.headless;
 
-import com.wac.autocore.exception.handler.ErrorHandler;
 import com.wac.autocore.exception.handler.ErrorHandlerChain;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
@@ -14,7 +13,6 @@ import com.wac.autocore.service.WorkOrderLifecycle;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -28,9 +26,9 @@ import static com.wac.autocore.headless.ScenarioStep.step;
  * <p>Responsibility: Runs a complete drop-in flow through the services without a UI: create, add
  * services and mechanic, confirm, start, complete, invoice and pay. Then two
  * intentional errors: starting a cancelled order and an unknown vehicle.</p>
- * <p>Each step is a <b>Command</b> ({@link ScenarioStep}) that is run the same way: if it succeeds
- * it becomes {@link StepResult#success}, otherwise the error is translated by the same
- * {@link ErrorHandlerChain} that the UI uses. That is why headless gets the same language keys as the UI.</p>
+ * <p>Each step is a <b>Command</b> ({@link ScenarioStep}). This class is the <b>client</b> that
+ * builds the list; {@link ScenarioRunner} is the <b>invoker</b> that runs it and translates
+ * errors with the same {@link ErrorHandlerChain} as the UI.</p>
  * <p>Depends on {@link WorkOrderLifecycle}, not on {@code WorkOrderService}, so it is the
  * <b>client</b> in the <b>Proxy</b> pattern: the standalone program can hand it an
  * access-checking proxy instead of the real service without any change here.</p>
@@ -51,7 +49,6 @@ public class DropInScenario {
     private final VehicleService vehicleService;
     private final MechanicService mechanicService;
     private final ServiceItemService serviceItemService;
-    private final ErrorHandler errorChain = ErrorHandlerChain.createDefault();
 
     public DropInScenario(WorkOrderLifecycle workOrderLifecycle,
                           InvoiceService invoiceService,
@@ -69,24 +66,7 @@ public class DropInScenario {
 
     /* Responsibility: Runs all steps in order and returns the result of each step that was run */
     public List<StepResult> run() {
-        ScenarioContext ctx = new ScenarioContext();
-        List<StepResult> results = new ArrayList<>();
-
-        for (ScenarioStep step : steps()) {
-            StepResult result;
-            try {
-                step.execute(ctx);
-                result = StepResult.success(step);
-            } catch (RuntimeException e) {
-                result = StepResult.failure(step, errorChain.resolve(e));
-            }
-            results.add(result);
-
-            if (!result.isAsExpected() && !step.expectsFailure()) {
-                break;
-            }
-        }
-        return results;
+        return new ScenarioRunner().run(steps());
     }
 
     private List<ScenarioStep> steps() {
