@@ -1,53 +1,55 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Invoice;
-import com.wac.autocore.view.i18n.LanguageManager;
-import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.StringConverterUtil;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 /**
  * <b>ProcessPaymentDialog</b>
  * <p>Responsibility: Dialog for registering a payment.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class ProcessPaymentDialog extends FormDialog<ProcessPaymentDialog.Result> {
 
     private final Invoice invoice;
+
+    private final ComboBox<String> paymentTypeSelection = new ComboBox<>();
 
     public ProcessPaymentDialog(Invoice invoice) {
         this.invoice = invoice;
 
-        this.setTitle(lang.get("payment.new"));
-        this.setHeaderText(lang.get("payment.register"));
-
-        DialogUtil.applyTheme(this);
-
-        ComboBox<String> paymentTypeSelection = new ComboBox<>();
-
         // The values are stored as they are (CARD/SWISH/CASH), only the display is translated
         paymentTypeSelection.getItems().addAll("CARD", "SWISH", "CASH");
         paymentTypeSelection.setPromptText(lang.get("table.paymentType"));
-        paymentTypeSelection.setConverter(new StringConverter<String>() {
+        paymentTypeSelection.setConverter(StringConverterUtil.display(type -> lang.get("payment.type." + type)));
 
-            @Override
-            public String toString(String type) {
-                return type == null ? "" : lang.get("payment.type." + type);
-            }
+        initDialog();
+    }
 
-            @Override
-            public String fromString(String string) {
-                return null;
-            }
-        });
+    @Override
+    protected String getTitleKey() {
+        return "payment.new";
+    }
 
+    @Override
+    protected String buildHeaderText() {
+        return lang.get("payment.register");
+    }
+
+    @Override
+    protected ObservableBooleanValue saveDisabled() {
+        return paymentTypeSelection.valueProperty().isNull();
+    }
+
+    @Override
+    protected Node buildContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
@@ -55,27 +57,16 @@ public class ProcessPaymentDialog extends Dialog<ProcessPaymentDialog.Result> {
                 new Label(lang.get("payment.total", invoice.getTotalAmount())),
                 new Label(lang.get("table.paymentType")), paymentTypeSelection
         );
+        return content;
+    }
 
-        this.getDialogPane().setContent(content);
+    @Override
+    protected void submit() {
+    }
 
-        ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        this.getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
-
-        this.getDialogPane().lookupButton(saveButtonType).setDisable(true);
-
-        paymentTypeSelection.valueProperty().addListener(
-                (observable, oldValue, newValue) ->
-                        this.getDialogPane().lookupButton(saveButtonType).setDisable(newValue == null)
-        );
-
-        this.setResultConverter(buttonType -> {
-
-            if (buttonType != saveButtonType)
-                return null;
-
-            return new Result(this.invoice.getId(), paymentTypeSelection.getValue());
-        });
+    @Override
+    protected Result buildResult() {
+        return new Result(invoice.getId(), paymentTypeSelection.getValue());
     }
 
     public static class Result {
