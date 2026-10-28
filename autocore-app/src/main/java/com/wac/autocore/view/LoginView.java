@@ -16,7 +16,7 @@ import javafx.util.Duration;
 
 public class LoginView extends VBox {
 
-    LanguageManager lang = LanguageManager.getInstance();
+    private final LanguageManager lang = LanguageManager.getInstance();
 
     private final TextField usernameField;
     private final PasswordField passwordField;
@@ -42,8 +42,9 @@ public class LoginView extends VBox {
         usernameField.setPrefWidth(400);
         passwordField.setPrefWidth(400);
         loginButton.setPrefWidth(250);
+        loginButton.setDefaultButton(true);
 
-        errorLabel.setStyle("-fx-text-fill: red;");
+        errorLabel.getStyleClass().add("login-error-text");
         errorLabel.setOpacity(0);
         errorLabel.setMinHeight(20);
         errorLabel.setWrapText(true);
@@ -160,8 +161,8 @@ public class LoginView extends VBox {
         return passwordField.getText();
     }
 
-    public void showError(String messageKey) {
-        errorLabel.setText(messageKey);
+    public void showError(String messageText) {
+        errorLabel.setText(messageText);
         errorLabel.setOpacity(1);
     }
 

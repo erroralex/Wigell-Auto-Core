@@ -17,6 +17,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+/**
+ * <b>AutoCoreApp</b>
+ * <p>Responsibility: Starts the Spring context and the JavaFX application, creates the main window and plugs in the CSS stylesheet.
+ * Closes the Spring context (and thereby the database connection) when the application exits.</p>
+ */
 public class AutoCoreApp extends Application {
 
     private static Stage primaryStage;
@@ -57,6 +62,7 @@ public class AutoCoreApp extends Application {
         Scene scene = new Scene(loginView, WIDTH, HEIGHT);
         scene.setFill(javafx.scene.paint.Color.web("#212121"));
 
+        // Loads the stylesheet from the same package via the classpath
         String cssPath = getClass().getResource("style.css").toExternalForm();
         scene.getStylesheets().add(cssPath);
 
@@ -64,6 +70,7 @@ public class AutoCoreApp extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
+        primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
         primaryStage.show();
     }
 
@@ -111,6 +118,7 @@ public class AutoCoreApp extends Application {
 
             currentScene.setRoot(layout);
 
+            // UI Ctrl-scroll Zoom
             currentScene.addEventFilter(ScrollEvent.SCROLL, event -> {
                 if (event.isControlDown()) {
                     double factor = event.getDeltaY() > 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
@@ -121,6 +129,7 @@ public class AutoCoreApp extends Application {
                 }
             });
 
+            // The window title is bound, otherwise it stays in Swedish after a language switch
             primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
             primaryStage.setMaximized(true);
 
@@ -129,6 +138,7 @@ public class AutoCoreApp extends Application {
         }
     }
 
+    // Runs when the window is closed. Closes the Spring context so the database connection is released.
     @Override
     public void stop() {
         if (springContext != null) {
