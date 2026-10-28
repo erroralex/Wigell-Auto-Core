@@ -1,4 +1,4 @@
-package com.wac.autocore.testsupport;
+package com.wac.autocore.standalone.repository;
 
 import com.wac.autocore.model.WorkOrder;
 import com.wac.autocore.model.WorkOrderStatus;
@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory {@link WorkOrderRepository} for running AutoCore without a database.
+ */
 public class InMemoryWorkOrderRepository implements WorkOrderRepository {
 
     private final Map<Integer, WorkOrder> store = new LinkedHashMap<>();

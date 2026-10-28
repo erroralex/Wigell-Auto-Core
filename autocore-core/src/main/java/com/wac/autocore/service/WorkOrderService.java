@@ -19,7 +19,6 @@ import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +43,15 @@ import java.util.stream.Collectors;
  * the order cannot be created, so the view can show the correct reason via {@code ErrorFacade}.
  * {@link #startWorkOrder(int)} and {@link #completeWorkOrder(int)} throw {@code IllegalStatusTransitionException}
  * when the transition is not allowed.</p>
+ *
+ * <p>Implements {@link WorkOrderLifecycle} and is the <b>real subject</b> in the
+ * <b>Proxy</b> pattern (GoF). The standalone program puts a protection proxy in front of it.</p>
  */
 @Validated
 @Service
 @Transactional
 @PreAuthorize("@access.can('DATA_READ')") // Ensures that only users with 'DATA_READ' permission can access the service methods.
-public class WorkOrderService {
+public class WorkOrderService implements WorkOrderLifecycle {
 
     private static final Logger log = LoggerFactory.getLogger(WorkOrderService.class);
 
@@ -168,10 +170,12 @@ public class WorkOrderService {
     // Creates a drop-in order (car without a booking) and saves it as a draft.
     // The service checks that the vehicle exists, the model validates the rest.
     // Services are optional for a draft; null is treated as "no services".
+    @Override
     @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
-    public DropInWorkOrder createDropIn(@Positive(message = "error.notFound") int vehicleId,
+    public DropInWorkOrder createDropIn(int vehicleId,
                                         String problemDescription,
                                         List<Integer> serviceItemIds) {
+
         if (!vehicleRepo.existsById(vehicleId)) {
             throw new EntityNotFoundException("Vehicle", vehicleId);
         }
@@ -188,8 +192,9 @@ public class WorkOrderService {
         return saved;
     }
 
+    @Override
     @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
-    public void startWorkOrder(@Positive int id) {
+    public void startWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Starting work order");
             WorkOrder workOrder = require(id);
@@ -199,8 +204,9 @@ public class WorkOrderService {
         }
     }
 
+    @Override
     @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
-    public void completeWorkOrder(@Positive int id) {
+    public void completeWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Completing work order");
             WorkOrder workOrder = require(id);
@@ -222,8 +228,9 @@ public class WorkOrderService {
     }
 
     // Confirmation reserves the mechanic, so a clash stops it and nothing is saved.
+    @Override
     @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
-    public void confirmWorkOrder(@Positive int id) {
+    public void confirmWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Confirming work order");
             WorkOrder workOrder = require(id);
@@ -276,8 +283,9 @@ public class WorkOrderService {
     }
 
     // Cancels the order and releases the booking (BOOKED), so it can get a new order, e.g. with another mechanic.
+    @Override
     @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
-    public void cancelWorkOrder(@Positive int id) {
+    public void cancelWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Cancelling work order");
             WorkOrder workOrder = require(id);
@@ -288,15 +296,17 @@ public class WorkOrderService {
     }
 
     // Mechanic is optional. A draft that clashes is saved with a warning; a confirmed order that clashes is stopped.
+    @Override
     @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
-    public WorkOrderScheduleResult updateWorkOrder(@Positive int id,
-                                                   List<@NotNull @Positive Integer> serviceItemIds,
-                                                   @Positive Integer mechanicId,
+    public WorkOrderScheduleResult updateWorkOrder(int id,
+                                                   List<Integer> serviceItemIds,
+                                                   Integer mechanicId,
                                                    LocalDate plannedDate,
                                                    LocalTime plannedStartTime,
                                                    String customerInstructions,
                                                    String comments,
                                                    Map<Integer, Boolean> chargeFlags) {
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Updating work order");
             WorkOrder workOrder = require(id);
