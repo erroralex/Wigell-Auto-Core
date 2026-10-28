@@ -74,6 +74,8 @@ public class AutoCoreApp extends Application {
         String cssPath = getClass().getResource("style.css").toExternalForm();
         scene.getStylesheets().add(cssPath);
 
+        primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
+
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         primaryStage.show();
@@ -119,7 +121,6 @@ public class AutoCoreApp extends Application {
 
             primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
             primaryStage.setMaximized(true);
-            primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
 
         } catch (Exception e) {
             ErrorFacade.handle(e);

@@ -30,6 +30,12 @@ public class LoginView extends VBox {
         errorLabel.setStyle("-fx-text-fill: red;");
         errorLabel.setVisible(false);
 
+        // Hide error when editing the fields
+        usernameField.textProperty().addListener((obs, oldVal, newVal) -> hideError());
+        passwordField.textProperty().addListener((obs, oldVal, newVal) -> hideError());
+
+        errorLabel.setOnMouseClicked(e -> {hideError();});
+        
         getChildren().addAll(usernameField, passwordField, loginButton, errorLabel);
     }
 
@@ -48,5 +54,9 @@ public class LoginView extends VBox {
     public void showError(String messageKey) {
         errorLabel.setText(messageKey);
         errorLabel.setVisible(true);
+    }
+
+    public void hideError() {
+        errorLabel.setVisible(false);
     }
 }
