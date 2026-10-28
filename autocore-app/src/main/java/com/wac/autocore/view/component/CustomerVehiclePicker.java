@@ -3,10 +3,10 @@ package com.wac.autocore.view.component;
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
 import com.wac.autocore.view.dialog.CreateVehicleDialog;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.StringConverterUtil;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
@@ -18,7 +18,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -123,43 +123,31 @@ public class CustomerVehiclePicker extends VBox {
     }
 
     private void createCustomer() {
-        Set<Integer> knownIds = customerCombo.getItems().stream()
-                .map(Customer::getId)
-                .collect(Collectors.toSet());
-        Customer previous = customerCombo.getValue();
-
-        if (!new CreateCustomerDialog(customerService).showAndWait().isPresent()) {
+        Optional<Customer> created = new CreateCustomerDialog(customerService).showAndWait();
+        if (!created.isPresent()) {
             return;
         }
 
+        int createdId = created.get().getId();
         customerCombo.getItems().setAll(customerService.findAll());
-        Customer created = customerCombo.getItems().stream()
-                .filter(customer -> !knownIds.contains(customer.getId()))
-                .findFirst()
-                .orElse(null);
-
-        // A new customer is selected directly; otherwise the previous choice is kept.
-        Integer selectedId = created != null ? Integer.valueOf(created.getId())
-                : previous != null ? Integer.valueOf(previous.getId()) : null;
         customerCombo.getItems().stream()
-                .filter(customer -> selectedId != null && customer.getId() == selectedId)
+                .filter(customer -> customer.getId() == createdId)
                 .findFirst()
                 .ifPresent(customerCombo::setValue);
     }
 
     private void createVehicle() {
-        Set<Integer> knownIds = vehicles.stream()
-                .map(Vehicle::getId)
-                .collect(Collectors.toSet());
-
-        if (!new CreateVehicleDialog(customerService, vehicleService, customerCombo.getValue()).showAndWait()) {
+        Optional<Vehicle> created = new CreateVehicleDialog(
+                customerService, vehicleService, customerCombo.getValue()).showAndWait();
+        if (!created.isPresent()) {
             return;
         }
 
+        int createdId = created.get().getId();
         vehicles = vehicleService.findAll();
         showVehiclesFor(customerCombo.getValue());
         vehicleCombo.getItems().stream()
-                .filter(vehicle -> !knownIds.contains(vehicle.getId()))
+                .filter(vehicle -> vehicle.getId() == createdId)
                 .findFirst()
                 .ifPresent(vehicleCombo::setValue);
     }
