@@ -3,6 +3,7 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -12,20 +13,14 @@ import javafx.scene.control.Dialog;
 
 /**
  * <b>FormDialog</b>
- * <p>Responsibility: Common base for all form dialogs. Builds title, header, content,
- * buttons and theme in a fixed order, and keeps the dialog open when saving fails.</p>
+ * <p>Responsibility: Common base for all form dialogs (Template Method). {@link #initDialog()}
+ * builds theme, title, content, buttons, save handler and result in a fixed order. The theme
+ * comes first since {@link DialogUtil#applyTheme} wraps new content in a scroll pane.</p>
  *
- * <p>Template Method (GoF): {@link #initDialog()} is the template method and fixes the
- * order of the steps. Subclasses supply the varying steps ({@link #buildContent()},
- * {@link #submit()}, {@link #buildResult()}) and may override the hook
- * {@link #getHeaderKey()}. Mirrors {@link com.wac.autocore.view.BaseView} for views.</p>
- *
- * <p>Subclasses must call {@link #initDialog()} last in their constructor. If the base
- * class called it, {@link #buildContent()} would run before the subclass fields are
- * initialized, and they would be {@code null}.</p>
- *
- * @param <T>
- *         the type returned by {@link #showAndWait()} when the user saves
+ * <p>Subclasses implement {@code buildContent()}, {@code submit()} and {@code buildResult()},
+ * may override the hooks {@code buildHeaderText()} and {@code saveDisabled()}, and call
+ * {@code initDialog()} last in their constructor. If {@code submit()} throws, the dialog stays
+ * open. Use {@code addEventHandler(DialogEvent.DIALOG_SHOWN, ...)}, not {@code setOnShown}.</p>
  */
 public abstract class FormDialog<T> extends Dialog<T> {
 
@@ -36,7 +31,7 @@ public abstract class FormDialog<T> extends Dialog<T> {
 
     protected abstract String getTitleKey();
 
-    protected String getHeaderKey() {
+    protected String buildHeaderText() {
         return null;
     }
 
@@ -46,19 +41,10 @@ public abstract class FormDialog<T> extends Dialog<T> {
 
     protected abstract T buildResult();
 
-    /**
-     * Template method: builds the dialog in a fixed order. Final so the order cannot be changed.
-     * <ol>
-     *   <li>Theme and owner. Must come before the content, since {@link DialogUtil#applyTheme}
-     *       listens for new content and wraps it in a scroll pane.</li>
-     *   <li>Title and optional header text.</li>
-     *   <li>The subclass content from {@link #buildContent()}.</li>
-     *   <li>Save and cancel buttons.</li>
-     *   <li>Save handler: runs {@link #submit()} and keeps the dialog open if it throws.</li>
-     *   <li>Result converter: returns {@link #buildResult()} on save, otherwise {@code null}.</li>
-     * </ol>
-     * Must be called last in the subclass constructor.
-     */
+    protected ObservableBooleanValue saveDisabled() {
+        return null;
+    }
+
     public final void initDialog() {
         applyStyling();
         buildHeader();
@@ -75,8 +61,10 @@ public abstract class FormDialog<T> extends Dialog<T> {
 
     private void buildHeader() {
         setTitle(lang.get(getTitleKey()));
-        if (getHeaderKey() != null) {
-            setHeaderText(lang.get(getHeaderKey()));
+
+        String headerText = buildHeaderText();
+        if (headerText != null) {
+            setHeaderText(headerText);
         }
     }
 
@@ -86,6 +74,11 @@ public abstract class FormDialog<T> extends Dialog<T> {
         Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);
         saveButton.getStyleClass().addAll("btn", "btn-primary");
         cancelButton.getStyleClass().addAll("btn", "btn-secondary");
+
+        ObservableBooleanValue disabled = saveDisabled();
+        if (disabled != null) {
+            saveButton.disableProperty().bind(disabled);
+        }
     }
 
     private void installSaveHandler() {
