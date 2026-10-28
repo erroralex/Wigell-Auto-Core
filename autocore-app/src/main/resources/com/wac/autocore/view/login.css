@@ -1,0 +1,38 @@
+/* Root container for the login view */
+.login-view {
+    -fx-font-size: 2em;
+}
+
+/* The form container */
+.login-panel {
+    -fx-background-color: #EDEBE5;
+    -fx-border-color: #B9B6A5;
+    -fx-border-radius: 0.6em;
+    -fx-background-radius: 0.6em;
+    -fx-padding: 2.5em;
+    -fx-spacing: 1.5em;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);
+}
+
+.login-panel .text-field {
+    -fx-text-fill: #5C6156;
+}
+
+.login-panel .label {
+    -fx-font-size: 0.8em;
+}
+
+.floating-label {
+    -fx-text-fill: #8C8B7F;
+    -fx-background-color: transparent;
+    -fx-padding: 0 5 0 5;
+}
+
+.floating-label-active {
+    -fx-text-fill: #55624F;
+    -fx-background-color: #EDEBE5;
+}
+
+.login-error-text {
+    -fx-text-fill: #E57373;
+}
