@@ -18,10 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.wac.autocore.testsupport.MoneyAssert.assertMoney;
@@ -42,10 +39,16 @@ public class WorkOrderServiceTest {
     private ServiceItemRepository serviceItemRepository;
     private BookingService bookingService;
 
+    private WorkOrderEventPublisher recordingPublisher;
+    private List<WorkOrderEvent> publishedEvents;
+
     private WorkOrderService workOrderService;
 
     @BeforeEach
     void setUp() {
+        publishedEvents = new ArrayList<>();
+        recordingPublisher = publishedEvents::add;
+
         workOrderRepository = mock(WorkOrderRepository.class);
         bookingRepository = mock(BookingRepository.class);
         mechanicRepository = mock(MechanicRepository.class);
@@ -62,7 +65,8 @@ public class WorkOrderServiceTest {
                 mechanicRepository,
                 vehicleRepo,
                 serviceItemRepository,
-                bookingService
+                bookingService,
+                recordingPublisher
         );
     }
 
@@ -106,6 +110,7 @@ public class WorkOrderServiceTest {
         assertEquals(Integer.valueOf(7), order.getMechanicId());
         assertEquals(Collections.singletonList(busy), result.getMechanicConflicts());
         assertEquals(Optional.of(LocalTime.of(9, 30)), result.getSuggestedStartTime());
+        assertEventEquals(order, WorkOrderEvent.WorkOrderEventAction.CREATED);
         verify(workOrderRepository).save(order);
         verifyNoInteractions(mechanicRepository);
     }
@@ -131,6 +136,8 @@ public class WorkOrderServiceTest {
         workOrderService.startWorkOrder(1);
 
         // Assert
+        assertEventEquals(workOrder, WorkOrderEvent.WorkOrderEventAction.STARTED);
+
         verify(workOrder).start();
         verify(workOrderRepository).save(workOrder);
     }
@@ -204,6 +211,7 @@ public class WorkOrderServiceTest {
         assertMoney(Money.of("899.00"), itemFor(draft, 1).getAgreedPrice());
         assertMoney(Money.of("598.50"), itemFor(draft, 3).getAgreedPrice());
         assertEquals(LocalTime.of(9, 30), draft.getPlannedEndTime());
+
         verify(workOrderRepository).save(draft);
     }
 
@@ -358,6 +366,8 @@ public class WorkOrderServiceTest {
         MechanicDoubleBookingException error = assertThrows(MechanicDoubleBookingException.class,
                 () -> workOrderService.confirmWorkOrder(1));
 
+        assertTrue(publishedEvents.isEmpty());
+
         assertEquals(7, error.getMechanicId());
         verify(workOrderRepository, never()).save(any());
     }
@@ -369,6 +379,8 @@ public class WorkOrderServiceTest {
         when(workOrderRepository.findByMechanicIdAndPlannedDate(7, DATE)).thenReturn(Collections.singletonList(draft));
 
         workOrderService.confirmWorkOrder(1);
+
+        assertEventEquals(draft, WorkOrderEvent.WorkOrderEventAction.CONFIRMED);
 
         assertEquals(WorkOrderStatus.CONFIRMED, draft.getStatus());
         verify(workOrderRepository).save(draft);
@@ -428,6 +440,8 @@ public class WorkOrderServiceTest {
                 result.getChanges().stream().map(WorkOrderChange::getType).collect(Collectors.toList()));
         assertTrue(result.getMechanicConflicts().isEmpty());
 
+        assertEventEquals(reopened, WorkOrderEvent.WorkOrderEventAction.CREATED);
+
         verify(workOrderRepository).save(reopened);
         verify(workOrderRepository, never()).save(cancelled);
         verify(bookingService).followWorkOrderStatus(UNSAVED_BOOKING_ID, WorkOrderStatus.DRAFT);
@@ -448,6 +462,7 @@ public class WorkOrderServiceTest {
         assertEquals(WorkOrderStatus.DRAFT, result.getWorkOrder().getStatus());
         assertEquals(Collections.singletonList(busy), result.getMechanicConflicts());
         assertEquals(Optional.of(LocalTime.of(9, 30)), result.getSuggestedStartTime());
+
         verify(workOrderRepository).save(result.getWorkOrder());
     }
 
@@ -466,6 +481,7 @@ public class WorkOrderServiceTest {
                 () -> workOrderService.reopenWorkOrder(1));
 
         assertEquals("error.workOrder.bookingHasActiveOrder", exception.getMessageKey());
+
         verify(workOrderRepository, never()).save(any());
         verifyNoInteractions(bookingService);
     }
@@ -499,10 +515,10 @@ public class WorkOrderServiceTest {
 
         WorkOrderReopenResult result = workOrderService.reopenWorkOrder(1);
 
-        assertSame(confirmed, result.getWorkOrder());
-        assertEquals(WorkOrderStatus.DRAFT, confirmed.getStatus());
-        assertTrue(result.getChanges().isEmpty());
-        assertTrue(result.getMechanicConflicts().isEmpty());
+        assertEventEquals(confirmed, WorkOrderEvent.WorkOrderEventAction.REOPENED);
+
+        assertEquals(1, publishedEvents.size());
+        assertEventEquals(confirmed, WorkOrderEvent.WorkOrderEventAction.REOPENED);
         verify(workOrderRepository).save(confirmed);
     }
 
@@ -519,6 +535,8 @@ public class WorkOrderServiceTest {
         assertSame(dropIn, result.getWorkOrder());
         assertEquals(WorkOrderStatus.DRAFT, dropIn.getStatus());
         assertTrue(result.getChanges().isEmpty());
+
+        assertEventEquals(dropIn, WorkOrderEvent.WorkOrderEventAction.REOPENED);
         verify(workOrderRepository).save(dropIn);
     }
 
@@ -531,6 +549,8 @@ public class WorkOrderServiceTest {
         completed.complete();
 
         when(workOrderRepository.findById(1)).thenReturn(Optional.of(completed));
+
+        assertTrue(publishedEvents.isEmpty());
 
         assertThrows(IllegalStatusTransitionException.class, () -> workOrderService.reopenWorkOrder(1));
         verify(workOrderRepository, never()).save(any());
@@ -625,5 +645,25 @@ public class WorkOrderServiceTest {
         when(service.getPrice()).thenReturn(Money.of(price));
         when(service.getEstimatedMinutes()).thenReturn(minutes);
         return service;
+    }
+
+    /**
+     * Asserts that a {@link WorkOrder} has the correct and expected
+     * {@link com.wac.autocore.model.WorkOrderEvent.WorkOrderEventAction}.
+     *
+     * Also asserts that the {@code publishedEvents} contains 1 element, and that the {@link WorkOrder}
+     * is of the same {@code ID} as the {@code events} workOrderId.
+     *
+     * Finally, asserts that the occurredAt() of the {@link WorkOrderEvent} is not null.
+     *
+     * @param workOrder the {@link WorkOrder} to assert.
+     * @param action the {@link com.wac.autocore.model.WorkOrderEvent.WorkOrderEventAction} to compare to.
+     * **/
+    private void assertEventEquals(WorkOrder workOrder, WorkOrderEvent.WorkOrderEventAction action) {
+        assertEquals(1, publishedEvents.size());
+        WorkOrderEvent event = publishedEvents.getFirst();
+        assertEquals(workOrder.getId(), event.workOrderId());
+        assertEquals(action, event.action());
+        assertNotNull(event.occurredAt());
     }
 }

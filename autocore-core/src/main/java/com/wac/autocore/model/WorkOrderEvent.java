@@ -1,7 +1,7 @@
 package com.wac.autocore.model;
 
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 /** A Record (immutable) class that works as a DTO ({@code Data-Transfer Object}) for
  * representing an event that has occurred on a {@link WorkOrder}.
@@ -11,7 +11,7 @@ public record WorkOrderEvent(
         Integer workOrderId,
         WorkOrderType workOrderType,
         WorkOrderEventAction action,
-        LocalTime occurredAt
+        LocalDateTime occurredAt
 ) {
     public enum WorkOrderEventAction {
         CREATED, CONFIRMED, STARTED, COMPLETED, CANCELLED, REOPENED

@@ -1,6 +1,8 @@
 package com.wac.autocore;
 
+import com.wac.autocore.model.WorkOrderEventPublisher;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 /**
@@ -13,4 +15,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 // Placed here in autocore-app so autocore-core stays free of Spring Security.
 @EnableMethodSecurity
 public class AutoCoreConfig {
+
+    @Bean
+    public WorkOrderEventPublisher workOrderEventPublisher() {
+        return WorkOrderEventPublisher.NO_OP;
+    }
 }
