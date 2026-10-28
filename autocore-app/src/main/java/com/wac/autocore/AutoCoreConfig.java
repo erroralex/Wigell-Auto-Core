@@ -17,7 +17,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @EnableMethodSecurity
 public class AutoCoreConfig {
 
-
     @Bean
     public WorkOrderEventPublisher workOrderEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         return event -> applicationEventPublisher.publishEvent(event);
