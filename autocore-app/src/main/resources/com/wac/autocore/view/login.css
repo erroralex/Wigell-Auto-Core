@@ -14,6 +14,10 @@
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);
 }
 
+.login-panel .text-field {
+    -fx-text-fill: #5C6156;
+}
+
 .login-panel .label {
     -fx-font-size: 0.8em;
 }

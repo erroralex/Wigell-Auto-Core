@@ -101,28 +101,33 @@ public class LoginView extends VBox {
         floatingLabel.setTranslateX(10);
         floatingLabel.setTranslateY(0);
 
+        // Define the animation to move the label up when the field gains focus
         TranslateTransition moveUp = new TranslateTransition(Duration.millis(150), floatingLabel);
         moveUp.setToY(-22);
 
+        // Define the animation to shrink the label slightly when it moves up
         ScaleTransition shrink = new ScaleTransition(Duration.millis(150), floatingLabel);
         shrink.setToX(0.8);
         shrink.setToY(0.8);
 
+        // Define the animation to move the label back down when the field loses focus
         TranslateTransition moveDown = new TranslateTransition(Duration.millis(150), floatingLabel);
         moveDown.setToY(0);
 
+        // Define the animation to grow the label back to its original size
         ScaleTransition grow = new ScaleTransition(Duration.millis(150), floatingLabel);
         grow.setToX(1.0);
         grow.setToY(1.0);
 
+        // Trigger animations based on focus changes
         field.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
-                // Field gained focus
+                // Field gained focus: move label up and shrink it
                 moveUp.playFromStart();
                 shrink.playFromStart();
                 floatingLabel.getStyleClass().add("floating-label-active");
             } else {
-                // Field lost focus
+                // Field lost focus: if empty, move label back down
                 if (field.getText().isEmpty()) {
                     moveDown.playFromStart();
                     grow.playFromStart();
@@ -131,6 +136,7 @@ public class LoginView extends VBox {
             }
         });
 
+        // Reset label position if the field is cleared while not focused
         field.textProperty().addListener((obs, oldVal, newVal) -> {
             if (field.getText().isEmpty() && !field.isFocused()) {
                 moveDown.playFromStart();
