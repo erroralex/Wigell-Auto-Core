@@ -53,6 +53,14 @@ public class DialogUtil {
             scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             pane.setContent(scrollPane);
+
+            // Refits the dialog when its content changes height.
+            // Only the height is compared, since resizing changes the width and would otherwise trigger again.
+            content.layoutBoundsProperty().addListener((boundsObservable, oldBounds, newBounds) -> {
+                if (dialog.isShowing() && oldBounds.getHeight() != newBounds.getHeight()) {
+                    Platform.runLater(() -> resizeDialog(pane));
+                }
+            });
         });
 
         double[] zoom = {1.0};

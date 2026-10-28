@@ -2,17 +2,17 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.DropInWorkOrder;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.component.CustomerVehiclePicker;
-import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
-import javafx.event.ActionEvent;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.Node;
+import javafx.scene.control.DialogEvent;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 
 import java.util.Collections;
@@ -21,36 +21,31 @@ import java.util.Collections;
  * <b>QuickDraftWorkOrderDialog</b>
  * <p>Responsibility: Quickly creating a drop-in draft with customer, vehicle and
  * problem description. The dialog saves by itself and returns the saved order.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class QuickDraftWorkOrderDialog extends Dialog<DropInWorkOrder> {
+public class QuickDraftWorkOrderDialog extends FormDialog<DropInWorkOrder> {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
-
+    private final WorkOrderService workOrderService;
     private final CustomerVehiclePicker picker;
+    private final StringBinding hint;
+
     private final Label problemLabel = new Label(lang.get("workOrder.problemDescription"));
     private final TextArea problemDescription = new TextArea();
     private final Label hintLabel = new Label();
 
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-
     private DropInWorkOrder created;
 
     public QuickDraftWorkOrderDialog(WorkOrderService workOrderService, CustomerService customerService, VehicleService vehicleService) {
-
+        this.workOrderService = workOrderService;
         this.picker = new CustomerVehiclePicker(customerService, vehicleService);
-
-        DialogUtil.applyTheme(this);
-        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
-
-        setTitle(lang.get("workOrder.quickDraft.title"));
-        setHeaderText(lang.get("workOrder.quickDraft.header"));
 
         problemDescription.setPromptText(lang.get("workOrder.problemDescription.prompt"));
         problemDescription.setWrapText(true);
         problemDescription.setPrefRowCount(3);
 
-        StringBinding hint = Bindings.createStringBinding(() -> {
+        hint = Bindings.createStringBinding(() -> {
                     String key = picker.missingSelectionKeyBinding().get();
                     return key == null ? null : lang.get(key);
                 },
@@ -60,35 +55,46 @@ public class QuickDraftWorkOrderDialog extends Dialog<DropInWorkOrder> {
         hintLabel.visibleProperty().bind(hint.isNotNull());
         hintLabel.managedProperty().bind(hintLabel.visibleProperty());
 
-        Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
-        Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);
-        saveButton.disableProperty().bind(hint.isNotNull());
-        saveButton.getStyleClass().addAll("btn", "btn-primary");
-        cancelButton.getStyleClass().addAll("btn", "btn-secondary");
+        addEventHandler(DialogEvent.DIALOG_SHOWN, event -> picker.focusCustomer());
 
-        // The dialog saves by itself; on error the cause is shown and the dialog stays open.
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            String description = problemDescription.getText();
-            try {
-                created = workOrderService.createDropIn(
-                        picker.getSelectedVehicle().getId(),
-                        description == null ? null : description.trim(),
-                        Collections.emptyList()
-                );
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-                event.consume();
-            }
-        });
+        initDialog();
+    }
 
+    @Override
+    protected String getTitleKey() {
+        return "workOrder.quickDraft.title";
+    }
+
+    @Override
+    protected String buildHeaderText() {
+        return lang.get("workOrder.quickDraft.header");
+    }
+
+    @Override
+    protected ObservableBooleanValue saveDisabled() {
+        return hint.isNotNull();
+    }
+
+    @Override
+    protected Node buildContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getChildren().addAll(picker, problemLabel, problemDescription, hintLabel);
-        getDialogPane().setContent(content);
+        return content;
+    }
 
-        // Returns the saved order; Cancel gives null.
-        setResultConverter(buttonType -> buttonType == saveButtonType ? created : null);
+    @Override
+    protected void submit() {
+        String description = problemDescription.getText();
+        created = workOrderService.createDropIn(
+                picker.getSelectedVehicle().getId(),
+                description == null ? null : description.trim(),
+                Collections.emptyList()
+        );
+    }
 
-        setOnShown(event -> picker.focusCustomer());
+    @Override
+    protected DropInWorkOrder buildResult() {
+        return created;
     }
 }

@@ -7,19 +7,13 @@ import com.wac.autocore.model.WorkOrderItem;
 import com.wac.autocore.service.WorkOrderScheduleResult;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.component.ServiceSelectorBox;
-import com.wac.autocore.view.i18n.LanguageManager;
-import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
 import com.wac.autocore.view.util.StringConverterUtil;
-import javafx.event.ActionEvent;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
@@ -36,12 +30,16 @@ import java.util.Objects;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-// The dialog saves by itself via WorkOrderService (the same pattern as feature/movingValidationRulesFromDialogs):
-// on error, e.g. a clash on a confirmed order, the error is shown via ErrorFacade and the dialog stays open.
-// The result contains the service's WorkOrderScheduleResult, so the view can show a clash warning for a draft.
-public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+/**
+ * <b>EditWorkOrderDialog</b>
+ * <p>Responsibility: Dialog for editing a work order's schedule, services and notes. The dialog saves
+ * by itself and returns the service's {@link WorkOrderScheduleResult}, so the view can show a clash
+ * warning for a draft.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
+ */
+public class EditWorkOrderDialog extends FormDialog<WorkOrderScheduleResult> {
 
     private final WorkOrderService workOrderService;
     private final WorkOrder workOrder;
@@ -54,9 +52,6 @@ public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
     private final TextArea commentsArea = new TextArea();
 
     private final Map<Integer, CheckBox> chargeBoxes = new LinkedHashMap<>();
-
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
     private WorkOrderScheduleResult saved;
 
@@ -79,54 +74,95 @@ public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
                         .collect(Collectors.toList())
         );
 
-        setTitle(lang.get("workOrder.edit.title"));
-        setHeaderText(lang.get("workOrder.edit.header"));
-
-        DialogUtil.applyTheme(this);
-        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
-
         setupFields(mechanics, startTime);
 
-        if (workOrder.allowsNonChargeableItems()) {
-            for (WorkOrderItem item : workOrder.getItems()) {
-                CheckBox cb = new CheckBox(item.getServiceName());
-                cb.setSelected(item.isChargeable());
-                chargeBoxes.put(item.getServiceItemId(), cb);
-            }
-        }
-        buildContent();
+        createChargeBoxes();
 
-        handleSaveButton();
+        initDialog();
     }
 
-    private void handleSaveButton() {
-        Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
-        saveButton.disableProperty().bind(serviceSelectorBox.emptyProperty());
+    @Override
+    protected String getTitleKey() {
+        return "workOrder.edit.title";
+    }
 
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            Map<Integer, Boolean> flags = new HashMap<>();
-            chargeBoxes.forEach((id, checkBox) -> flags.put(id, checkBox.isSelected()));
+    @Override
+    protected String buildHeaderText() {
+        return lang.get("workOrder.edit.header");
+    }
 
-            try {
-                Mechanic mechanic = mechanicComboBox.getValue();
+    @Override
+    protected ObservableBooleanValue saveDisabled() {
+        return serviceSelectorBox.emptyProperty();
+    }
 
-                saved = workOrderService.updateWorkOrder(
-                        workOrder.getId(),
-                        serviceSelectorBox.getSelectedServiceIds(),
-                        mechanic == null ? null : mechanic.getId(),
-                        plannedDatePicker.getValue(),
-                        plannedStartTimeComboBox.getValue(),
-                        customerInstructionsArea.getText(),
-                        commentsArea.getText(),
-                        flags
-                );
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-                event.consume();
+    @Override
+    protected Node buildContent() {
+        GridPane details = new GridPane();
+        details.setHgap(12);
+        details.setVgap(8);
+
+        details.add(new Label(lang.get("table.mechanic")), 0, 0);
+        details.add(mechanicComboBox, 1, 0);
+        details.add(new Label(lang.get("workOrder.edit.plannedDate")), 0, 1);
+        details.add(plannedDatePicker, 1, 1);
+        details.add(new Label(lang.get("workOrder.edit.plannedStartTime")), 0, 2);
+        details.add(plannedStartTimeComboBox, 1, 2);
+
+        VBox content = new VBox(12,
+                details,
+                new Label(lang.get("workOrder.edit.customerInstructions")),
+                customerInstructionsArea,
+                new Label(lang.get("workOrder.edit.comments")),
+                commentsArea,
+                new Separator(),
+                new Label(lang.get("table.serviceItems")),
+                serviceSelectorBox
+        );
+
+        if (!chargeBoxes.isEmpty()) {
+            content.getChildren().add(new Label(lang.get("workOrder.edit.chargeCustomer")));
+            content.getChildren().addAll(chargeBoxes.values());
+        }
+
+        content.setPadding(new Insets(12));
+        content.setPrefWidth(560);
+
+        return content;
+    }
+
+    @Override
+    protected void submit() {
+        Map<Integer, Boolean> flags = new HashMap<>();
+        chargeBoxes.forEach((id, checkBox) -> flags.put(id, checkBox.isSelected()));
+
+        Mechanic mechanic = mechanicComboBox.getValue();
+
+        saved = workOrderService.updateWorkOrder(
+                workOrder.getId(),
+                serviceSelectorBox.getSelectedServiceIds(),
+                mechanic == null ? null : mechanic.getId(),
+                plannedDatePicker.getValue(),
+                plannedStartTimeComboBox.getValue(),
+                customerInstructionsArea.getText(),
+                commentsArea.getText(),
+                flags
+        );
+    }
+
+    @Override
+    protected WorkOrderScheduleResult buildResult() {
+        return saved;
+    }
+
+    private void createChargeBoxes() {
+        if (workOrder.allowsNonChargeableItems()) {
+            for (WorkOrderItem item : workOrder.getItems()) {
+                CheckBox checkBox = new CheckBox(item.getServiceName());
+                checkBox.setSelected(item.isChargeable());
+                chargeBoxes.put(item.getServiceItemId(), checkBox);
             }
-        });
-
-        setResultConverter(buttonType -> buttonType == saveButtonType ? saved : null);
+        }
     }
 
     private void setupFields(List<Mechanic> mechanics, LocalTime startTime) {
@@ -172,39 +208,5 @@ public class EditWorkOrderDialog extends Dialog<WorkOrderScheduleResult> {
             times.add(current);
         }
         return new ArrayList<>(times);
-    }
-
-    private void buildContent() {
-        GridPane details = new GridPane();
-        details.setHgap(12);
-        details.setVgap(8);
-
-        details.add(new Label(lang.get("table.mechanic")), 0, 0);
-        details.add(mechanicComboBox, 1, 0);
-        details.add(new Label(lang.get("workOrder.edit.plannedDate")), 0, 1);
-        details.add(plannedDatePicker, 1, 1);
-        details.add(new Label(lang.get("workOrder.edit.plannedStartTime")), 0, 2);
-        details.add(plannedStartTimeComboBox, 1, 2);
-
-        VBox content = new VBox(12,
-                details,
-                new Label(lang.get("workOrder.edit.customerInstructions")),
-                customerInstructionsArea,
-                new Label(lang.get("workOrder.edit.comments")),
-                commentsArea,
-                new Separator(),
-                new Label(lang.get("table.serviceItems")),
-                serviceSelectorBox
-        );
-
-        if (!chargeBoxes.isEmpty()) {
-            content.getChildren().add(new Label(lang.get("workOrder.edit.chargeCustomer")));
-            content.getChildren().addAll(chargeBoxes.values());
-        }
-
-        content.setPadding(new Insets(12));
-        content.setPrefWidth(560);
-
-        getDialogPane().setContent(content);
     }
 }

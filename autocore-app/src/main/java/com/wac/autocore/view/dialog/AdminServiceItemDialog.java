@@ -1,92 +1,69 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.util.DialogUtil;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
-public class AdminServiceItemDialog extends Dialog<ServiceItem> {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+/**
+ * <b>AdminServiceItemDialog</b>
+ * <p>Responsibility: Dialog for changing the price of a service item.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
+ */
+public class AdminServiceItemDialog extends FormDialog<ServiceItem> {
 
     private final ServiceItemService serviceItemService;
     private final ServiceItem serviceItem;
     private ServiceItem savedItem;
 
     private final TextField priceTextField = new TextField();
-    private final Label errorLabel = new Label();
-
-    private final ButtonType saveButtonType =
-            new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-
-    private final ButtonType cancelButtonType =
-            new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
 
     public AdminServiceItemDialog(ServiceItemService serviceItemService, ServiceItem serviceItem) {
         this.serviceItemService = serviceItemService;
         this.serviceItem = serviceItem;
 
-        setTitle(lang.get("serviceItem.editPrice"));
-        setHeaderText(serviceItem.getName());
-        DialogUtil.applyTheme(this);
-
-        getDialogPane().getButtonTypes().addAll(
-                saveButtonType,
-                cancelButtonType
-        );
-
-        errorLabel.getStyleClass().add("text-error");
-
         priceTextField.setText(DialogUtil.formatMoney(serviceItem.getPrice()));
 
-        setContent();
-        handleInput();
+        initDialog();
     }
 
-    private void setContent() {
+    @Override
+    protected String getTitleKey() {
+        return "serviceItem.editPrice";
+    }
+
+    @Override
+    protected String buildHeaderText() {
+        return serviceItem.getName();
+    }
+
+    @Override
+    protected Node buildContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
 
         content.getChildren().addAll(
-                errorLabel,
                 new Label(lang.get("table.price")),
                 priceTextField
         );
-
-        getDialogPane().setContent(content);
+        return content;
     }
 
-    private void handleInput() {
-        Button saveButton =
-                (Button) getDialogPane().lookupButton(saveButtonType);
-
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-
-            try {
-                Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
-                savedItem = serviceItemService.updatePrice(serviceItem.getId(), newPrice);
-            } catch (ValidationException e) {
-                rejectPrice(event, e.getMessageKey());
-            }
-        });
-
-        setResultConverter(buttonType -> {
-            if (buttonType == saveButtonType) {
-                return savedItem;
-            }
-            return null;
-        });
+    @Override
+    protected void submit() {
+        Money newPrice = DialogUtil.parseMoney(priceTextField.getText());
+        savedItem = serviceItemService.updatePrice(serviceItem.getId(), newPrice);
     }
 
-    // Shows the error message and prevents the dialog from closing
-    private void rejectPrice(ActionEvent event, String messageKey) {
-        errorLabel.setText(lang.get(messageKey));
-        event.consume();
+    @Override
+    protected ServiceItem buildResult() {
+        return savedItem;
     }
 }

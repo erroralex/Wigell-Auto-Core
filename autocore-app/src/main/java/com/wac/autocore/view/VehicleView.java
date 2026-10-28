@@ -182,8 +182,6 @@ public class VehicleView extends BaseView {
 
     private void openCreateVehicleDialog() {
         CreateVehicleDialog dialog = new CreateVehicleDialog(customerService, vehicleService);
-        if (dialog.showAndWait()) {
-            refreshData();
-        }
+        dialog.showAndWait().ifPresent(vehicle -> refreshData());
     }
 }

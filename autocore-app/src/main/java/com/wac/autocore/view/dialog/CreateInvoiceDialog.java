@@ -1,55 +1,55 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.WorkOrderService;
-import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.StringConverterUtil;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 /**
  * <b>CreateInvoiceDialog</b>
  * <p>Responsibility: Dialog for creating an invoice.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
+public class CreateInvoiceDialog extends FormDialog<CreateInvoiceDialog.Result> {
 
-    private static final LanguageManager lang = LanguageManager.getInstance();
+    private final ComboBox<WorkOrder> workOrderSelection = new ComboBox<>();
+    private final TextField discountCodeInput = new TextField();
 
     public CreateInvoiceDialog(WorkOrderService workOrderService) {
-        this.setTitle(lang.get("invoice.new"));
-        this.setHeaderText(lang.get("invoice.create"));
-
-        DialogUtil.applyTheme(this);
-
-        ComboBox<WorkOrder> workOrderSelection = new ComboBox<>();
-        TextField discountCodeInput = new TextField();
-
         workOrderSelection.getItems().addAll(workOrderService.findCompletedNotInvoiced());
 
-        workOrderSelection.setConverter(new StringConverter<WorkOrder>() {
-            @Override
-            public String toString(WorkOrder workOrder) {
-                if (workOrder == null)
-                    return "";
-
-                return "#" + workOrder.getId();
-            }
-
-            @Override
-            public WorkOrder fromString(String text) {
-                return null;
-            }
-        });
+        workOrderSelection.setConverter(StringConverterUtil.display(workOrder -> "#" + workOrder.getId()));
 
         discountCodeInput.setPromptText(lang.get("invoice.discountPrompt"));
 
+        initDialog();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "invoice.new";
+    }
+
+    @Override
+    protected String buildHeaderText() {
+        return lang.get("invoice.create");
+    }
+
+    @Override
+    protected ObservableBooleanValue saveDisabled() {
+        return workOrderSelection.valueProperty().isNull();
+    }
+
+    @Override
+    protected Node buildContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
@@ -57,29 +57,16 @@ public class CreateInvoiceDialog extends Dialog<CreateInvoiceDialog.Result> {
                 new Label(lang.get("table.discountCode")), discountCodeInput
         );
 
-        this.getDialogPane().setContent(content);
+        return content;
+    }
 
-        ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-        this.getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
+    @Override
+    protected void submit() {
+    }
 
-        this.getDialogPane().lookupButton(saveButtonType).setDisable(true);
-
-        workOrderSelection.valueProperty().addListener(
-                (observable, oldValue, newValue) ->
-                        this.getDialogPane().lookupButton(saveButtonType).setDisable(newValue == null)
-        );
-
-        this.setResultConverter(buttonType -> {
-
-            if (buttonType != saveButtonType)
-                return null;
-
-            return new Result(
-                    workOrderSelection.getValue().getId(),
-                    discountCodeInput.getText()
-            );
-        });
+    @Override
+    protected Result buildResult() {
+        return new Result(workOrderSelection.getValue().getId(), discountCodeInput.getText());
     }
 
     public static class Result {
