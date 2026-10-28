@@ -18,8 +18,9 @@ public final class ErrorHandlerChain {
     }
 
     public static ErrorHandler createDefault() {
-        ErrorHandler head = new ValidationErrorHandler();
-        head.linkWith(new DomainErrorHandler())
+        ErrorHandler head = new SecurityErrorHandler();
+        head.linkWith(new ValidationErrorHandler())
+                .linkWith(new DomainErrorHandler())
                 .linkWith(new DataAccessErrorHandler())
                 .linkWith(new FallbackErrorHandler());
         return head;

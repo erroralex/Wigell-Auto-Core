@@ -5,6 +5,7 @@ import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.CustomerRepo;
 import com.wac.autocore.repository.VehicleRepo;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -16,6 +17,7 @@ import java.util.Optional;
 
 @Validated
 @Service
+@PreAuthorize("@access.can('DATA_READ')") // Ensure that only users with 'DATA_READ' permission can access this service
 public class VehicleService {
 
     private final VehicleRepo vehicleRepo;
@@ -46,6 +48,7 @@ public class VehicleService {
         return vehicleRepo.existsByRegistrationNumber(registrationNumber);
     }
 
+    @PreAuthorize("@access.can('VEHICLE_WRITE')") // Ensure that only users with 'VEHICLE_WRITE' permission can create vehicles.
     public Vehicle create(@NotBlank(message="error.vehicle.blankRegNr")String registrationNumber,
                           @NotBlank(message="error.vehicle.blankBrand")String brand,
                           @NotBlank(message="error.vehicle.blankModel")String model,
@@ -62,6 +65,7 @@ public class VehicleService {
         );
     }
 
+    @PreAuthorize("@access.can('VEHICLE_WRITE')") // Ensure that only users with 'VEHICLE_WRITE' permission can update vehicles.
     public Vehicle update(@Positive @NotNull(message="error.vehicle.idIsNull") Integer id,
                           @NotBlank(message="error.vehicle.blankRegNr")String registrationNumber,
                           @NotBlank(message="error.vehicle.blankBrand") String brand,
@@ -89,6 +93,7 @@ public class VehicleService {
         return vehicleRepo.save(vehicle);
     }
 
+    @PreAuthorize("@access.can('VEHICLE_DELETE')") // Ensure that only users with 'VEHICLE_DELETE' permission can delete vehicles.
     public void deleteById(@Positive @NotNull(message="error.vehicle.idIsNull") Integer id) {
         vehicleRepo.deleteById(id);
     }

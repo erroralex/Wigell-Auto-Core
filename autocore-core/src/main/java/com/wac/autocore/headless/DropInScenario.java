@@ -1,15 +1,18 @@
 package com.wac.autocore.headless;
 
-import com.wac.autocore.exception.handler.ErrorHandler;
 import com.wac.autocore.exception.handler.ErrorHandlerChain;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.service.*;
+import com.wac.autocore.service.InvoiceService;
+import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.PaymentService;
+import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.service.VehicleService;
+import com.wac.autocore.service.WorkOrderLifecycle;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,9 +26,12 @@ import static com.wac.autocore.headless.ScenarioStep.step;
  * <p>Responsibility: Runs a complete drop-in flow through the services without a UI: create, add
  * services and mechanic, confirm, start, complete, invoice and pay. Then two
  * intentional errors: starting a cancelled order and an unknown vehicle.</p>
- * <p>Each step is a <b>Command</b> ({@link ScenarioStep}) that is run the same way: if it succeeds
- * it becomes {@link StepResult#success}, otherwise the error is translated by the same
- * {@link ErrorHandlerChain} that the UI uses. That is why headless gets the same language keys as the UI.</p>
+ * <p>Each step is a <b>Command</b> ({@link ScenarioStep}). This class is the <b>client</b> that
+ * builds the list; {@link ScenarioRunner} is the <b>invoker</b> that runs it and translates
+ * errors with the same {@link ErrorHandlerChain} as the UI.</p>
+ * <p>Depends on {@link WorkOrderLifecycle}, not on {@code WorkOrderService}, so it is the
+ * <b>client</b> in the <b>Proxy</b> pattern: the standalone program can hand it an
+ * access-checking proxy instead of the real service without any change here.</p>
  * <p>Deliberately without {@code @Transactional}: each service call gets its own transaction, just like
  * when a user clicks in the UI. A shared transaction would also be marked as
  * rollback-only by the intentional errors and roll back the entire flow.</p>
@@ -37,21 +43,20 @@ public class DropInScenario {
     private static final int UNKNOWN_VEHICLE_ID = 999_999;
     private static final int SERVICE_COUNT = 2;
 
-    private final WorkOrderService workOrderService;
+    private final WorkOrderLifecycle workOrderLifecycle;
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
     private final VehicleService vehicleService;
     private final MechanicService mechanicService;
     private final ServiceItemService serviceItemService;
-    private final ErrorHandler errorChain = ErrorHandlerChain.createDefault();
 
-    public DropInScenario(WorkOrderService workOrderService,
+    public DropInScenario(WorkOrderLifecycle workOrderLifecycle,
                           InvoiceService invoiceService,
                           PaymentService paymentService,
                           VehicleService vehicleService,
                           MechanicService mechanicService,
                           ServiceItemService serviceItemService) {
-        this.workOrderService = workOrderService;
+        this.workOrderLifecycle = workOrderLifecycle;
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
         this.vehicleService = vehicleService;
@@ -61,24 +66,7 @@ public class DropInScenario {
 
     /* Responsibility: Runs all steps in order and returns the result of each step that was run */
     public List<StepResult> run() {
-        ScenarioContext ctx = new ScenarioContext();
-        List<StepResult> results = new ArrayList<>();
-
-        for (ScenarioStep step : steps()) {
-            StepResult result;
-            try {
-                step.execute(ctx);
-                result = StepResult.success(step);
-            } catch (RuntimeException e) {
-                result = StepResult.failure(step, errorChain.resolve(e));
-            }
-            results.add(result);
-
-            if (!result.isAsExpected() && !step.expectsFailure()) {
-                break;
-            }
-        }
-        return results;
+        return new ScenarioRunner().run(steps());
     }
 
     private List<ScenarioStep> steps() {
@@ -86,19 +74,19 @@ public class DropInScenario {
                 step("Fetch test data", this::lookUpSeedData),
 
                 step("Create drop-in order", ctx -> ctx.setWorkOrderId(
-                        workOrderService.createDropIn(ctx.getVehicleId(),
+                        workOrderLifecycle.createDropIn(ctx.getVehicleId(),
                                 "Headless demo: check engine light is on",
                                 Collections.<Integer>emptyList()).getId())),
 
                 // Drop-in does not allow free lines, so the charge flags are ignored.
                 // No start time: the car is taken in directly. Without a start time the order is not checked for clashes,
-                step("Add services and mechanic", ctx -> workOrderService.updateWorkOrder(
+                step("Add services and mechanic", ctx -> workOrderLifecycle.updateWorkOrder(
                         ctx.getWorkOrderId(), ctx.getServiceItemIds(), ctx.getMechanicId(),
                         LocalDate.now(), null, null, null, Collections.<Integer, Boolean>emptyMap())),
 
-                step("Confirm order", ctx -> workOrderService.confirmWorkOrder(ctx.getWorkOrderId())),
-                step("Start order", ctx -> workOrderService.startWorkOrder(ctx.getWorkOrderId())),
-                step("Complete order", ctx -> workOrderService.completeWorkOrder(ctx.getWorkOrderId())),
+                step("Confirm order", ctx -> workOrderLifecycle.confirmWorkOrder(ctx.getWorkOrderId())),
+                step("Start order", ctx -> workOrderLifecycle.startWorkOrder(ctx.getWorkOrderId())),
+                step("Complete order", ctx -> workOrderLifecycle.completeWorkOrder(ctx.getWorkOrderId())),
 
                 step("Create invoice with WELCOME10", ctx -> ctx.setInvoiceId(
                         invoiceService.create(ctx.getWorkOrderId(), "WELCOME10").getId())),
@@ -109,9 +97,9 @@ public class DropInScenario {
 
                 // Intentional errors: should give the same language keys as in the UI
                 expectFailure("Start cancelled order",
-                        ctx -> workOrderService.startWorkOrder(ctx.getCancelledOrderId())),
+                        ctx -> workOrderLifecycle.startWorkOrder(ctx.getCancelledOrderId())),
                 expectFailure("Create order for unknown vehicle",
-                        ctx -> workOrderService.createDropIn(UNKNOWN_VEHICLE_ID,
+                        ctx -> workOrderLifecycle.createDropIn(UNKNOWN_VEHICLE_ID,
                                 "Headless demo: unknown vehicle",
                                 Collections.<Integer>emptyList()))
         );
@@ -143,10 +131,10 @@ public class DropInScenario {
 
     // A regular step that prepares the failure step "Start cancelled order"
     private void createAndCancelOrder(ScenarioContext ctx) {
-        int orderId = workOrderService.createDropIn(ctx.getVehicleId(),
+        int orderId = workOrderLifecycle.createDropIn(ctx.getVehicleId(),
                 "Headless demo: order to be cancelled",
                 Collections.<Integer>emptyList()).getId();
-        workOrderService.cancelWorkOrder(orderId);
+        workOrderLifecycle.cancelWorkOrder(orderId);
         ctx.setCancelledOrderId(orderId);
     }
 }

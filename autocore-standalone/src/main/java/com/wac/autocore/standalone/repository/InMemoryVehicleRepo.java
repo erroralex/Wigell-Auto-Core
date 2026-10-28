@@ -1,4 +1,4 @@
-package com.wac.autocore.testsupport;
+package com.wac.autocore.standalone.repository;
 
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.repository.VehicleRepo;
@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory {@link VehicleRepo} for running AutoCore without a database.
+ */
 public class InMemoryVehicleRepo implements VehicleRepo {
 
     private final Map<Integer, Vehicle> store = new LinkedHashMap<>();

@@ -4,31 +4,23 @@ import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.logging.LogKeys;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.BookingStatus;
-import com.wac.autocore.model.DropInWorkOrder;
-import com.wac.autocore.model.PlannedWorkOrder;
-import com.wac.autocore.model.WarrantyWorkOrder;
-import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.model.WorkOrderChange;
-import com.wac.autocore.model.WorkOrderItem;
-import com.wac.autocore.model.WorkOrderStatus;
-import com.wac.autocore.model.WorkOrderType;
+import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
 import com.wac.autocore.repository.VehicleRepo;
 import com.wac.autocore.repository.WorkOrderRepository;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -43,11 +35,15 @@ import java.util.stream.Collectors;
  * the order cannot be created, so the view can show the correct reason via {@code ErrorFacade}.
  * {@link #startWorkOrder(int)} and {@link #completeWorkOrder(int)} throw {@code IllegalStatusTransitionException}
  * when the transition is not allowed.</p>
+ *
+ * <p>Implements {@link WorkOrderLifecycle} and is the <b>real subject</b> in the
+ * <b>Proxy</b> pattern (GoF). The standalone program puts a protection proxy in front of it.</p>
  */
 @Validated
 @Service
 @Transactional
-public class WorkOrderService {
+@PreAuthorize("@access.can('DATA_READ')") // Ensures that only users with 'DATA_READ' permission can access the service methods.
+public class WorkOrderService implements WorkOrderLifecycle {
 
     private static final Logger log = LoggerFactory.getLogger(WorkOrderService.class);
 
@@ -57,19 +53,22 @@ public class WorkOrderService {
     private final VehicleRepo vehicleRepo;
     private final ServiceItemRepository serviceItemRepository;
     private final BookingService bookingService;
+    private final WorkOrderEventPublisher publisher;
 
     public WorkOrderService(WorkOrderRepository workOrderRepository,
                             BookingRepository bookingRepository,
                             MechanicRepository mechanicRepository,
                             VehicleRepo vehicleRepo,
                             ServiceItemRepository serviceItemRepository,
-                            BookingService bookingService) {
+                            BookingService bookingService,
+                            WorkOrderEventPublisher publisher) {
         this.workOrderRepository = workOrderRepository;
         this.bookingRepository = bookingRepository;
         this.mechanicRepository = mechanicRepository;
         this.vehicleRepo = vehicleRepo;
         this.serviceItemRepository = serviceItemRepository;
         this.bookingService = bookingService;
+        this.publisher = publisher;
     }
 
     @Transactional(readOnly = true)
@@ -111,6 +110,7 @@ public class WorkOrderService {
     // Creates a planned work order for a booking and saves it as a draft.
     // The booking's suggested mechanic, time and services, with agreed prices, are inherited from the booking.
     // If the mechanic has a clash, the draft is saved anyway and the result contains the warning and the next available time.
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')") // Ensures that only users with 'WORK_ORDER_WRITE' permission can create work orders.
     public WorkOrderScheduleResult createWorkOrder(@Positive(message = "error.notFound") int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking", bookingId));
@@ -122,6 +122,9 @@ public class WorkOrderService {
         WorkOrder workOrder = plannedWorkOrderFor(booking);
 
         WorkOrder saved = workOrderRepository.save(workOrder);
+
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Created work order");
         }
@@ -147,6 +150,7 @@ public class WorkOrderService {
     }
 
     // Creates a warranty order from a previous work order and saves it as a draft.
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public WarrantyWorkOrder createWarranty(@Positive int originalWorkOrderId,
                                             String problemDescription) {
         WorkOrder original = require(originalWorkOrderId);
@@ -155,6 +159,9 @@ public class WorkOrderService {
                 WarrantyWorkOrder.draft(original, problemDescription);
 
         WarrantyWorkOrder saved = workOrderRepository.save(warranty);
+
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Created warranty work order from {}", originalWorkOrderId);
         }
@@ -164,9 +171,12 @@ public class WorkOrderService {
     // Creates a drop-in order (car without a booking) and saves it as a draft.
     // The service checks that the vehicle exists, the model validates the rest.
     // Services are optional for a draft; null is treated as "no services".
-    public DropInWorkOrder createDropIn(@Positive(message = "error.notFound") int vehicleId,
+    @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
+    public DropInWorkOrder createDropIn(int vehicleId,
                                         String problemDescription,
                                         List<Integer> serviceItemIds) {
+
         if (!vehicleRepo.existsById(vehicleId)) {
             throw new EntityNotFoundException("Vehicle", vehicleId);
         }
@@ -177,30 +187,47 @@ public class WorkOrderService {
 
         DropInWorkOrder saved = workOrderRepository.save(dropIn);
 
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Created drop-in work order");
         }
         return saved;
     }
 
-    public void startWorkOrder(@Positive int id) {
+    @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
+    public void startWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Starting work order");
             WorkOrder workOrder = require(id);
             workOrder.start();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.STARTED);
         }
     }
 
-    public void completeWorkOrder(@Positive int id) {
+    @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
+    public void completeWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Completing work order");
             WorkOrder workOrder = require(id);
             workOrder.complete();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.COMPLETED);
         }
+    }
+
+    private void publish(WorkOrder workOrder, WorkOrderEvent.WorkOrderEventAction action) {
+        publisher.publish(new WorkOrderEvent(
+                workOrder.getId(),
+                workOrder.getType(),
+                action,
+                LocalDateTime.now()
+        ));
     }
 
     // The booking's status follows the work order. Fetching, the rule and saving live in BookingService,
@@ -215,7 +242,9 @@ public class WorkOrderService {
     }
 
     // Confirmation reserves the mechanic, so a clash stops it and nothing is saved.
-    public void confirmWorkOrder(@Positive int id) {
+    @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
+    public void confirmWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Confirming work order");
             WorkOrder workOrder = require(id);
@@ -223,6 +252,7 @@ public class WorkOrderService {
             rejectConflictsIfReserved(scheduleResult(workOrder));
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.CONFIRMED);
         }
     }
 
@@ -230,6 +260,7 @@ public class WorkOrderService {
     // may have changed while the order was cancelled. The cancelled order remains as history. Comments and
     // customer instructions are carried over, and the result lists what differs from the cancelled order.
     // Other orders are reopened as drafts (the same order). The booking then remains locked: DRAFT maps to WORK_ORDER_CREATED.
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
     public WorkOrderReopenResult reopenWorkOrder(@Positive int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Reopening work order");
@@ -242,6 +273,8 @@ public class WorkOrderService {
             workOrder.reopen();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.REOPENED);
             return new WorkOrderReopenResult(WorkOrderScheduleResult.withoutConflicts(workOrder),
                     Collections.<WorkOrderChange>emptyList());
         }
@@ -260,6 +293,8 @@ public class WorkOrderService {
         reopened.setCustomerInstructions(cancelled.getCustomerInstructions());
 
         WorkOrder saved = workOrderRepository.save(reopened);
+
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Recreated work order from cancelled {}", cancelled.getId());
         }
@@ -267,25 +302,31 @@ public class WorkOrderService {
     }
 
     // Cancels the order and releases the booking (BOOKED), so it can get a new order, e.g. with another mechanic.
-    public void cancelWorkOrder(@Positive int id) {
+    @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
+    public void cancelWorkOrder(int id) {
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Cancelling work order");
             WorkOrder workOrder = require(id);
             workOrder.cancel();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.CANCELLED);
         }
     }
 
     // Mechanic is optional. A draft that clashes is saved with a warning; a confirmed order that clashes is stopped.
-    public WorkOrderScheduleResult updateWorkOrder(@Positive int id,
-                                                   List<@NotNull @Positive Integer> serviceItemIds,
-                                                   @Positive Integer mechanicId,
+    @Override
+    @PreAuthorize("@access.can('WORK_ORDER_WRITE')")
+    public WorkOrderScheduleResult updateWorkOrder(int id,
+                                                   List<Integer> serviceItemIds,
+                                                   Integer mechanicId,
                                                    LocalDate plannedDate,
                                                    LocalTime plannedStartTime,
                                                    String customerInstructions,
                                                    String comments,
                                                    Map<Integer, Boolean> chargeFlags) {
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(id))) {
             log.info("Updating work order");
             WorkOrder workOrder = require(id);
