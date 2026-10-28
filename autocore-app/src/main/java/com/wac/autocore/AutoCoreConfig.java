@@ -1,5 +1,6 @@
 package com.wac.autocore;
 
+import com.wac.autocore.model.WorkOrderEvent;
 import com.wac.autocore.model.WorkOrderEventPublisher;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationEventPublisher;
