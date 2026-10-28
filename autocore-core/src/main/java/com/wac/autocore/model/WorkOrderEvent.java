@@ -2,7 +2,6 @@ package com.wac.autocore.model;
 
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 /** A Record (immutable) class that works as a DTO ({@code Data-Transfer Object}) for
  * representing an event that has occurred on a {@link WorkOrder}.
