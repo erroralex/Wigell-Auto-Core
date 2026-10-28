@@ -22,13 +22,15 @@ public class LoginView extends VBox {
         this.passwordField = new PasswordField();
         this.loginButton = new Button(lang.get("login.loginButton"));
         this.errorLabel = new Label();
+    }
 
+    public void show() {
         this.getStyleClass().add("login-view");
         setAlignment(Pos.CENTER);
 
         usernameField.setPrefWidth(400);
         passwordField.setPrefWidth(400);
-        loginButton.setPrefWidth(400);
+        loginButton.setPrefWidth(250);
 
         errorLabel.setStyle("-fx-text-fill: red;");
         errorLabel.setOpacity(0);
@@ -39,7 +41,6 @@ public class LoginView extends VBox {
         errorLabel.setPrefHeight(30);
         errorLabel.setAlignment(Pos.CENTER);
         errorLabel.setMaxWidth(Double.MAX_VALUE);
-
 
         String cssPath = getClass().getResource("style.css").toExternalForm();
         String loginCssPath = getClass().getResource("login.css").toExternalForm();

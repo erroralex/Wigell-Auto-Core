@@ -14,6 +14,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AutoCoreApp extends Application {
@@ -30,7 +31,6 @@ public class AutoCoreApp extends Application {
     private double currentZoom = 1.0;
 
     private static final LanguageManager lang = LanguageManager.getInstance();
-
 
     private ConfigurableApplicationContext springContext;
 
@@ -51,22 +51,8 @@ public class AutoCoreApp extends Application {
         AutoCoreApp.primaryStage = primaryStage;
 
         LoginView loginView = new LoginView();
-
-        loginView.getLoginButton().setOnAction(e -> {
-            try {
-                AuthenticationManager authManager = springContext.getBean(AuthenticationManager.class);
-                var auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(
-                        loginView.getUsername(),
-                        loginView.getPassword()
-                ));
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-                showMainLayout();
-
-            } catch (Exception ex) {
-                loginView.showError(lang.get("error.login.invalidUsernameOrPassword"));
-            }
-        });
+        loginView.show();
+        loginView.getLoginButton().setOnAction(e -> handleLogin(loginView));
 
         Scene scene = new Scene(loginView, WIDTH, HEIGHT);
         scene.setFill(javafx.scene.paint.Color.web("#212121"));
@@ -79,6 +65,22 @@ public class AutoCoreApp extends Application {
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         primaryStage.show();
+    }
+
+    private void handleLogin(LoginView loginView) {
+        try {
+            AuthenticationManager authManager = springContext.getBean(AuthenticationManager.class);
+            var auth = authManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    loginView.getUsername(),
+                    loginView.getPassword()
+            ));
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            showMainLayout();
+
+        } catch (AuthenticationException ex) {
+            loginView.showError(lang.get("error.login.invalidUsernameOrPassword"));
+        }
     }
 
     private void showMainLayout() {
