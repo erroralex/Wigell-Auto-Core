@@ -2,16 +2,9 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.view.i18n.LanguageManager;
-import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -19,60 +12,33 @@ import javafx.scene.layout.GridPane;
 /**
  * <b>CreateCustomerDialog</b>
  * <p>Responsibility: Dialog for creating a new customer.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class CreateCustomerDialog {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class CreateCustomerDialog extends FormDialog<Customer> {
 
     private final CustomerService customerService;
-    private final Dialog<Boolean> dialog = new Dialog<>();
     private final TextField nameField = new TextField();
     private final TextField phoneField = new TextField();
     private final TextField emailField = new TextField();
     private final CheckBox vipCheckBox = new CheckBox(lang.get("customer.vip"));
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
+
+    private Customer createdCustomer;
 
     public CreateCustomerDialog(CustomerService customerService) {
         this.customerService = customerService;
-        dialog.setTitle(lang.get("customer.new"));
-        dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
-        DialogUtil.applyTheme(dialog);
-        dialog.getDialogPane().setContent(createContent());
         configureFields();
-        configureButtons();
-        dialog.setResultConverter(buttonType -> buttonType == saveButtonType);
+        initDialog();
     }
 
-    public boolean showAndWait() {
-        return dialog.showAndWait().orElse(false);
+    @Override
+    protected String getTitleKey() {
+        return "customer.new";
     }
 
-    private void configureFields() {
-        nameField.setPromptText(lang.get("table.name"));
-        phoneField.setPromptText(lang.get("table.phone"));
-        emailField.setPromptText(lang.get("table.email"));
-
-        nameField.getStyleClass().add("input");
-        phoneField.getStyleClass().add("input");
-        emailField.getStyleClass().add("input");
-    }
-
-    private void configureButtons() {
-        Button saveButton = (Button) dialog.getDialogPane().lookupButton(saveButtonType);
-        Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
-
-        saveButton.getStyleClass().addAll("btn", "btn-primary");
-        cancelButton.getStyleClass().addAll("btn", "btn-secondary");
-
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            if (!saveCustomer()) {
-                event.consume();
-            }
-        });
-    }
-
-    private GridPane createContent() {
+    @Override
+    protected Node buildContent() {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -89,23 +55,32 @@ public class CreateCustomerDialog {
         return grid;
     }
 
-    private boolean saveCustomer() {
-
+    @Override
+    protected void submit() {
         String name = getTrimmedValue(nameField);
         String phone = getTrimmedValue(phoneField);
         String email = getTrimmedValue(emailField);
 
-        try {
-            Customer customer = customerService.create(name, phone, email);
-            if (vipCheckBox.isSelected()) {
-                customer.setVip(true);
-                customerService.update(customer);
-            }
-        } catch (RuntimeException e) {
-            ErrorFacade.handle(e);
-            return false;
+        createdCustomer = customerService.create(name, phone, email);
+        if (vipCheckBox.isSelected()) {
+            createdCustomer.setVip(true);
+            customerService.update(createdCustomer);
         }
-        return true;
+    }
+
+    @Override
+    protected Customer buildResult() {
+        return createdCustomer;
+    }
+
+    private void configureFields() {
+        nameField.setPromptText(lang.get("table.name"));
+        phoneField.setPromptText(lang.get("table.phone"));
+        emailField.setPromptText(lang.get("table.email"));
+
+        nameField.getStyleClass().add("input");
+        phoneField.getStyleClass().add("input");
+        emailField.getStyleClass().add("input");
     }
 
     private String getTrimmedValue(TextField field) {

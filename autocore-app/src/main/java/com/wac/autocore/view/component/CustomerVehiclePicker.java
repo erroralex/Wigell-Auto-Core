@@ -128,7 +128,7 @@ public class CustomerVehiclePicker extends VBox {
                 .collect(Collectors.toSet());
         Customer previous = customerCombo.getValue();
 
-        if (!new CreateCustomerDialog(customerService).showAndWait()) {
+        if (!new CreateCustomerDialog(customerService).showAndWait().isPresent()) {
             return;
         }
 

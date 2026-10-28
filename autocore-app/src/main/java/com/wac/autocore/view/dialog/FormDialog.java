@@ -46,8 +46,19 @@ public abstract class FormDialog<T> extends Dialog<T> {
 
     protected abstract T buildResult();
 
-    /* Template method: builds the dialog in a fixed order.
-       Must be called last in the subclass constructor. */
+    /**
+     * Template method: builds the dialog in a fixed order. Final so the order cannot be changed.
+     * <ol>
+     *   <li>Theme and owner. Must come before the content, since {@link DialogUtil#applyTheme}
+     *       listens for new content and wraps it in a scroll pane.</li>
+     *   <li>Title and optional header text.</li>
+     *   <li>The subclass content from {@link #buildContent()}.</li>
+     *   <li>Save and cancel buttons.</li>
+     *   <li>Save handler: runs {@link #submit()} and keeps the dialog open if it throws.</li>
+     *   <li>Result converter: returns {@link #buildResult()} on save, otherwise {@code null}.</li>
+     * </ol>
+     * Must be called last in the subclass constructor.
+     */
     public final void initDialog() {
         applyStyling();
         buildHeader();
