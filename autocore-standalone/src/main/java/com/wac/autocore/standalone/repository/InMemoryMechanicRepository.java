@@ -1,4 +1,4 @@
-package com.wac.autocore.testsupport;
+package com.wac.autocore.standalone.repository;
 
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.repository.MechanicRepository;
@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * In-memory {@link MechanicRepository} for running AutoCore without a database.
+ */
 public class InMemoryMechanicRepository implements MechanicRepository {
 
     private final Map<Integer, Mechanic> store = new LinkedHashMap<>();
@@ -27,10 +30,9 @@ public class InMemoryMechanicRepository implements MechanicRepository {
     @Override
     public Mechanic save(Mechanic mechanic) {
         if (InMemoryIds.idOf(mechanic) == 0) {
-            store.put(ids.next(), mechanic);
-        } else {
-            store.put(InMemoryIds.idOf(mechanic), mechanic);
+            InMemoryIds.setId(mechanic, ids.next());
         }
+        store.put(InMemoryIds.idOf(mechanic), mechanic);
         return mechanic;
     }
 
