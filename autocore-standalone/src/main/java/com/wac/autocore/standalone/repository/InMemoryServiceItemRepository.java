@@ -1,4 +1,4 @@
-package com.wac.autocore.testsupport;
+package com.wac.autocore.standalone.repository;
 
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * In-memory {@link ServiceItemRepository} for running AutoCore without a database.
+ */
 public class InMemoryServiceItemRepository implements ServiceItemRepository {
 
     private final Map<Integer, ServiceItem> store = new LinkedHashMap<>();

@@ -1,4 +1,4 @@
-package com.wac.autocore.testsupport;
+package com.wac.autocore.standalone.repository;
 
 import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingStatus;
@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * In-memory {@link BookingRepository} for running AutoCore without a database.
+ */
 public class InMemoryBookingRepository implements BookingRepository {
 
     private final Map<Integer, Booking> store = new LinkedHashMap<>();
