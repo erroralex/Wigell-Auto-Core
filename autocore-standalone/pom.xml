@@ -21,6 +21,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Logging backend for the standalone jar. -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
