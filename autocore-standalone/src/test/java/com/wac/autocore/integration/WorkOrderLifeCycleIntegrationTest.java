@@ -1,13 +1,7 @@
 package com.wac.autocore.integration;
 
 import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.BookingStatus;
-import com.wac.autocore.model.Mechanic;
-import com.wac.autocore.model.ServiceItem;
-import com.wac.autocore.model.Vehicle;
-import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.model.WorkOrderStatus;
+import com.wac.autocore.model.*;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.WorkOrderScheduleResult;
@@ -23,7 +17,9 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,11 +39,17 @@ class WorkOrderLifeCycleIntegrationTest {
     private WorkOrderService workOrderService;
     private BookingService bookingService;
 
+    private WorkOrderEventPublisher recordingPublisher;
+    private List<WorkOrderEvent> publishedEvents;
+
     private int bookingId;
     private int mechanicId;
 
     @BeforeEach
     void setUp() {
+        publishedEvents = new ArrayList<>();
+        recordingPublisher = publishedEvents::add;
+
         workOrderRepo = new InMemoryWorkOrderRepository();
         bookingRepo = new InMemoryBookingRepository(workOrderRepo);
         mechanicRepo = new InMemoryMechanicRepository();
@@ -55,7 +57,10 @@ class WorkOrderLifeCycleIntegrationTest {
         serviceItemRepo = new InMemoryServiceItemRepository();
 
         bookingService = new BookingService(bookingRepo, serviceItemRepo, mechanicRepo, vehicleRepo);
-        workOrderService = new WorkOrderService(workOrderRepo, bookingRepo, mechanicRepo, vehicleRepo, serviceItemRepo, bookingService);
+        workOrderService = new WorkOrderService(workOrderRepo, bookingRepo,
+                mechanicRepo, vehicleRepo,
+                serviceItemRepo, bookingService,
+                recordingPublisher);
 
         // Arrange: Create a mechanic, a service, a vehicle and a booking
         Mechanic mechanic = mechanicRepo.save(new Mechanic("Test Mechanic", "070-1234567", "General"));
@@ -106,6 +111,19 @@ class WorkOrderLifeCycleIntegrationTest {
         order = workOrder(workOrderId);
         assertEquals(WorkOrderStatus.COMPLETED, order.getStatus());
         assertEquals(BookingStatus.COMPLETED, booking(bookingId).getStatus());
+
+        // 5. Assert that the correct WorkOrderEventActions are present.
+        assertEquals(List.of(
+                WorkOrderEvent.WorkOrderEventAction.CREATED,
+                WorkOrderEvent.WorkOrderEventAction.CONFIRMED,
+                WorkOrderEvent.WorkOrderEventAction.STARTED,
+                WorkOrderEvent.WorkOrderEventAction.COMPLETED
+        ), publishedEvents.stream().map(WorkOrderEvent::action).toList());
+
+        assertTrue(publishedEvents.stream()
+                .allMatch(event -> event.workOrderId() == workOrderId));
+        assertTrue(publishedEvents.stream()
+                .allMatch(event -> event.occurredAt() != null));
     }
 
     // A reopened draft still owns the plan, so the booking should remain locked and follow the order.
@@ -124,6 +142,10 @@ class WorkOrderLifeCycleIntegrationTest {
         assertTrue(order.getStatus().isEditable(), "The reopened draft should be editable");
         assertEquals(BookingStatus.WORK_ORDER_CREATED, booking.getStatus());
         assertFalse(booking.getStatus().isEditable(), "The booking should stay locked while the order owns the plan");
+        WorkOrderEvent event = publishedEvents.getFirst();
+        assertEquals(3, publishedEvents.size());
+        assertEquals(order.getId(), event.workOrderId());
+        assertEquals(WorkOrderEvent.WorkOrderEventAction.CREATED, event.action());
     }
       
     @Test

@@ -177,11 +177,35 @@ java -jar autocore-app/target/autocore-app-4.0.0.jar --spring.profiles.active=he
  
 # Fristående läge (standalone)
  
-> Under uppbyggnad i sprint 4.0. Se migrationsplanen, avsnitt 7.
- 
 `autocore-standalone` kör samma domän- och servicekod som appen, men utan Spring, GUI och databas.
 Tjänsterna skapas med `new` och kopplas mot in-memory-repositoryn. Modulen paketeras som en egen
 körbar jar.
+
+## Köra programmet i fristående läge:
+
+Bygg den körbara jaren och starta den med `java -jar`, som vilket fristående program som helst:
+
+```bash
+./mvnw clean package -DskipTests
+java -jar autocore-standalone/target/autocore-standalone.jar --role=READ_ONLY --lang=sv
+echo $?
+```
+
+| Argument | Värden | Standard |
+|---|---|---|
+| `--role` | `ADMIN`, `WORKSHOP`, `READ_ONLY` (skiftlägesokänsligt) | `ADMIN` |
+| `--lang` | `sv`, `en` | `sv` |
+
+| Felkod | Betydelse |
+|---|---|
+| `0` | Alla steg gick som förväntat, även de förväntade felen |
+| `1` | Ett steg gick inte som förväntat |
+| `2` | Ogiltiga argument. Problemet och en användningsrad skrivs till stderr |
+
+Jaren byggs med `maven-shade-plugin` och har `StandaloneMain` som `Main-Class`. Ingen Spring-banner eller
+Spring-logg skrivs ut, eftersom ingen Spring-kontext startas. Loggningen konfigureras i
+`autocore-standalone/src/main/resources/logback.xml` (`logback-spring.xml` läses bara av Spring Boot).
+`StandaloneMainProcessTest` startar programmet i en egen JVM och kontrollerar att felkoden är `0`.
  
 # Git-flöde: från branch till Pull Request
  

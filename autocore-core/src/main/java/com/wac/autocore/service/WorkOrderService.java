@@ -4,16 +4,7 @@ import com.wac.autocore.exception.EntityNotFoundException;
 import com.wac.autocore.exception.MechanicDoubleBookingException;
 import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.logging.LogKeys;
-import com.wac.autocore.model.Booking;
-import com.wac.autocore.model.BookingStatus;
-import com.wac.autocore.model.DropInWorkOrder;
-import com.wac.autocore.model.PlannedWorkOrder;
-import com.wac.autocore.model.WarrantyWorkOrder;
-import com.wac.autocore.model.WorkOrder;
-import com.wac.autocore.model.WorkOrderChange;
-import com.wac.autocore.model.WorkOrderItem;
-import com.wac.autocore.model.WorkOrderStatus;
-import com.wac.autocore.model.WorkOrderType;
+import com.wac.autocore.model.*;
 import com.wac.autocore.repository.BookingRepository;
 import com.wac.autocore.repository.MechanicRepository;
 import com.wac.autocore.repository.ServiceItemRepository;
@@ -29,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -61,19 +53,22 @@ public class WorkOrderService implements WorkOrderLifecycle {
     private final VehicleRepo vehicleRepo;
     private final ServiceItemRepository serviceItemRepository;
     private final BookingService bookingService;
+    private final WorkOrderEventPublisher publisher;
 
     public WorkOrderService(WorkOrderRepository workOrderRepository,
                             BookingRepository bookingRepository,
                             MechanicRepository mechanicRepository,
                             VehicleRepo vehicleRepo,
                             ServiceItemRepository serviceItemRepository,
-                            BookingService bookingService) {
+                            BookingService bookingService,
+                            WorkOrderEventPublisher publisher) {
         this.workOrderRepository = workOrderRepository;
         this.bookingRepository = bookingRepository;
         this.mechanicRepository = mechanicRepository;
         this.vehicleRepo = vehicleRepo;
         this.serviceItemRepository = serviceItemRepository;
         this.bookingService = bookingService;
+        this.publisher = publisher;
     }
 
     @Transactional(readOnly = true)
@@ -127,6 +122,9 @@ public class WorkOrderService implements WorkOrderLifecycle {
         WorkOrder workOrder = plannedWorkOrderFor(booking);
 
         WorkOrder saved = workOrderRepository.save(workOrder);
+
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Created work order");
         }
@@ -161,6 +159,9 @@ public class WorkOrderService implements WorkOrderLifecycle {
                 WarrantyWorkOrder.draft(original, problemDescription);
 
         WarrantyWorkOrder saved = workOrderRepository.save(warranty);
+
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Created warranty work order from {}", originalWorkOrderId);
         }
@@ -186,6 +187,8 @@ public class WorkOrderService implements WorkOrderLifecycle {
 
         DropInWorkOrder saved = workOrderRepository.save(dropIn);
 
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Created drop-in work order");
         }
@@ -201,6 +204,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
             workOrder.start();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.STARTED);
         }
     }
 
@@ -213,7 +217,17 @@ public class WorkOrderService implements WorkOrderLifecycle {
             workOrder.complete();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.COMPLETED);
         }
+    }
+
+    private void publish(WorkOrder workOrder, WorkOrderEvent.WorkOrderEventAction action) {
+        publisher.publish(new WorkOrderEvent(
+                workOrder.getId(),
+                workOrder.getType(),
+                action,
+                LocalDateTime.now()
+        ));
     }
 
     // The booking's status follows the work order. Fetching, the rule and saving live in BookingService,
@@ -238,6 +252,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
             rejectConflictsIfReserved(scheduleResult(workOrder));
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.CONFIRMED);
         }
     }
 
@@ -258,6 +273,8 @@ public class WorkOrderService implements WorkOrderLifecycle {
             workOrder.reopen();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.REOPENED);
             return new WorkOrderReopenResult(WorkOrderScheduleResult.withoutConflicts(workOrder),
                     Collections.<WorkOrderChange>emptyList());
         }
@@ -276,6 +293,8 @@ public class WorkOrderService implements WorkOrderLifecycle {
         reopened.setCustomerInstructions(cancelled.getCustomerInstructions());
 
         WorkOrder saved = workOrderRepository.save(reopened);
+
+        publish(saved, WorkOrderEvent.WorkOrderEventAction.CREATED);
         try (MDC.MDCCloseable ignored = MDC.putCloseable(LogKeys.WORK_ORDER_ID, String.valueOf(saved.getId()))) {
             log.info("Recreated work order from cancelled {}", cancelled.getId());
         }
@@ -292,6 +311,7 @@ public class WorkOrderService implements WorkOrderLifecycle {
             workOrder.cancel();
             syncBooking(workOrder);
             workOrderRepository.save(workOrder);
+            publish(workOrder, WorkOrderEvent.WorkOrderEventAction.CANCELLED);
         }
     }
 
