@@ -1,8 +1,9 @@
 package com.wac.autocore.model;
 
 /**
- * Interface serving as the subject (publisher) in the Observer Design Pattern
- * for {@link WorkOrderEvent} instances.
+ * Interface serving as the observer in the Observer Design Pattern
+ * for {@link WorkOrderEvent} instances. {@code WorkOrderService} is the subject
+ * and notifies it on every work order state change.
  */
 @FunctionalInterface
 public interface WorkOrderEventPublisher {

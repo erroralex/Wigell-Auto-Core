@@ -24,7 +24,6 @@ import com.wac.autocore.standalone.repository.InMemoryServiceItemRepository;
 import com.wac.autocore.standalone.repository.InMemoryVehicleRepo;
 import com.wac.autocore.standalone.repository.InMemoryWorkOrderRepository;
 import com.wac.autocore.standalone.security.WorkOrderLifecycleAccessProxy;
-import com.wac.autocore.model.WorkOrderEventPublisher;
 
 import java.util.List;
 import java.util.Objects;
@@ -73,7 +72,7 @@ public final class StandaloneAutoCore {
                 workOrderRepo, bookingRepo,
                 mechanicRepo, vehicleRepo,
                 serviceItemRepo, bookingService,
-                WorkOrderEventPublisher.NO_OP);
+                new ConsoleWorkOrderEventPublisher(System.out));
         this.invoiceService =
                 new InvoiceService(invoiceRepo, workOrderService, vehicleService, customerService);
         this.paymentService = new PaymentService(paymentRepo, invoiceService);
