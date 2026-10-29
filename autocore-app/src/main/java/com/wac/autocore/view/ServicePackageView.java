@@ -3,18 +3,19 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.ServicePackage;
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.dialog.ServicePackageDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -127,9 +128,10 @@ public class ServicePackageView extends BaseView {
                 ServicePackageDialog.forEdit(servicePackageService, serviceItemService.listAll(), selectedPackage())));
         deleteButton.setOnAction(event -> deleteSelected());
 
+        ViewPermissionUtil.hideUnless(Permission.SERVICE_CATALOG_WRITE, createButton, editButton, deleteButton);
+
         HBox toolbar = new HBox(createButton, editButton, deleteButton);
         toolbar.getStyleClass().add("toolbar");
-        toolbar.setAlignment(Pos.CENTER_LEFT);
         return toolbar;
     }
 

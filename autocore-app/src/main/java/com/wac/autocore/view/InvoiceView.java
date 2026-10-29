@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
@@ -9,13 +10,13 @@ import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -170,9 +171,10 @@ public class InvoiceView extends BaseView {
         btnViewDetails.getStyleClass().addAll("btn", btnPrimary);
         btnViewDetails.setOnAction(event -> this.openDetailDialog());
 
+        ViewPermissionUtil.hideUnless(Permission.INVOICE_CREATE, btnCreateInvoice);
+
         HBox toolbar = new HBox(btnCreateInvoice, btnViewDetails);
         toolbar.getStyleClass().add("toolbar");
-        toolbar.setAlignment(Pos.CENTER_LEFT);
         return toolbar;
     }
 

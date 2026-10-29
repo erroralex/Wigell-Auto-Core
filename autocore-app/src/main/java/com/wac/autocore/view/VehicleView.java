@@ -2,9 +2,11 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.dialog.CreateVehicleDialog;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -173,6 +175,7 @@ public class VehicleView extends BaseView {
         Button newVehicleButton = new Button(lang.get("vehicle.new"));
         newVehicleButton.getStyleClass().addAll("btn", "btn-primary");
         newVehicleButton.setOnAction(event -> openCreateVehicleDialog());
+        ViewPermissionUtil.hideUnless(Permission.VEHICLE_WRITE, newVehicleButton);
 
         HBox toolbar = new HBox(newVehicleButton, customerFilter);
         toolbar.getStyleClass().add("toolbar");
