@@ -207,7 +207,7 @@ public class BookingView extends BaseView {
         btnCopyBooking.setOnAction(e -> openCopyBookingDialog());
         btnCopyBooking.setDisable(true);
 
-        btnCancelBooking.getStyleClass().addAll("btn", btnPrimary);
+        btnCancelBooking.getStyleClass().addAll("btn", "btn-danger");
         btnCancelBooking.setOnAction(e -> cancelSelectedBooking());
         btnCancelBooking.setDisable(true);
 

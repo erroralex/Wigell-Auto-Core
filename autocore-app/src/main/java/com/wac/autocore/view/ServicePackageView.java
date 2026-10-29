@@ -114,7 +114,7 @@ public class ServicePackageView extends BaseView {
 
         createButton.getStyleClass().addAll("btn", "btn-primary");
         editButton.getStyleClass().addAll("btn", "btn-secondary");
-        deleteButton.getStyleClass().addAll("btn", "btn-secondary");
+        deleteButton.getStyleClass().addAll("btn", "btn-danger");
 
         // Edit and Delete require a selected row
         BooleanBinding noSelection = table.getSelectionModel().selectedItemProperty().isNull();

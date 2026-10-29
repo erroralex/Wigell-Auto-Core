@@ -15,12 +15,15 @@
     -color-surface-hover: #D4CFC3;   /* hover on neutral buttons */
     -color-border: #C9C3B5;          /* borders on controls (buttons, fields) */
     -color-divider: #D3CEC2;         /* table, card and section dividers */
+    -color-sunken: #DCD8CD;          /* neutral buttons, pressed-in surfaces */
+    -color-disabled-bg: #E8E5DD;     /* disabled controls */
 
     /* ── Text ─────────────────────────────────────────────────────────────── */
     -color-text: #23251F;
     -color-text-secondary: #4A4D44;
     -color-muted: #5E6157;           /* captions, section labels */
     -color-text-placeholder: #6B6E63;
+    -color-disabled-text: #9A9A8E;   /* disabled controls (exempt from contrast rules) */
 
     /* ── Brand ────────────────────────────────────────────────────────────── */
     -color-primary: #4F5D4B;         /* primary buttons, selection */
@@ -28,12 +31,14 @@
     -color-primary-faint: rgba(79, 93, 75, 0.20);
     -color-on-primary: #F4F2EC;      /* text on primary */
     -color-brand-light: #82916E;     /* logo green – focus ring on dark surfaces */
+    -color-primary-border: #3F4B3C;  /* border around primary buttons */
 
     /* ── Status ───────────────────────────────────────────────────────────── */
     -color-error: #9A3B2E;
     -color-error-bg: #F2E3DF;        /* inline error area in dialogs */
     -color-warning: #8A5A12;         /* .text-warning */
     -color-success: #3F6B47;
+    -color-on-error: #FBF4F2;        /* text on danger buttons */
 
     /* ── Side menu ────────────────────────────────────────────────────────── */
     -color-sidebar: #3F4B3C;             /* menu background */
@@ -46,6 +51,10 @@
     /* ── Effects ──────────────────────────────────────────────────────────── */
     -color-shadow-strong: rgba(0, 0, 0, 0.45);
     -color-shadow-soft: rgba(0, 0, 0, 0.10);
+    -color-inset-shadow: rgba(35, 37, 31, 0.16);      /* top inner shadow, light buttons */
+    -color-inset-shadow-strong: rgba(0, 0, 0, 0.35);  /* top inner shadow, dark buttons and pressed */
+    -color-highlight: rgba(255, 255, 255, 0.55);      /* bottom light edge, light buttons */
+    -color-highlight-dark: rgba(255, 255, 255, 0.08); /* bottom light edge, dark buttons */
 
     /* ── Modena hooks ─────────────────────────────────────────────────────── */
     -fx-base: -color-bg;

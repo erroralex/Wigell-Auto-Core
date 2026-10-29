@@ -59,60 +59,116 @@
     -fx-alignment: center-left;
 }
 
-/*
- * .nav-button is used by SideNavigation, .btn by the application's action buttons
- * and .button is added automatically to all JavaFX Button controls.
- */
-.nav-button,
-.btn,
+/* ──────────────────────────────────────────────────────────────────────────────
+   Buttons
+   .button is added by JavaFX to every Button. .btn is a marker set from Java;
+   .btn-primary, .btn-secondary and .btn-danger choose the variant.
+
+   One structural rule draws every button from five looked-up colors.
+   Variants and states (hover, armed, focused, disabled) only change those
+   colors, never the drawing.
+
+   Layers, outside in:
+     -btn-ring       focus ring, 2px outside (transparent when not focused)
+     -btn-border     border
+     -btn-highlight  1px light edge at the bottom
+     -btn-shadow     1px inner shadow at the top
+     -btn-fill       face
+   Order matters: on equal specificity the later rule wins, so states for a
+   variant come after the shared states, and :disabled comes last.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Every Button. Without a variant class this is the neutral (secondary) look. */
 .button {
-    -fx-background-color: -color-surface-alt;
+    -btn-ring: transparent;
+    -btn-border: -color-border;
+    -btn-highlight: -color-highlight;
+    -btn-shadow: -color-inset-shadow;
+    -btn-fill: -color-sunken;
+
+    -fx-background-color: -btn-ring, -btn-border, -btn-highlight, -btn-shadow, -btn-fill;
+    -fx-background-insets: -2, 0, 1, 1 1 2 1, 2 1 2 1;
+    -fx-background-radius: 0.3em, 0.15em;   /* ring, then all other layers */
+    -fx-border-color: null;                 /* the border is drawn as a background layer */
+
     -fx-text-fill: -color-text;
-    -fx-background-radius: 0.45em;
-    -fx-border-color: -color-border;
-    -fx-border-radius: 0.45em;
-    -fx-padding: 0.6em 1.1em;
     -fx-font-weight: 600;
+    -fx-padding: 0.62em 1.23em;             /* 8px 16px */
 }
 
-/* Hover for navigation buttons, custom .btn buttons and JavaFX Button. */
-.nav-button:hover,
-.btn:hover,
+/* ── Shared states ─────────────────────────────────────────────────────────── */
+
 .button:hover {
-    -fx-background-color: -color-surface-hover;
+    -btn-fill: -color-surface-hover;
 }
 
-/* Focus highlight for buttons and JavaFX's standard form controls. */
-.nav-button:focused,
-.btn:focused,
-.button:focused,
-.text-field:focused,
-.combo-box:focused,
-.date-picker:focused,
-.text-area:focused {
-    -fx-border-color: -color-primary;
-    -fx-focus-color: -color-primary;
+/* Pressed: darker face and a deeper inner shadow. */
+.button:armed {
+    -btn-fill: derive(-color-surface-hover, -6%);
+    -btn-shadow: -color-inset-shadow-strong;
 }
 
-/* Active navigation button in SideNavigation and primary buttons in views and form dialogs. */
-.nav-button-active,
+/* Keyboard focus: a ring outside the button. */
+.button:focused {
+    -btn-ring: -color-primary;
+}
+
+/* ── Secondary (explicit class, same as the default look) ──────────────────── */
+
+.btn-secondary {
+    -btn-fill: -color-sunken;
+}
+
+/* ── Primary ───────────────────────────────────────────────────────────────── */
+
 .btn-primary {
-    -fx-background-color: -color-primary;
-    -fx-border-color: -color-primary;
+    -btn-border: -color-primary-border;
+    -btn-highlight: -color-highlight-dark;
+    -btn-shadow: -color-inset-shadow-strong;
+    -btn-fill: -color-primary;
     -fx-text-fill: -color-on-primary;
 }
 
-/* Hover for primary buttons and the active navigation button. */
-.btn-primary:hover,
-.nav-button-active:hover {
-    -fx-background-color: -color-primary-hover;
-    -fx-border-color: -color-primary-hover;
+.btn-primary:hover {
+    -btn-fill: -color-primary-hover;
 }
 
-/* Used by cancel/close buttons in the Customer, Vehicle and MechanicBookings views. */
-.btn-secondary {
-    -fx-background-color: -color-surface;
-    -fx-border-color: -color-border;
+.btn-primary:armed {
+    -btn-fill: derive(-color-primary, -20%);
+}
+
+/* ── Danger: remove and cancel actions ─────────────────────────────────────── */
+
+.btn-danger {
+    -btn-border: derive(-color-error, -15%);
+    -btn-highlight: -color-highlight-dark;
+    -btn-shadow: -color-inset-shadow-strong;
+    -btn-fill: -color-error;
+    -fx-text-fill: -color-on-error;
+}
+
+.btn-danger:hover {
+    -btn-fill: derive(-color-error, -10%);
+}
+
+.btn-danger:armed {
+    -btn-fill: derive(-color-error, -20%);
+}
+
+.btn-danger:focused {
+    -btn-ring: -color-error;
+}
+
+/* ── Disabled: last, so it wins over every variant ─────────────────────────── */
+
+/* Replaces Modena's 40% opacity with flat, readable colors. */
+.button:disabled {
+    -fx-opacity: 1;
+    -btn-border: -color-divider;
+    -btn-highlight: transparent;
+    -btn-shadow: transparent;
+    -btn-fill: -color-disabled-bg;
+    -fx-text-fill: -color-disabled-text;
 }
 
 /* ──────────────────────────────────────────────────────────────────────────────
@@ -122,10 +178,14 @@
    base rule, the active item after hover, active+hover last.
    ────────────────────────────────────────────────────────────────────────────── */
 
-/* Menu items: flat on the dark menu, no button chrome. */
+/* Menu items: flat on the dark menu, no button chrome.
+   Insets and radius reset the five-layer button drawing to a single layer. */
 .side-navigation .nav-button {
     -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0.15em;
     -fx-border-color: transparent;
+    -fx-border-radius: 0.15em;
     -fx-text-fill: -color-sidebar-text;
     -fx-font-weight: 500;
 }
@@ -148,6 +208,19 @@
     -fx-border-color: -color-sidebar-sunken;
     -fx-text-fill: -color-sidebar-text-active;
     -fx-font-weight: 600;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   Form controls (restyled in step 6)
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Focus highlight for JavaFX's standard form controls. Buttons have their own focus ring. */
+.text-field:focused,
+.combo-box:focused,
+.date-picker:focused,
+.text-area:focused {
+    -fx-border-color: -color-primary;
+    -fx-focus-color: -color-primary;
 }
 
 /* JavaFX automatically adds .label to all Label controls. */
@@ -295,9 +368,10 @@
     -fx-vgap: 0.62em;             /* sm */
 }
 
-/* Message and reference row in AlertHelper's reference dialog. */
+/* Message and reference row in AlertHelper's unexpected error dialog. */
 .alert-content {
     -fx-spacing: 0.92em;          /* md */
+    -fx-pref-width: 32.3em;       /* 420px at 13px base – was setPrefWidth(420) */
 }
 
 /* JavaFX's header panel in dialogs that have a header. */
@@ -410,7 +484,6 @@
             0,
             8
     );
-
 }
 
 /* Used by InvoiceView for the content in the invoice details. */

@@ -26,7 +26,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -302,18 +301,17 @@ public class WorkOrderView extends BaseView {
     }
 
     private HBox createButtonBar() {
-        setupButton(btnQuickDraft, this::openQuickDraftDialog);
-        setupButton(btnConfirm, () -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
-        setupButton(btnStart, () -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
-        setupButton(btnComplete, () -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
-        setupButton(btnCancel, this::cancelSelectedWorkOrder);
-        setupButton(btnReopen, this::reopenSelectedWorkOrder);
-        setupButton(btnCreate, this::openCreateWorkOrderDialog);
-        setupButton(btnEdit, this::openEditWorkOrderDialog);
+        setupButton(btnQuickDraft, "btn-primary", this::openQuickDraftDialog);
+        setupButton(btnConfirm, "btn-secondary", () -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
+        setupButton(btnStart, "btn-secondary", () -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
+        setupButton(btnComplete, "btn-secondary", () -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
+        setupButton(btnCancel, "btn-danger", this::cancelSelectedWorkOrder);
+        setupButton(btnReopen, "btn-secondary", this::reopenSelectedWorkOrder);
+        setupButton(btnCreate, "btn-primary", this::openCreateWorkOrderDialog);
+        setupButton(btnEdit, "btn-secondary", this::openEditWorkOrderDialog);
 
         HBox toolbar = new HBox(btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
         toolbar.getStyleClass().add("toolbar");
-        toolbar.setAlignment(Pos.CENTER_LEFT);
         return toolbar;
     }
 
@@ -517,9 +515,9 @@ public class WorkOrderView extends BaseView {
         }
     }
 
-    // The same style for all buttons in the toolbar
-    private void setupButton(Button button, Runnable action) {
-        button.getStyleClass().addAll("btn", "btn-primary");
+    // Every toolbar button gets the shared .btn class plus its variant (primary, secondary or danger)
+    private void setupButton(Button button, String variant, Runnable action) {
+        button.getStyleClass().addAll("btn", variant);
         button.setOnAction(event -> action.run());
     }
 }
