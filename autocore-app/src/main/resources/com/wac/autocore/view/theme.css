@@ -17,12 +17,14 @@
     -color-divider: #D3CEC2;         /* table, card and section dividers */
     -color-sunken: #DCD8CD;          /* neutral buttons, pressed-in surfaces */
     -color-disabled-bg: #E8E5DD;     /* disabled controls */
+    -color-field: #E9E6DE;           /* face of text fields, combo boxes, date pickers */
+    -color-row-hover: #ECE9E2;       /* hover on table rows and list cells */
 
     /* ── Text ─────────────────────────────────────────────────────────────── */
     -color-text: #23251F;
     -color-text-secondary: #4A4D44;
     -color-muted: #5E6157;           /* captions, section labels */
-    -color-text-placeholder: #6B6E63;
+    -color-text-placeholder: #63665B;
     -color-disabled-text: #9A9A8E;   /* disabled controls (exempt from contrast rules) */
 
     /* ── Brand ────────────────────────────────────────────────────────────── */
@@ -55,6 +57,8 @@
     -color-inset-shadow-strong: rgba(0, 0, 0, 0.35);  /* top inner shadow, dark buttons and pressed */
     -color-highlight: rgba(255, 255, 255, 0.55);      /* bottom light edge, light buttons */
     -color-highlight-dark: rgba(255, 255, 255, 0.08); /* bottom light edge, dark buttons */
+    -color-focus-glow: rgba(130, 145, 110, 0.45);     /* focus glow around fields (logo green) */
+    -color-error-glow: rgba(154, 59, 46, 0.18);       /* error glow around invalid fields */
 
     /* ── Modena hooks ─────────────────────────────────────────────────────── */
     -fx-base: -color-bg;

@@ -109,7 +109,7 @@
 }
 
 /* Keyboard focus: a ring outside the button. */
-.button:focused {
+.button:focus-visible {
     -btn-ring: -color-primary;
 }
 
@@ -155,7 +155,7 @@
     -btn-fill: derive(-color-error, -20%);
 }
 
-.btn-danger:focused {
+.btn-danger:focus-visible {
     -btn-ring: -color-error;
 }
 
@@ -197,7 +197,7 @@
 }
 
 /* Keyboard focus: a ring in the logo green. */
-.side-navigation .nav-button:focused {
+.side-navigation .nav-button:focus-visible {
     -fx-border-color: -color-brand-light;
 }
 
@@ -208,19 +208,6 @@
     -fx-border-color: -color-sidebar-sunken;
     -fx-text-fill: -color-sidebar-text-active;
     -fx-font-weight: 600;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────────
-   Form controls (restyled in step 6)
-   ────────────────────────────────────────────────────────────────────────────── */
-
-/* Focus highlight for JavaFX's standard form controls. Buttons have their own focus ring. */
-.text-field:focused,
-.combo-box:focused,
-.date-picker:focused,
-.text-area:focused {
-    -fx-border-color: -color-primary;
-    -fx-focus-color: -color-primary;
 }
 
 /* JavaFX automatically adds .label to all Label controls. */
@@ -284,71 +271,245 @@
     -fx-font-weight: 700;
 }
 
-/*
- * .input is used by search fields and form fields. The other selectors are added automatically
- * to the corresponding JavaFX controls.
- */
-.input,
+/* ──────────────────────────────────────────────────────────────────────────────
+   Form fields
+   TextField, TextArea, ComboBox and DatePicker share one look: a slightly
+   sunken face with an inner shadow at the top. ComboBox and DatePicker are
+   both .combo-box-base, so one selector covers them.
+
+   Same idea as the buttons: one rule draws the field from four looked-up
+   colors, and states only change those colors.
+     -field-ring    glow outside the field (focus or error)
+     -field-border  border
+     -field-shadow  1px inner shadow at the top
+     -field-fill    face
+   Order matters: focused, then error, then error+focused, disabled last.
+   ────────────────────────────────────────────────────────────────────────────── */
+
 .text-field,
 .text-area,
-.combo-box,
-.date-picker {
-    -fx-background-color: -color-surface;
+.combo-box-base {
+    -field-ring: transparent;
+    -field-border: -color-border;
+    -field-shadow: -color-inset-shadow;
+    -field-fill: -color-field;
+
+    -fx-background-color: -field-ring, -field-border, -field-shadow, -field-fill;
+    -fx-background-insets: -3, 0, 1, 2 1 1 1;
+    -fx-background-radius: 0.38em, 0.15em;  /* glow, then all other layers */
+    -fx-border-color: null;                 /* the border is drawn as a background layer */
+
     -fx-text-fill: -color-text;
     -fx-prompt-text-fill: -color-text-placeholder;
-    -fx-border-color: -color-border;
-    -fx-border-radius: 0.45em;
-    -fx-background-radius: 0.45em;
+    -fx-highlight-fill: -color-primary;     /* selected text */
+    -fx-highlight-text-fill: -color-on-primary;
 }
 
-/* Used for invalid fields in the Booking, Customer and Vehicle dialogs. */
+.text-field {
+    -fx-padding: 0.54em 0.77em;             /* ~7px 10px */
+}
+
+/* TextArea draws its text on an inner .content region with its own background. */
+.text-area .content {
+    -fx-background-color: transparent;
+    -fx-padding: 0.38em 0.54em;
+}
+
+.text-area .scroll-pane,
+.text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ComboBox and DatePicker: the editor and the value cell sit inside the field,
+   so they are transparent and only the outer field is drawn. */
+.combo-box-base > .text-field,
+.date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+/* The value shown in a closed ComboBox. Not a list row: never painted as selected.
+   This fixes combo boxes turning green when a value is chosen. */
+.combo-box > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-padding: 0.54em 0.77em;
+}
+
+/* Arrow button: no button chrome, only the arrow. */
+.combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0.77em;
+}
+
+.combo-box-base > .arrow-button > .arrow {
+    -fx-background-color: -color-text-secondary;
+}
+
+/* ── States ────────────────────────────────────────────────────────────────── */
+
+.text-field:hover,
+.text-area:hover,
+.combo-box-base:hover {
+    -field-border: derive(-color-border, -12%);
+}
+
+/* Keyboard focus: primary border and a soft glow in the logo green. */
+.text-field:focused,
+.text-area:focused,
+.combo-box-base:focused {
+    -field-border: -color-primary;
+    -field-ring: -color-focus-glow;
+}
+
+/* Invalid field, set from Java. .input is a marker on some text fields and has no own style. */
 .input-error {
-    -fx-border-color: -color-error;
+    -field-border: -color-error;
+    -field-ring: -color-error-glow;
 }
 
-/* JavaFX automatically adds .table-view to the tables in the main views. */
+/* An invalid field keeps its error look on hover and while focused
+   (the :hover and :focused rules above are more specific than .input-error). */
+.input-error:hover,
+.input-error:focused {
+    -field-border: -color-error;
+    -field-ring: -color-error-glow;
+}
+
+/* Disabled: last. Replaces Modena's 40% opacity with flat, readable colors. */
+.text-field:disabled,
+.text-area:disabled,
+.combo-box-base:disabled {
+    -fx-opacity: 1;
+    -field-border: -color-divider;
+    -field-shadow: transparent;
+    -field-fill: -color-disabled-bg;
+    -fx-text-fill: -color-disabled-text;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   Lists
+   Scoped to .list-view so the rules never reach the ComboBox value cell above.
+   The ComboBox drop-down is a .list-view too and follows these rules.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.list-view {
+    -fx-background-color: -color-border, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 1;
+    -fx-border-color: null;
+}
+
+.list-view:focused {
+    -fx-background-color: -color-primary, -color-surface;
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-padding: 0.46em 0.77em;             /* ~6px 10px */
+}
+
+.list-view .list-cell:filled:hover {
+    -fx-background-color: -color-row-hover;
+}
+
+.list-view .list-cell:filled:selected,
+.list-view .list-cell:filled:selected:hover {
+    -fx-background-color: -color-primary;
+    -fx-text-fill: -color-on-primary;
+}
+
+/* Empty-state text, e.g. "No service items selected". */
+.list-view .placeholder .label {
+    -fx-text-fill: -color-muted;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   Tables
+   Flat rows with a 1px divider, a subtle hover and a primary selection.
+   No vertical grid lines. Cell alignment is left to Java (money columns are
+   right-aligned with setAlignment), so it is never set here.
+   ────────────────────────────────────────────────────────────────────────────── */
+
 .table-view {
-    -fx-background-color: -color-surface;
-    -fx-border-color: -color-border;
-    -fx-border-radius: 0.6em;
-    -fx-background-radius: 0.6em;
+    -fx-background-color: -color-divider, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 1;
+    -fx-border-color: null;
 }
 
-/* JavaFX's background behind the tables' column headers. */
-.table-view .column-header-background {
-    -fx-background-color: -color-surface-alt;
+.table-view:focused {
+    -fx-background-color: -color-primary, -color-surface;
 }
 
-/* JavaFX's individual column headers and the filler after the last column. */
+/* Header row. */
+.table-view .column-header-background,
 .table-view .column-header,
 .table-view .filler {
     -fx-background-color: -color-surface-alt;
-    -fx-border-color: -color-border;
 }
 
-/* JavaFX's table rows in all TableView controls. */
+.table-view .column-header,
+.table-view .filler {
+    -fx-border-color: -color-divider;
+    -fx-border-width: 0 0 1 0;
+    -fx-size: 2.62em;                       /* header height, 34px */
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -color-text-secondary;
+    -fx-font-weight: 600;
+    -fx-alignment: center-left;
+    -fx-padding: 0 0.54em;
+}
+
+.table-view .column-header .arrow {
+    -fx-background-color: -color-text-secondary;
+}
+
+/* Rows: surface with a divider line at the bottom. */
 .table-view .table-row-cell {
-    -fx-background-color: -color-surface;
+    -fx-background-color: -color-divider, -color-surface;
+    -fx-background-insets: 0, 0 0 1 0;
     -fx-text-background-color: -color-text;
 }
 
-/* Hover for JavaFX's table rows with content; empty filler rows are not affected. */
+/* Empty filler rows below the data: no divider lines. */
+.table-view .table-row-cell:empty {
+    -fx-background-color: -color-surface;
+}
+
+/* Cells: equal padding above and below centers the text and sets the row height (~36px).
+   No fixed cell size: a fixed row height leaves Modena's 2em cells at the top of the row. */
+.table-view .table-cell {
+    -fx-padding: 0.69em 0.77em;             /* 9px 10px */
+    -fx-border-color: transparent;
+}
+
 .table-view .table-row-cell:filled:hover {
-    -fx-background-color: -color-primary-hover;
-    -fx-text-background-color: -color-on-primary;
+    -fx-background-color: -color-divider, -color-row-hover;
 }
 
-/* Selected row with content in JavaFX's tables. */
 .table-view .table-row-cell:filled:selected {
-    -fx-background-color: -color-primary;
+    -fx-background-color: -color-divider, -color-primary;
     -fx-text-background-color: -color-on-primary;
 }
 
-/* A selected row uses the hover color under the mouse pointer, like the active navigation button. */
 .table-view .table-row-cell:filled:selected:hover {
-    -fx-background-color: -color-primary-hover;
-    -fx-text-background-color: -color-on-primary;
+    -fx-background-color: -color-divider, -color-primary-hover;
 }
+
+/* Empty-state text, e.g. "Select a work order to see its jobs". */
+.table-view .placeholder .label {
+    -fx-text-fill: -color-muted;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   Dialogs (restyled in step 7)
+   ────────────────────────────────────────────────────────────────────────────── */
 
 /* JavaFX automatically adds .dialog-pane to all form dialogs and Alerts. */
 .dialog-pane {
@@ -395,35 +556,9 @@
     -fx-background-color: -color-surface-alt;
 }
 
-/* JavaFX automatically adds .list-view to the list of service items in the Work Order dialog. */
-.list-view {
-    -fx-background-color: -color-surface;
-    -fx-border-color: -color-border;
-    -fx-border-radius: 0.45em;
-    -fx-background-radius: 0.45em;
-}
-
-/* JavaFX's cells in ListView controls. */
-.list-cell {
-    -fx-background-color: -color-surface;
-    -fx-text-fill: -color-text;
-}
-
-/* Hover for cells with content in JavaFX ListView. */
-.list-cell:filled:hover {
-    -fx-background-color: -color-surface-alt;
-}
-
-/* Selected cell with content in JavaFX ListView. */
-.list-cell:filled:selected {
-    -fx-background-color: -color-primary;
-    -fx-text-fill: -color-on-primary;
-}
-
-/* Focus border for JavaFX ListView. */
-.list-view:focused {
-    -fx-border-color: -color-primary;
-}
+/* ──────────────────────────────────────────────────────────────────────────────
+   Components
+   ────────────────────────────────────────────────────────────────────────────── */
 
 /* ServiceSelector: row with ComboBox and Add button in the Work Order dialog. */
 .service-selector {
@@ -448,8 +583,9 @@
     -fx-min-height: 6em;
 }
 
-/* MultiSelectListView: cells with text and a Remove button in the Work Order dialog. */
-.multi-select-cell {
+/* MultiSelectListView: cells with text and a Remove button in the Work Order dialog.
+   Scoped like the shared list rules so this tighter padding wins over them. */
+.multi-select-list .multi-select-cell {
     -fx-padding: 0.3em 0.5em;
 }
 
@@ -469,9 +605,9 @@
     -fx-text-fill: -color-on-primary;
 }
 
-/* .list-view comes after .input-error and would otherwise override the error border. */
+/* An invalid selection list gets a red border. Lists draw their border as a background layer. */
 .multi-select-list.input-error {
-    -fx-border-color: -color-error;
+    -fx-background-color: -color-error, -color-surface;
 }
 
 /* Used by HomeView for the shadow behind the logo. */
