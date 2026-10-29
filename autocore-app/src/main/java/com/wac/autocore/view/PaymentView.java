@@ -3,12 +3,14 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.Payment;
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.PaymentService;
 import com.wac.autocore.view.dialog.ProcessPaymentDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -163,6 +165,7 @@ public class PaymentView extends BaseView {
     private HBox createButtonBar() {
         btnPay.getStyleClass().addAll("btn", "btn-primary");
         btnPay.setOnAction(event -> this.openProcessPaymentDialog());
+        ViewPermissionUtil.hideUnless(Permission.PAYMENT_REGISTER, btnPay);
 
         HBox box = new HBox(15, btnPay);
         box.setPadding(new Insets(15, 0, 0, 0));
