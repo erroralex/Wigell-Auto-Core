@@ -1,0 +1,45 @@
+/* ──────────────────────────────────────────────────────────────────────────────
+   Theme
+   The ONLY file with color values. Every other stylesheet refers to these
+   looked-up colors by name, so the theme is changed here and nowhere else.
+   JavaFX looked-up colors hold colors only; sizes, radii and spacing live
+   in style.css.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.root {
+
+    /* ── Surfaces ─────────────────────────────────────────────────────────── */
+    -color-bg: #E2E0D8; /* window and content background */
+    -color-surface: #EDEBE5; /* side menu, fields, tables, lists, panels */
+    -color-surface-alt: #D8D5C9; /* buttons, table headers, dialogs */
+    -color-surface-hover: #C7C3B2; /* hover on neutral buttons */
+    -color-border: #B9B6A5; /* all borders and dividers */
+
+    /* ── Text ─────────────────────────────────────────────────────────────── */
+    -color-text: #2E332B;
+    -color-text-secondary: #5C6156;
+    -color-text-placeholder: #8C8B7F;
+
+    /* ── Brand ────────────────────────────────────────────────────────────── */
+    -color-primary: #55624F; /* primary buttons, active menu item, selection */
+    -color-primary-hover: #7C8068;
+    -color-primary-faint: rgba(85, 98, 79, 0.20);
+    -color-on-primary: #F2F2F2; /* text on primary */
+
+    /* ── Status ───────────────────────────────────────────────────────────── */
+    -color-error: #E57373;
+
+    /* ── Effects ──────────────────────────────────────────────────────────── */
+    -color-shadow-strong: rgba(0, 0, 0, 0.45);
+    -color-shadow-soft: rgba(0, 0, 0, 0.10);
+
+    /* ── Modena hooks ─────────────────────────────────────────────────────── */
+    -fx-base: -color-bg;
+    -fx-control-inner-background: -color-surface;
+    -fx-accent: -color-primary;
+    -fx-focus-color: -color-primary;
+    -fx-faint-focus-color: -color-primary-faint;
+
+    -fx-background-color: -color-bg;
+    -fx-text-fill: -color-text;
+}

@@ -2,17 +2,24 @@ package com.wac.autocore.view.util;
 
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.model.value.MoneyFormat;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.AutoCoreApp;
+import com.wac.autocore.view.i18n.LanguageManager;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.application.Platform;
-import javafx.scene.control.*;
-import javafx.stage.Screen;
-import javafx.scene.input.ScrollEvent;
-import javafx.stage.Stage;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Region;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 
 /**
  * <b>DialogUtil</b>
@@ -22,16 +29,12 @@ import javafx.scene.layout.Region;
  */
 public class DialogUtil {
 
-    private static final String STYLESHEET_PATH = "/com/wac/autocore/view/style.css";
-
     private DialogUtil() {
     }
 
     // Applies the app's theme to the given DialogPane
     public static void applyTheme(DialogPane pane) {
-        pane.getStylesheets().add(
-                DialogUtil.class.getResource(STYLESHEET_PATH).toExternalForm()
-        );
+        Stylesheets.applyTo(pane);
     }
 
     // Applies the app's theme to the given Dialog and sets the _owner to the main window_ if it is not already set
