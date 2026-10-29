@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.dialog.CreateInvoiceDialog;
@@ -9,6 +10,7 @@ import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -165,6 +167,8 @@ public class InvoiceView extends BaseView {
         btnViewDetails.textProperty().bind(lang.bind("invoice.viewDetails"));
         btnViewDetails.getStyleClass().addAll("btn", btnPrimary);
         btnViewDetails.setOnAction(event -> this.openDetailDialog());
+
+        ViewPermissionUtil.hideUnless(Permission.INVOICE_CREATE, btnCreateInvoice);
 
         HBox box = new HBox(15, btnCreateInvoice, btnViewDetails);
         box.setPadding(new Insets(15, 0, 0, 0));
