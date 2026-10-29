@@ -3,7 +3,6 @@ package com.wac.autocore.view.dialog;
 import com.wac.autocore.model.Invoice;
 import com.wac.autocore.view.util.StringConverterUtil;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -50,8 +49,7 @@ public class ProcessPaymentDialog extends FormDialog<ProcessPaymentDialog.Result
 
     @Override
     protected Node buildContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
+        VBox content = new VBox();
         content.getChildren().addAll(
                 new Label(lang.get("payment.invoice", invoice.getId())),
                 new Label(lang.get("payment.total", invoice.getTotalAmount())),

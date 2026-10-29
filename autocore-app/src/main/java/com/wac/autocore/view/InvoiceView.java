@@ -15,13 +15,17 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.input.MouseButton;
 
 import java.time.LocalDate;
 
@@ -166,10 +170,10 @@ public class InvoiceView extends BaseView {
         btnViewDetails.getStyleClass().addAll("btn", btnPrimary);
         btnViewDetails.setOnAction(event -> this.openDetailDialog());
 
-        HBox box = new HBox(15, btnCreateInvoice, btnViewDetails);
-        box.setPadding(new Insets(15, 0, 0, 0));
-        box.setAlignment(Pos.CENTER_LEFT);
-        return box;
+        HBox toolbar = new HBox(btnCreateInvoice, btnViewDetails);
+        toolbar.getStyleClass().add("toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        return toolbar;
     }
 
     private void openCreateInvoiceDialog() {

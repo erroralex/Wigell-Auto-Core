@@ -14,9 +14,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -125,10 +127,10 @@ public class ServicePackageView extends BaseView {
                 ServicePackageDialog.forEdit(servicePackageService, serviceItemService.listAll(), selectedPackage())));
         deleteButton.setOnAction(event -> deleteSelected());
 
-        HBox bar = new HBox(15, createButton, editButton, deleteButton);
-        bar.setPadding(new Insets(15, 0, 0, 0));
-        bar.setAlignment(Pos.CENTER_LEFT);
-        return bar;
+        HBox toolbar = new HBox(createButton, editButton, deleteButton);
+        toolbar.getStyleClass().add("toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        return toolbar;
     }
 
     private ServicePackage selectedPackage() {

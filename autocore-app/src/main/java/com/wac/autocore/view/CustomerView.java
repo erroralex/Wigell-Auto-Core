@@ -115,7 +115,8 @@ public class CustomerView extends BaseView {
         newCustomerButton.getStyleClass().addAll("btn", "btn-primary");
         newCustomerButton.setOnAction(event -> openCreateCustomerDialog());
 
-        HBox toolbar = new HBox(15, newCustomerButton, searchField);
+        HBox toolbar = new HBox(newCustomerButton, searchField);
+        toolbar.getStyleClass().add("toolbar");
         toolbar.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(searchField, Priority.ALWAYS);
         return toolbar;

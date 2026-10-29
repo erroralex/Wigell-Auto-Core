@@ -1,7 +1,6 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.view.i18n.LanguageManager;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Priority;
@@ -22,8 +21,6 @@ public class SideNavigation extends VBox {
         this.mainLayout = mainLayout;
 
         this.getStyleClass().add("side-navigation");
-        this.setSpacing(8);
-        this.setPadding(new Insets(20));
 
         // Build a navigation button for each section defined in NavigationItem,
         // so new sections are added just by extending the enum

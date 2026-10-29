@@ -15,7 +15,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -164,10 +163,10 @@ public class PaymentView extends BaseView {
         btnPay.getStyleClass().addAll("btn", "btn-primary");
         btnPay.setOnAction(event -> this.openProcessPaymentDialog());
 
-        HBox box = new HBox(15, btnPay);
-        box.setPadding(new Insets(15, 0, 0, 0));
-        box.setAlignment(Pos.CENTER_LEFT);
-        return box;
+        HBox toolbar = new HBox(btnPay);
+        toolbar.getStyleClass().add("toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        return toolbar;
     }
 
     private void updateButtonState(Invoice selected) {

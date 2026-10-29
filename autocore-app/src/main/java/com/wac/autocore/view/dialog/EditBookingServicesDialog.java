@@ -6,7 +6,6 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -62,8 +61,7 @@ public class EditBookingServicesDialog extends FormDialog<EditBookingServicesDia
 
     @Override
     protected Node buildContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
+        VBox content = new VBox();
         content.getChildren().addAll(
                 infoLabel,
                 new Separator(),

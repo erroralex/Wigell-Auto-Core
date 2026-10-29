@@ -8,7 +8,6 @@ import com.wac.autocore.service.MechanicService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -44,13 +43,13 @@ public class MechanicBookingsView extends BaseView {
     protected void buildHeader() {
         title = new Label();
         title.textProperty().bind(lang.bind(getTitleKey()));
-        title.getStyleClass().add("text-title");
+        title.getStyleClass().add("text-header");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(10, title, spacer, closeButton(onClose));
-        header.setAlignment(Pos.CENTER_LEFT);
+        HBox header = new HBox(title, spacer, closeButton(onClose));
+        header.getStyleClass().add("view-header");
 
         getChildren().add(header);
     }

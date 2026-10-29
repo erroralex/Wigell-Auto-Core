@@ -62,7 +62,6 @@ public class LoginView extends VBox {
         VBox panel = new VBox();
         panel.getStyleClass().add("login-panel");
         panel.setAlignment(Pos.CENTER);
-        panel.setSpacing(15);
         panel.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
 
         panel.getChildren().addAll(usernameStack, passwordStack, loginButton, errorLabel);

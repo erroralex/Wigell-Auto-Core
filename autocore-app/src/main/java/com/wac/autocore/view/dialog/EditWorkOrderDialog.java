@@ -9,7 +9,6 @@ import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.StringConverterUtil;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -99,8 +98,7 @@ public class EditWorkOrderDialog extends FormDialog<WorkOrderScheduleResult> {
     @Override
     protected Node buildContent() {
         GridPane details = new GridPane();
-        details.setHgap(12);
-        details.setVgap(8);
+        details.getStyleClass().add("form-grid");
 
         details.add(new Label(lang.get("table.mechanic")), 0, 0);
         details.add(mechanicComboBox, 1, 0);
@@ -109,7 +107,7 @@ public class EditWorkOrderDialog extends FormDialog<WorkOrderScheduleResult> {
         details.add(new Label(lang.get("workOrder.edit.plannedStartTime")), 0, 2);
         details.add(plannedStartTimeComboBox, 1, 2);
 
-        VBox content = new VBox(12,
+        VBox content = new VBox(
                 details,
                 new Label(lang.get("workOrder.edit.customerInstructions")),
                 customerInstructionsArea,
@@ -125,7 +123,6 @@ public class EditWorkOrderDialog extends FormDialog<WorkOrderScheduleResult> {
             content.getChildren().addAll(chargeBoxes.values());
         }
 
-        content.setPadding(new Insets(12));
         content.setPrefWidth(560);
 
         return content;

@@ -18,7 +18,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -217,10 +216,10 @@ public class BookingView extends BaseView {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox hBox = new HBox(15, btnCreate, btnEditServices, btnCopyBooking, btnCancelBooking, spacer, showCancelled);
-        hBox.setPadding(new Insets(15, 0, 0, 0));
-        hBox.setAlignment(Pos.CENTER_LEFT);
-        return hBox;
+        HBox toolbar = new HBox(btnCreate, btnEditServices, btnCopyBooking, btnCancelBooking, spacer, showCancelled);
+        toolbar.getStyleClass().add("toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        return toolbar;
     }
 
     private void cancelSelectedBooking() {

@@ -174,7 +174,8 @@ public class VehicleView extends BaseView {
         newVehicleButton.getStyleClass().addAll("btn", "btn-primary");
         newVehicleButton.setOnAction(event -> openCreateVehicleDialog());
 
-        HBox toolbar = new HBox(15, newVehicleButton, customerFilter);
+        HBox toolbar = new HBox(newVehicleButton, customerFilter);
+        toolbar.getStyleClass().add("toolbar");
         toolbar.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(customerFilter, Priority.ALWAYS);
         return toolbar;

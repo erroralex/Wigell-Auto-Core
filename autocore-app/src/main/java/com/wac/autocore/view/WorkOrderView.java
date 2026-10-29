@@ -26,7 +26,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -235,12 +234,12 @@ public class WorkOrderView extends BaseView {
 
     private VBox createJobSection() {
         Label jobTitle = new Label(lang.get("workOrder.jobs"));
-        jobTitle.getStyleClass().add("text-title");
+        jobTitle.getStyleClass().add("text-header");
 
         jobSummaryLabel.getStyleClass().add("text-secondary");
 
-        VBox box = new VBox(8, jobTitle, jobTable, jobSummaryLabel);
-        box.setAlignment(Pos.TOP_LEFT);
+        VBox box = new VBox(jobTitle, jobTable, jobSummaryLabel);
+        box.getStyleClass().add("section");
         return box;
     }
 
@@ -312,10 +311,10 @@ public class WorkOrderView extends BaseView {
         setupButton(btnCreate, this::openCreateWorkOrderDialog);
         setupButton(btnEdit, this::openEditWorkOrderDialog);
 
-        HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
-        box.setPadding(new Insets(15, 0, 0, 0));
-        box.setAlignment(Pos.CENTER_LEFT);
-        return box;
+        HBox toolbar = new HBox(btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
+        toolbar.getStyleClass().add("toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        return toolbar;
     }
 
     private void openQuickDraftDialog() {
