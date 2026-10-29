@@ -3,12 +3,14 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.ServicePackage;
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.dialog.ServicePackageDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -124,6 +126,8 @@ public class ServicePackageView extends BaseView {
         editButton.setOnAction(event -> openDialog(
                 ServicePackageDialog.forEdit(servicePackageService, serviceItemService.listAll(), selectedPackage())));
         deleteButton.setOnAction(event -> deleteSelected());
+
+        ViewPermissionUtil.hideUnless(Permission.SERVICE_CATALOG_WRITE, createButton, editButton, deleteButton);
 
         HBox bar = new HBox(15, createButton, editButton, deleteButton);
         bar.setPadding(new Insets(15, 0, 0, 0));

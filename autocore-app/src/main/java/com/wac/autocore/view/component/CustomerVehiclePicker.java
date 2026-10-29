@@ -2,12 +2,14 @@ package com.wac.autocore.view.component;
 
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
 import com.wac.autocore.view.dialog.CreateVehicleDialog;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.StringConverterUtil;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.scene.control.Button;
@@ -67,6 +69,9 @@ public class CustomerVehiclePicker extends VBox {
         newVehicleButton.getStyleClass().addAll("btn", "btn-secondary");
         newVehicleButton.setOnAction(event -> createVehicle());
         newVehicleButton.setDisable(true);
+
+        ViewPermissionUtil.hideUnless(Permission.CUSTOMER_WRITE, newCustomerButton);
+        ViewPermissionUtil.hideUnless(Permission.VEHICLE_WRITE, newVehicleButton);
 
         HBox customerRow = createRow(customerCombo, newCustomerButton);
         HBox vehicleRow = createRow(vehicleCombo, newVehicleButton);

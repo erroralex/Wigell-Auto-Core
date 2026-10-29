@@ -8,6 +8,7 @@ import com.wac.autocore.model.WorkOrderChange;
 import com.wac.autocore.model.WorkOrderItem;
 import com.wac.autocore.model.WorkOrderStatus;
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.MechanicService;
@@ -22,6 +23,7 @@ import com.wac.autocore.view.dialog.QuickDraftWorkOrderDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -311,6 +313,9 @@ public class WorkOrderView extends BaseView {
         setupButton(btnReopen, this::reopenSelectedWorkOrder);
         setupButton(btnCreate, this::openCreateWorkOrderDialog);
         setupButton(btnEdit, this::openEditWorkOrderDialog);
+
+        ViewPermissionUtil.hideUnless(Permission.WORK_ORDER_WRITE,
+                btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
 
         HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
         box.setPadding(new Insets(15, 0, 0, 0));
