@@ -508,18 +508,46 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────────────
-   Dialogs (restyled in step 7)
+   Dialogs
+   Every form dialog and Alert is a .dialog-pane with three parts:
+     .header-panel  only when header text is set; dark like the side menu
+     .content       the form (inside DialogUtil's ScrollPane) or the Alert text
+     .button-bar    the buttons, on a light bar with a divider above
+   The window title bar is drawn by the OS and cannot be styled.
    ────────────────────────────────────────────────────────────────────────────── */
 
 /* JavaFX automatically adds .dialog-pane to all form dialogs and Alerts. */
 .dialog-pane {
-    -fx-background-color: -color-surface-alt;
+    -fx-background-color: -color-surface;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+
+.dialog-pane > .header-panel {
+    -fx-background-color: -color-sidebar;
+    -fx-padding: 1.08em 1.85em;             /* 14px 24px */
+}
+
+.dialog-pane > .header-panel .label {
+    -fx-text-fill: -color-sidebar-text-active;
+    -fx-font-size: 1.38em;                  /* same as .text-header */
+    -fx-font-weight: 600;
+}
+
+/* ── Content ───────────────────────────────────────────────────────────────── */
+
+/* DialogUtil wraps form content in a ScrollPane: no background, border or focus ring of its own. */
+.dialog-pane > .content.scroll-pane,
+.dialog-pane > .content.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
 
 /* Content of every form dialog. FormDialog adds .form-content to the node
    returned by buildContent(), so each dialog gets the same padding and spacing. */
 .form-content {
-    -fx-padding: 1.23em;          /* lg */
+    -fx-padding: 1.23em 1.85em;   /* 16px 24px */
     -fx-spacing: 0.92em;          /* md */
 }
 
@@ -529,20 +557,82 @@
     -fx-vgap: 0.62em;             /* sm */
 }
 
+/* Alert text: same side padding as the forms. */
+.dialog-pane > .content.label {
+    -fx-text-fill: -color-text;
+    -fx-padding: 1.23em 1.85em;
+}
+
 /* Message and reference row in AlertHelper's unexpected error dialog. */
 .alert-content {
+    -fx-padding: 1.23em 1.85em;
     -fx-spacing: 0.92em;          /* md */
     -fx-pref-width: 32.3em;       /* 420px at 13px base – was setPrefWidth(420) */
 }
 
-/* JavaFX's header panel in dialogs that have a header. */
-.dialog-pane .header-panel {
-    -fx-background-color: -color-surface-alt;
+/* Content and header in JavaFX Alerts of type ERROR. */
+.alert.error.dialog-pane > .content.label,
+.alert.error.dialog-pane > .header-panel .label {
+    -fx-font-weight: 700;
 }
 
-/* JavaFX's regular content text in dialogs and Alerts. */
-.dialog-pane .content.label {
-    -fx-text-fill: -color-text;
+/* Every form dialog: wide enough for the window title and a comfortable form. */
+.form-dialog {
+    -fx-min-width: 28em;          /* ~360px at 13px base */
+}
+
+/* Inline error area at the top of a form dialog (used by SCRUM-286). */
+.form-error {
+    -fx-background-color: -color-error-border, -color-error-bg;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 0.69em 0.92em;             /* 9px 12px */
+    -fx-spacing: 0.62em;
+    -fx-alignment: top-left;
+}
+
+.form-error .label {
+    -fx-text-fill: -color-error;
+    -fx-wrap-text: true;
+}
+
+/* ── Button bar ────────────────────────────────────────────────────────────── */
+
+.dialog-pane > .button-bar {
+    -fx-background-color: -color-divider, -color-surface-alt;
+    -fx-background-insets: 0, 1 0 0 0;      /* 1px divider line on top */
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-padding: 0.92em 1.85em;             /* 12px 24px */
+}
+
+/* The default button (OK, Save) is primary in every dialog, also in Alerts that
+   never set a class. More specific than the shared button states, so hover,
+   pressed and disabled are repeated here. */
+.dialog-pane .button:default {
+    -btn-border: -color-primary-border;
+    -btn-highlight: -color-highlight-dark;
+    -btn-shadow: -color-inset-shadow-strong;
+    -btn-fill: -color-primary;
+    -fx-text-fill: -color-on-primary;
+}
+
+.dialog-pane .button:default:hover {
+    -btn-fill: -color-primary-hover;
+}
+
+.dialog-pane .button:default:armed {
+    -btn-fill: derive(-color-primary, -20%);
+}
+
+/* A disabled Save (e.g. required fields empty) must look disabled, not green. */
+.dialog-pane .button:default:disabled {
+    -btn-border: -color-divider;
+    -btn-highlight: transparent;
+    -btn-shadow: transparent;
+    -btn-fill: -color-disabled-bg;
+    -fx-text-fill: -color-disabled-text;
 }
 
 /* Content and header in JavaFX Alerts of type ERROR. */

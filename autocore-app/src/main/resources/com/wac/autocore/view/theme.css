@@ -41,6 +41,7 @@
     -color-warning: #8A5A12;         /* .text-warning */
     -color-success: #3F6B47;
     -color-on-error: #FBF4F2;        /* text on danger buttons */
+    -color-error-border: #D9B4AC;    /* border of the inline error area in dialogs */
 
     /* ── Side menu ────────────────────────────────────────────────────────── */
     -color-sidebar: #3F4B3C;             /* menu background */

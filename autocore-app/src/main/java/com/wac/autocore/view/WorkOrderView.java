@@ -193,7 +193,6 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
         );
 
-        idCol.setMaxWidth(80);
         problemCol.setPrefWidth(300);
 
         workOrderTable.getColumns().addAll(
