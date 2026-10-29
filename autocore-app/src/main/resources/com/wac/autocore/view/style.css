@@ -173,6 +173,44 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────────────
+   Brand mark (BrandMark): app icon on a light tile next to the app name.
+   Shared by the side menu and the login screen; each place sets its own
+   name color and size below or in login.css.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.brand-mark {
+    -fx-spacing: 0.62em;          /* sm */
+    -fx-alignment: center-left;
+}
+
+/* Light tile behind the icon, so its dark outlines show on dark backgrounds. */
+.brand-tile {
+    -fx-background-color: -color-bg;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 0.2em;
+}
+
+/* Soft shadow under the icon, so the light lower gear stands out from the light tile
+   (same idea as .home-logo, scaled down for the small icon). */
+.brand-tile .image-view {
+    -fx-effect: dropshadow(gaussian, -color-shadow-strong, 4, 0.2, 0, 1);
+}
+
+.brand-name {
+    -fx-font-weight: 700;
+}
+
+/* At the top of the side menu: some air below before the first menu item. */
+.side-navigation .brand-mark {
+    -fx-padding: 0 0.46em 1.08em 0.46em;
+}
+
+.side-navigation .brand-name {
+    -fx-text-fill: -color-on-primary;
+    -fx-font-size: 1.08em;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
    Side menu items
    Scoped under .side-navigation so they override the shared button rules
    above without touching buttons elsewhere. Order matters: hover after the

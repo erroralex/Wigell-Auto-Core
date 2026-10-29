@@ -1,5 +1,6 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.view.component.BrandMark;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.Stylesheets;
 import javafx.application.Platform;
@@ -7,17 +8,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.net.URL;
 
 /**
  * <b>LoginView</b>
@@ -25,10 +20,6 @@ import java.net.URL;
  * All sizes, spacing and colors come from login.css and theme.css.</p>
  */
 public class LoginView extends HBox {
-
-    private static final Logger log = LoggerFactory.getLogger(LoginView.class);
-
-    private static final String ICON_PATH = "assets/wigell_auto_icon.png";
 
     private final LanguageManager lang = LanguageManager.getInstance();
 
@@ -63,11 +54,7 @@ public class LoginView extends HBox {
     }
 
     private VBox createBrandPanel() {
-        Label brandName = new Label(lang.get("login.brand"));
-        brandName.getStyleClass().add("login-brand-name");
-
-        HBox brandHeader = new HBox(createBrandTile(), brandName);
-        brandHeader.getStyleClass().add("login-brand-header");
+        BrandMark brandHeader = new BrandMark(lang.get("app.brand"));
 
         Label headline = new Label(lang.get("login.headline"));
         headline.getStyleClass().add("login-headline");
@@ -86,24 +73,6 @@ public class LoginView extends HBox {
         VBox panel = new VBox(brandHeader, topSpacer, hero, bottomSpacer);
         panel.getStyleClass().add("login-brand");
         return panel;
-    }
-
-    // The app icon on a light tile, so its dark outlines stay visible on the dark panel
-    private StackPane createBrandTile() {
-        StackPane tile = new StackPane();
-        tile.getStyleClass().add("brand-tile");
-
-        URL iconUrl = getClass().getResource(ICON_PATH);
-        if (iconUrl != null) {
-            ImageView icon = new ImageView(new Image(iconUrl.toExternalForm()));
-            icon.setFitWidth(40);
-            icon.setFitHeight(40);
-            icon.setPreserveRatio(true);
-            tile.getChildren().add(icon);
-        } else {
-            log.warn("Could not load icon {}", ICON_PATH);
-        }
-        return tile;
     }
 
     private StackPane createFormPanel() {
