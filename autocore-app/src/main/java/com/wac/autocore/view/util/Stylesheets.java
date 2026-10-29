@@ -17,7 +17,11 @@ public final class Stylesheets {
 
     private static final String BASE_PATH = "/com/wac/autocore/view/";
 
-    private static final List<String> THEME = List.of("style.css");
+    private static final List<String> THEME = List.of(
+            "theme.css",
+            "style.css"
+
+    );
 
     private Stylesheets() {
     }
