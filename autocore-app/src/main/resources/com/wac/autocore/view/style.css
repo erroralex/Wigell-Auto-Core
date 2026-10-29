@@ -1,6 +1,7 @@
 /* JavaFX root: shared typography. Colors are defined in theme.css. */
 .root {
     -fx-font-family: "Segoe UI", "System";
+    -fx-font-size: 14px;
 }
 
 /* Used by MainLayout as the application's outer BorderPane. */

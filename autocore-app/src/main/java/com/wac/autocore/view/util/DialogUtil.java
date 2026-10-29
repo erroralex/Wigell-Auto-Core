@@ -77,7 +77,7 @@ public class DialogUtil {
             double step = 1.05;
             zoom[0] = Math.max(0.7, Math.min(3.0,
                     zoom[0] * (event.getDeltaY() > 0 ? step : 1 / step)));
-            pane.setStyle("-fx-font-size: " + (13 * zoom[0]) + "px;");
+            pane.setStyle("-fx-font-size: " + (AutoCoreApp.BASE_FONT_SIZE * zoom[0]) + "px;");
 
             Platform.runLater(() -> resizeDialog(pane));
 
