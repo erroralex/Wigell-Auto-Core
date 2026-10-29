@@ -18,10 +18,45 @@
     -fx-pref-width: 17em;
 }
 
-/* Used by all main views as the shared content area. */
+/* Used by all main views (BaseView) as the shared content area. */
 .content-area {
     -fx-background-color: -color-bg;
-    -fx-padding: 1.85em;
+    -fx-padding: 1.85em;   /* 24px */
+    -fx-spacing: 1.54em;   /* 20px – was setSpacing(20) in BaseView */
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   Layout
+   Spacing scale (13px base): xs 0.31em · sm 0.62em · md 0.92em
+                              lg 1.23em · xl 1.54em · xxl 1.85em
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Row of action buttons under a view's title. */
+.toolbar {
+    -fx-spacing: 0.62em;          /* sm */
+    -fx-alignment: center-left;
+}
+
+/* Header row with a title and actions, e.g. MechanicBookingsView. */
+.view-header {
+    -fx-spacing: 0.77em;
+    -fx-alignment: center-left;
+}
+
+/* A titled block inside a view: heading, table and summary. */
+.section {
+    -fx-spacing: 0.62em;          /* sm */
+}
+
+/* Column that stacks larger sections, e.g. the mechanic table and its bookings. */
+.section-stack {
+    -fx-spacing: 1.54em;          /* xl */
+}
+
+/* A control with a button next to it, e.g. a combo box and "Add". */
+.inline-row {
+    -fx-spacing: 0.62em;          /* sm */
+    -fx-alignment: center-left;
 }
 
 /*
@@ -120,22 +155,54 @@
     -fx-text-fill: -color-text;
 }
 
-/* Used by BookingView for descriptive secondary text. */
+/* ──────────────────────────────────────────────────────────────────────────────
+   Typography
+   Base size is 13px (set on the root, scaled by Ctrl+scroll zoom).
+   All sizes in em so they follow the zoom.
+   title 28px · header 18px · body 13px · small 12px
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Page heading in every main view (BaseView). */
+.text-title {
+    -fx-font-size: 2.15em;
+    -fx-font-weight: 700;
+}
+
+/* Section heading inside a view, e.g. "Jobs to do" in Work orders. */
+.text-header {
+    -fx-font-size: 1.38em;
+    -fx-font-weight: 600;
+}
+
+/* Running text. */
+.text-body {
+    -fx-font-size: 1em;
+}
+
+/* Captions, summaries and helper text. */
+.text-small {
+    -fx-font-size: 0.92em;
+}
+
+/* Secondary text color, combined with a size class when needed. */
 .text-secondary {
     -fx-text-fill: -color-text-secondary;
 }
 
-
-/* Used for headings in the application's main views. */
-.text-title {
-    -fx-font-size: 2.45em;
-    -fx-font-weight: 700;
+.text-muted {
+    -fx-text-fill: -color-muted;
 }
 
-/* Used by CreateBookingDialog for red validation messages. */
+/* Validation and error messages. */
 .text-error {
     -fx-text-fill: -color-error;
     -fx-font-weight: 700;
+}
+
+/* Warnings, e.g. the price notice in CreateBookingDialog (set in Java, was never styled). */
+.text-warning {
+    -fx-text-fill: -color-warning;
+    -fx-font-weight: 600;
 }
 
 /* Used by HomeView and MechanicBookingsView for prominent content text. */
@@ -215,10 +282,22 @@
     -fx-background-color: -color-surface-alt;
 }
 
-/* Form content in the dialogs for Booking, Customer, Vehicle, Invoice, Payment and Work Order. */
-.dialog-pane > VBox.content,
-.dialog-pane > GridPane.content {
-    -fx-padding: 1.23em;
+/* Content of every form dialog. FormDialog adds .form-content to the node
+   returned by buildContent(), so each dialog gets the same padding and spacing. */
+.form-content {
+    -fx-padding: 1.23em;          /* lg */
+    -fx-spacing: 0.92em;          /* md */
+}
+
+/* Label/field grids in form dialogs. */
+.form-grid {
+    -fx-hgap: 0.92em;             /* md */
+    -fx-vgap: 0.62em;             /* sm */
+}
+
+/* Message and reference row in AlertHelper's reference dialog. */
+.alert-content {
+    -fx-spacing: 0.92em;          /* md */
 }
 
 /* JavaFX's header panel in dialogs that have a header. */
@@ -281,6 +360,11 @@
 .service-selector-picker {
     -fx-spacing: 0.6em;
     -fx-alignment: center-left;
+}
+
+/* CustomerVehiclePicker: customer and vehicle rows in the work order dialogs. */
+.customer-vehicle-picker {
+    -fx-spacing: 0.92em;          /* md */
 }
 
 /* MultiSelectListView: size in em instead of ListView's fixed default height. */

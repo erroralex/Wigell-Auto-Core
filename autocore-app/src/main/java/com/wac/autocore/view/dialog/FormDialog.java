@@ -48,7 +48,9 @@ public abstract class FormDialog<T> extends Dialog<T> {
     public final void initDialog() {
         applyStyling();
         buildHeader();
-        getDialogPane().setContent(buildContent());
+        Node content = buildContent();
+        content.getStyleClass().add("form-content");
+        getDialogPane().setContent(content);
         buildButtons();
         installSaveHandler();
         installResultConverter();
