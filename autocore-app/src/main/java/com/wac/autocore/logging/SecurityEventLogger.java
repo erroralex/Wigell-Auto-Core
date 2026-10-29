@@ -10,6 +10,10 @@ import org.springframework.security.authorization.event.AuthorizationDeniedEvent
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+/**
+ * Responsibility: Logs successful logins, failed logins and denied access with the
+ * username and operation. Never logs passwords or other credentials.
+ */
 @Component
 public class SecurityEventLogger {
 
