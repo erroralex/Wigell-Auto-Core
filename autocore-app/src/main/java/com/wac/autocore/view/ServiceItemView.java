@@ -2,10 +2,12 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.dialog.AdminServiceItemDialog;
 import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -89,6 +91,7 @@ public class ServiceItemView extends BaseView {
 
         btnEditPrice.setOnAction(event ->
                 openAdminServiceItemDialog(itemTableView));
+        ViewPermissionUtil.hideUnless(Permission.SERVICE_CATALOG_WRITE, btnEditPrice);
 
         HBox hBox = new HBox(15, btnEditPrice);
         hBox.setPadding(new Insets(15, 0, 0, 0));
