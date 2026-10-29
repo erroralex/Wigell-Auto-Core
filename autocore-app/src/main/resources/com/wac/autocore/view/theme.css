@@ -50,6 +50,7 @@
     -color-sidebar-text: #DDE2D6;        /* menu items */
     -color-sidebar-text-active: #FFFFFF; /* active and hovered item */
     -color-sidebar-label: #B8C1AF;       /* section labels in the menu */
+    -color-sidebar-focus: #A3B091;       /* focus ring on the dark menu */
 
     /* ── Effects ──────────────────────────────────────────────────────────── */
     -color-shadow-strong: rgba(0, 0, 0, 0.45);

@@ -1,7 +1,7 @@
 /* JavaFX root: shared typography. Colors are defined in theme.css. */
 .root {
     -fx-font-family: "Segoe UI", "System";
-    -fx-font-size: 14px;
+    -fx-font-size: 19px;
 }
 
 /* Used by MainLayout as the application's outer BorderPane. */
@@ -197,9 +197,9 @@
     -fx-text-fill: -color-sidebar-text-active;
 }
 
-/* Keyboard focus: a ring in the logo green. */
+/* Keyboard focus: a light green ring (not shown after a mouse click). */
 .side-navigation .nav-button:focus-visible {
-    -fx-border-color: -color-brand-light;
+    -fx-border-color: -color-sidebar-focus;
 }
 
 /* Active item: darker than the menu, as if pressed in. */
@@ -209,6 +209,12 @@
     -fx-border-color: -color-sidebar-sunken;
     -fx-text-fill: -color-sidebar-text-active;
     -fx-font-weight: 600;
+}
+
+/* Language toggle at the bottom of the menu: quieter than the menu items.
+   Replaced by a segmented SV/EN switch in SCRUM-307. */
+.side-navigation .nav-button-language {
+    -fx-text-fill: -color-sidebar-label;
 }
 
 /* JavaFX automatically adds .label to all Label controls. */
@@ -660,6 +666,16 @@
 .service-selector-picker {
     -fx-spacing: 0.6em;
     -fx-alignment: center-left;
+}
+
+/* ServicePackageSelectorBox in the booking dialog: combo box and its summary. */
+.service-package-selector {
+    -fx-spacing: 0.62em;          /* sm */
+}
+
+/* "Total: 2 495,00 kr · 90 min" under the selected service items. */
+.service-selector-summary {
+    -fx-font-size: 0.92em;        /* same as .text-small */
 }
 
 /* CustomerVehiclePicker: customer and vehicle rows in the work order dialogs. */
