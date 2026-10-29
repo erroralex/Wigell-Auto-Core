@@ -124,7 +124,7 @@ public class CustomerView extends BaseView {
     private void openCreateCustomerDialog() {
         CreateCustomerDialog dialog = new CreateCustomerDialog(customerService);
         dialog.showAndWait().ifPresent(customer -> {
-            AlertHelper.showInfo("customer.created", "customer.createdMsg");
+            AlertHelper.showInfo(lang.get("customer.created"), lang.get("customer.createdMsg"));
             refreshData();
         });
     }

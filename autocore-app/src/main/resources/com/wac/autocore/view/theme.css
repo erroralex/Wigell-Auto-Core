@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────────────────────────────────────
-   Theme
+   Theme: Dark side menu
    The ONLY file with color values. Every other stylesheet refers to these
    looked-up colors by name, so the theme is changed here and nowhere else.
    JavaFX looked-up colors hold colors only; sizes, radii and spacing live
@@ -9,25 +9,39 @@
 .root {
 
     /* ── Surfaces ─────────────────────────────────────────────────────────── */
-    -color-bg: #E2E0D8; /* window and content background */
-    -color-surface: #EDEBE5; /* side menu, fields, tables, lists, panels */
-    -color-surface-alt: #D8D5C9; /* buttons, table headers, dialogs */
-    -color-surface-hover: #C7C3B2; /* hover on neutral buttons */
-    -color-border: #B9B6A5; /* all borders and dividers */
+    -color-bg: #E6E3DB;              /* window and content background */
+    -color-surface: #F3F1EB;         /* fields, tables, lists, panels, cards */
+    -color-surface-alt: #E2DED4;     /* buttons, table headers, dialog bars */
+    -color-surface-hover: #D4CFC3;   /* hover on neutral buttons */
+    -color-border: #C9C3B5;          /* borders on controls (buttons, fields) */
+    -color-divider: #D3CEC2;         /* table, card and section dividers */
 
     /* ── Text ─────────────────────────────────────────────────────────────── */
-    -color-text: #2E332B;
-    -color-text-secondary: #5C6156;
-    -color-text-placeholder: #8C8B7F;
+    -color-text: #23251F;
+    -color-text-secondary: #4A4D44;
+    -color-muted: #5E6157;           /* captions, section labels */
+    -color-text-placeholder: #6B6E63;
 
     /* ── Brand ────────────────────────────────────────────────────────────── */
-    -color-primary: #55624F; /* primary buttons, active menu item, selection */
-    -color-primary-hover: #7C8068;
-    -color-primary-faint: rgba(85, 98, 79, 0.20);
-    -color-on-primary: #F2F2F2; /* text on primary */
+    -color-primary: #4F5D4B;         /* primary buttons, selection */
+    -color-primary-hover: #45523F;   /* darker on hover = pressed feel */
+    -color-primary-faint: rgba(79, 93, 75, 0.20);
+    -color-on-primary: #F4F2EC;      /* text on primary */
+    -color-brand-light: #82916E;     /* logo green – focus ring on dark surfaces */
 
     /* ── Status ───────────────────────────────────────────────────────────── */
-    -color-error: #E57373;
+    -color-error: #9A3B2E;
+    -color-error-bg: #F2E3DF;        /* inline error area in dialogs */
+    -color-warning: #8A5A12;         /* .text-warning */
+    -color-success: #3F6B47;
+
+    /* ── Side menu ────────────────────────────────────────────────────────── */
+    -color-sidebar: #3F4B3C;             /* menu background */
+    -color-sidebar-sunken: #333D30;      /* active item */
+    -color-sidebar-hover: #47543F;
+    -color-sidebar-text: #DDE2D6;        /* menu items */
+    -color-sidebar-text-active: #FFFFFF; /* active and hovered item */
+    -color-sidebar-label: #B8C1AF;       /* section labels in the menu */
 
     /* ── Effects ──────────────────────────────────────────────────────────── */
     -color-shadow-strong: rgba(0, 0, 0, 0.45);

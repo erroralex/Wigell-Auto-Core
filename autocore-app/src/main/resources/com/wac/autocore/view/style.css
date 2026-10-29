@@ -10,10 +10,10 @@
 
 /* Used by SideNavigation for the menu on the left. */
 .side-navigation {
-    -fx-background-color: -color-surface;
+    -fx-background-color: -color-sidebar;
     -fx-padding: 1.5em;
     -fx-spacing: 0.6em;
-    -fx-border-color: -color-border;
+    -fx-border-color: -color-sidebar;
     -fx-border-width: 0 1px 0 0;
     -fx-pref-width: 17em;
 }
@@ -80,6 +80,40 @@
     -fx-border-color: -color-border;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────────
+   Side menu items
+   Scoped under .side-navigation so they override the shared button rules
+   above without touching buttons elsewhere. Order matters: hover after the
+   base rule, the active item after hover, active+hover last.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Menu items: flat on the dark menu, no button chrome. */
+.side-navigation .nav-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -color-sidebar-text;
+    -fx-font-weight: 500;
+}
+
+/* Hover: a slightly lighter strip behind the item. */
+.side-navigation .nav-button:hover {
+    -fx-background-color: -color-sidebar-hover;
+    -fx-text-fill: -color-sidebar-text-active;
+}
+
+/* Keyboard focus: a ring in the logo green. */
+.side-navigation .nav-button:focused {
+    -fx-border-color: -color-brand-light;
+}
+
+/* Active item: darker than the menu, as if pressed in. */
+.side-navigation .nav-button-active,
+.side-navigation .nav-button-active:hover {
+    -fx-background-color: -color-sidebar-sunken;
+    -fx-border-color: -color-sidebar-sunken;
+    -fx-text-fill: -color-sidebar-text-active;
+    -fx-font-weight: 600;
+}
 
 /* JavaFX automatically adds .label to all Label controls. */
 .label {
