@@ -1,33 +1,26 @@
-/* JavaFX root: shared typography, color palette and focus colors for the whole application. */
+/* JavaFX root: shared typography. Colors are defined in theme.css. */
 .root {
     -fx-font-family: "Segoe UI", "System";
-    -fx-background-color: #E2E0D8;
-    -fx-base: #E2E0D8;
-    -fx-control-inner-background: #EDEBE5;
-    -fx-accent: #55624F;
-    -fx-focus-color: #55624F;
-    -fx-faint-focus-color: rgba(85, 98, 79, 0.20);
-    -fx-text-fill: #2E332B;
 }
 
 /* Used by MainLayout as the application's outer BorderPane. */
 .main-layout {
-    -fx-background-color: #E2E0D8;
+    -fx-background-color: -color-bg;
 }
 
 /* Used by SideNavigation for the menu on the left. */
 .side-navigation {
-    -fx-background-color: #EDEBE5;
+    -fx-background-color: -color-surface;
     -fx-padding: 1.5em;
     -fx-spacing: 0.6em;
-    -fx-border-color: #B9B6A5;
+    -fx-border-color: -color-border;
     -fx-border-width: 0 1px 0 0;
     -fx-pref-width: 17em;
 }
 
 /* Used by all main views as the shared content area. */
 .content-area {
-    -fx-background-color: #E2E0D8;
+    -fx-background-color: -color-bg;
     -fx-padding: 1.85em;
 }
 
@@ -38,10 +31,10 @@
 .nav-button,
 .btn,
 .button {
-    -fx-background-color: #D8D5C9;
-    -fx-text-fill: #2E332B;
+    -fx-background-color: -color-surface-alt;
+    -fx-text-fill: -color-text;
     -fx-background-radius: 0.45em;
-    -fx-border-color: #B9B6A5;
+    -fx-border-color: -color-border;
     -fx-border-radius: 0.45em;
     -fx-padding: 0.6em 1.1em;
     -fx-font-weight: 600;
@@ -51,7 +44,7 @@
 .nav-button:hover,
 .btn:hover,
 .button:hover {
-    -fx-background-color: #C7C3B2;
+    -fx-background-color: -color-surface-hover;
 }
 
 /* Focus highlight for buttons and JavaFX's standard form controls. */
@@ -62,40 +55,40 @@
 .combo-box:focused,
 .date-picker:focused,
 .text-area:focused {
-    -fx-border-color: #55624F;
-    -fx-focus-color: #55624F;
+    -fx-border-color: -color-primary;
+    -fx-focus-color: -color-primary;
 }
 
 /* Active navigation button in SideNavigation and primary buttons in views and form dialogs. */
 .nav-button-active,
 .btn-primary {
-    -fx-background-color: #55624F;
-    -fx-border-color: #55624F;
-    -fx-text-fill: #F2F2F2;
+    -fx-background-color: -color-primary;
+    -fx-border-color: -color-primary;
+    -fx-text-fill: -color-on-primary;
 }
 
 /* Hover for primary buttons and the active navigation button. */
 .btn-primary:hover,
 .nav-button-active:hover {
-    -fx-background-color: #7C8068;
-    -fx-border-color: #7C8068;
+    -fx-background-color: -color-primary-hover;
+    -fx-border-color: -color-primary-hover;
 }
 
 /* Used by cancel/close buttons in the Customer, Vehicle and MechanicBookings views. */
 .btn-secondary {
-    -fx-background-color: #EDEBE5;
-    -fx-border-color: #B9B6A5;
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
 }
 
 
 /* JavaFX automatically adds .label to all Label controls. */
 .label {
-    -fx-text-fill: #2E332B;
+    -fx-text-fill: -color-text;
 }
 
 /* Used by BookingView for descriptive secondary text. */
 .text-secondary {
-    -fx-text-fill: #5C6156;
+    -fx-text-fill: -color-text-secondary;
 }
 
 
@@ -107,7 +100,7 @@
 
 /* Used by CreateBookingDialog for red validation messages. */
 .text-error {
-    -fx-text-fill: #E57373;
+    -fx-text-fill: -color-error;
     -fx-font-weight: 700;
 }
 
@@ -126,66 +119,66 @@
 .text-area,
 .combo-box,
 .date-picker {
-    -fx-background-color: #EDEBE5;
-    -fx-text-fill: #2E332B;
-    -fx-prompt-text-fill: #8C8B7F;
-    -fx-border-color: #B9B6A5;
+    -fx-background-color: -color-surface;
+    -fx-text-fill: -color-text;
+    -fx-prompt-text-fill: -color-text-placeholder;
+    -fx-border-color: -color-border;
     -fx-border-radius: 0.45em;
     -fx-background-radius: 0.45em;
 }
 
 /* Used for invalid fields in the Booking, Customer and Vehicle dialogs. */
 .input-error {
-    -fx-border-color: #E57373;
+    -fx-border-color: -color-error;
 }
 
 /* JavaFX automatically adds .table-view to the tables in the main views. */
 .table-view {
-    -fx-background-color: #EDEBE5;
-    -fx-border-color: #B9B6A5;
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
     -fx-border-radius: 0.6em;
     -fx-background-radius: 0.6em;
 }
 
 /* JavaFX's background behind the tables' column headers. */
 .table-view .column-header-background {
-    -fx-background-color: #D8D5C9;
+    -fx-background-color: -color-surface-alt;
 }
 
 /* JavaFX's individual column headers and the filler after the last column. */
 .table-view .column-header,
 .table-view .filler {
-    -fx-background-color: #D8D5C9;
-    -fx-border-color: #B9B6A5;
+    -fx-background-color: -color-surface-alt;
+    -fx-border-color: -color-border;
 }
 
 /* JavaFX's table rows in all TableView controls. */
 .table-view .table-row-cell {
-    -fx-background-color: #EDEBE5;
-    -fx-text-background-color: #2E332B;
+    -fx-background-color: -color-surface;
+    -fx-text-background-color: -color-text;
 }
 
 /* Hover for JavaFX's table rows with content; empty filler rows are not affected. */
 .table-view .table-row-cell:filled:hover {
-    -fx-background-color: #7C8068;
-    -fx-text-background-color: #F2F2F2;
+    -fx-background-color: -color-primary-hover;
+    -fx-text-background-color: -color-on-primary;
 }
 
 /* Selected row with content in JavaFX's tables. */
 .table-view .table-row-cell:filled:selected {
-    -fx-background-color: #55624F;
-    -fx-text-background-color: #F2F2F2;
+    -fx-background-color: -color-primary;
+    -fx-text-background-color: -color-on-primary;
 }
 
 /* A selected row uses the hover color under the mouse pointer, like the active navigation button. */
 .table-view .table-row-cell:filled:selected:hover {
-    -fx-background-color: #7C8068;
-    -fx-text-background-color: #F2F2F2;
+    -fx-background-color: -color-primary-hover;
+    -fx-text-background-color: -color-on-primary;
 }
 
 /* JavaFX automatically adds .dialog-pane to all form dialogs and Alerts. */
 .dialog-pane {
-    -fx-background-color: #D8D5C9;
+    -fx-background-color: -color-surface-alt;
 }
 
 /* Form content in the dialogs for Booking, Customer, Vehicle, Invoice, Payment and Work Order. */
@@ -196,12 +189,12 @@
 
 /* JavaFX's header panel in dialogs that have a header. */
 .dialog-pane .header-panel {
-    -fx-background-color: #D8D5C9;
+    -fx-background-color: -color-surface-alt;
 }
 
 /* JavaFX's regular content text in dialogs and Alerts. */
 .dialog-pane .content.label {
-    -fx-text-fill: #2E332B;
+    -fx-text-fill: -color-text;
 }
 
 /* Content and header in JavaFX Alerts of type ERROR. */
@@ -212,37 +205,37 @@
 
 /* JavaFX automatically adds .alert to information, error and confirmation dialogs. */
 .alert {
-    -fx-background-color: #D8D5C9;
+    -fx-background-color: -color-surface-alt;
 }
 
 /* JavaFX automatically adds .list-view to the list of service items in the Work Order dialog. */
 .list-view {
-    -fx-background-color: #EDEBE5;
-    -fx-border-color: #B9B6A5;
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
     -fx-border-radius: 0.45em;
     -fx-background-radius: 0.45em;
 }
 
 /* JavaFX's cells in ListView controls. */
 .list-cell {
-    -fx-background-color: #EDEBE5;
-    -fx-text-fill: #2E332B;
+    -fx-background-color: -color-surface;
+    -fx-text-fill: -color-text;
 }
 
 /* Hover for cells with content in JavaFX ListView. */
 .list-cell:filled:hover {
-    -fx-background-color: #D8D5C9;
+    -fx-background-color: -color-surface-alt;
 }
 
 /* Selected cell with content in JavaFX ListView. */
 .list-cell:filled:selected {
-    -fx-background-color: #55624F;
-    -fx-text-fill: #F2F2F2;
+    -fx-background-color: -color-primary;
+    -fx-text-fill: -color-on-primary;
 }
 
 /* Focus border for JavaFX ListView. */
 .list-view:focused {
-    -fx-border-color: #55624F;
+    -fx-border-color: -color-primary;
 }
 
 /* ServiceSelector: row with ComboBox and Add button in the Work Order dialog. */
@@ -281,19 +274,19 @@
 
 /* .label sets dark text explicitly; light text is required on the green selected row. */
 .multi-select-list .list-cell:filled:selected .label {
-    -fx-text-fill: #F2F2F2;
+    -fx-text-fill: -color-on-primary;
 }
 
 /* .list-view comes after .input-error and would otherwise override the error border. */
 .multi-select-list.input-error {
-    -fx-border-color: #E57373;
+    -fx-border-color: -color-error;
 }
 
 /* Used by HomeView for the shadow behind the logo. */
 .home-logo {
     -fx-effect: dropshadow(
             gaussian,
-            rgba(0, 0, 0, 0.45),
+            -color-shadow-strong,
             18,
             0.25,
             0,

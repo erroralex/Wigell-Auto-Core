@@ -5,17 +5,17 @@
 
 /* The form container */
 .login-panel {
-    -fx-background-color: #EDEBE5;
-    -fx-border-color: #B9B6A5;
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
     -fx-border-radius: 0.6em;
     -fx-background-radius: 0.6em;
     -fx-padding: 2.5em;
     -fx-spacing: 1.5em;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);
+    -fx-effect: dropshadow(three-pass-box, -color-shadow-soft, 15, 0, 0, 5);
 }
 
 .login-panel .text-field {
-    -fx-text-fill: #5C6156;
+    -fx-text-fill: -color-text-secondary;
 }
 
 .login-panel .label {
@@ -23,16 +23,16 @@
 }
 
 .floating-label {
-    -fx-text-fill: #8C8B7F;
+    -fx-text-fill: -color-text-placeholder;
     -fx-background-color: transparent;
     -fx-padding: 0 5 0 5;
 }
 
 .floating-label-active {
-    -fx-text-fill: #55624F;
-    -fx-background-color: #EDEBE5;
+    -fx-text-fill: -color-primary;
+    -fx-background-color: -color-surface;
 }
 
 .login-error-text {
-    -fx-text-fill: #E57373;
+    -fx-text-fill: -color-error;
 }
