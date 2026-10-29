@@ -1,12 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Logging for the standalone program (no Spring).
+    logback-spring.xml in autocore-app is only loaded by Spring Boot, so springProfile and %clr
+    are not available here. The pattern has the same content as LOG_PATTERN there; the MDC keys
+    in %X{...} are defined in com.wac.autocore.logging.LogKeys (autocore-core).
+    If a key or the pattern changes, change it in BOTH files.
+
+    The scenario report is not logging: it is printed on System.out by the program itself.
+-->
 <configuration>
+
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) %logger{36} [corrId=%X{corrId:-} op=%X{op:-} user=%X{user:-} wo=%X{workOrderId:-}] - %msg%n"/>
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss} %-5level %logger{20} - %msg%n</pattern>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
+
+    <logger name="com.wac" level="INFO"/>
 
     <root level="WARN">
         <appender-ref ref="CONSOLE"/>
     </root>
+
 </configuration>
