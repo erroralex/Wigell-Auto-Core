@@ -1,25 +1,32 @@
 package com.wac.autocore.view.dialog;
 
-import com.wac.autocore.exception.ValidationException;
-import com.wac.autocore.model.*;
+import com.wac.autocore.model.Booking;
+import com.wac.autocore.model.ServiceItem;
+import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.model.WorkOrderType;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
 import com.wac.autocore.view.component.CustomerVehiclePicker;
 import com.wac.autocore.view.component.ServiceSelectorBox;
-import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
 import com.wac.autocore.view.util.StringConverterUtil;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
-import javafx.event.ActionEvent;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -30,14 +37,16 @@ import java.util.function.Supplier;
  * The work order itself is created by the view based on {@link Result}.</p>
  * <p>Customer and vehicle are selected via {@link CustomerVehiclePicker}. The rule for the problem description
  * comes from the domain, so the dialog shows the same error that the model throws.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class CreateWorkOrderDialog extends FormDialog<CreateWorkOrderDialog.Result> {
 
     private final Map<Integer, Vehicle> vehiclesById = new HashMap<>();
     private final Map<Integer, Booking> bookingsById = new HashMap<>();
     private List<Vehicle> vehicles;
+    private final StringBinding hint;
 
     private final ComboBox<WorkOrderType> typeCombo = new ComboBox<>();
     private final ComboBox<Booking> bookingCombo = new ComboBox<>();
@@ -49,8 +58,6 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
     private final Label originalWorkOrderLabel = new Label(lang.get("workOrder.field.originalWorkOrder"));
     private final Label serviceLabel = new Label(lang.get("workOrder.field.services"));
     private final Label hintLabel = new Label();
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
     private final ServiceSelectorBox serviceSelector;
     private final CustomerVehiclePicker picker;
 
@@ -72,14 +79,6 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         for (Booking booking : allBookings) {
             bookingsById.put(booking.getId(), booking);
         }
-
-        setTitle(lang.get("workOrder.new"));
-        setHeaderText(lang.get("workOrder.create"));
-
-        // Fetch the CSS styling and apply it to the new dialog:
-        DialogUtil.applyTheme(this);
-
-        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
         problemDescriptionArea.setPromptText(lang.get("workOrder.problemDescription.prompt"));
         problemDescriptionArea.setWrapText(true);
@@ -119,7 +118,7 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
         originalWorkOrderCombo.setConverter(StringConverterUtil.display(this::describeOriginalWorkOrder));
 
         // The same rule controls both the Save button and the explanation of why it is disabled.
-        StringBinding hint = Bindings.createStringBinding(() -> {
+        hint = Bindings.createStringBinding(() -> {
                     String key = missingSelectionKey();
                     return key == null ? null : lang.get(key);
                 },
@@ -128,31 +127,31 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
                 picker.missingSelectionKeyBinding(),
                 originalWorkOrderCombo.valueProperty()
         );
+
         hintLabel.textProperty().bind(hint);
         hintLabel.visibleProperty().bind(hint.isNotNull());
         hintLabel.managedProperty().bind(hintLabel.visibleProperty());
 
-        Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
-        Button cancelButton = (Button) getDialogPane().lookupButton(cancelButtonType);
-        saveButton.disableProperty().bind(hint.isNotNull());
-        saveButton.getStyleClass().addAll("btn", "btn-primary");
-        cancelButton.getStyleClass().addAll("btn", "btn-secondary");
+        initDialog();
+    }
 
-        // The domain decides whether the problem description is sufficient. On error the domain's message is shown
-        // and the dialog is kept open so the user does not lose what has been filled in.
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            WorkOrderType type = typeCombo.getValue();
-            if (type == null) {
-                return;
-            }
-            try {
-                WorkOrder.requireProblemDescription(type, problemDescriptionArea.getText());
-            } catch (ValidationException e) {
-                ErrorFacade.handle(e);
-                event.consume();
-            }
-        });
+    @Override
+    protected String getTitleKey() {
+        return "workOrder.new";
+    }
 
+    @Override
+    protected String buildHeaderText() {
+        return lang.get("workOrder.create");
+    }
+
+    @Override
+    protected ObservableBooleanValue saveDisabled() {
+        return hint.isNotNull();
+    }
+
+    @Override
+    protected Node buildContent() {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getChildren().addAll(
@@ -169,15 +168,24 @@ public class CreateWorkOrderDialog extends Dialog<CreateWorkOrderDialog.Result> 
                 serviceSelector,
                 hintLabel
         );
+        return content;
+    }
 
-        getDialogPane().setContent(content);
+    // The domain decides whether the problem description is sufficient. The work order itself
+    // is created by the view after the dialog closes.
+    @Override
+    protected void submit() {
+        WorkOrderType type = typeCombo.getValue();
+        if (type == null) {
+            return;
 
-        setResultConverter(buttonType -> {
-            if (buttonType != saveButtonType) {
-                return null;
-            }
-            return resultByType.get(typeCombo.getValue()).get();
-        });
+        }
+        WorkOrder.requireProblemDescription(type, problemDescriptionArea.getText());
+    }
+
+    @Override
+    protected Result buildResult() {
+        return resultByType.get(typeCombo.getValue()).get();
     }
 
     // Everything that differs between the types in the dialog. New type = a new block here.

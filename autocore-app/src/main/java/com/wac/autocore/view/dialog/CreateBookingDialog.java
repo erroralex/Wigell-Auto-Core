@@ -9,15 +9,12 @@ import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.component.ServicePackageSelectorBox;
 import com.wac.autocore.view.component.ServiceSelectorBox;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -31,29 +28,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-
 /**
  * <b>CreateBookingDialog</b>
  * <p>Responsibility: Dialog for creating a booking.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> {
 
     private final BookingService bookingService;
     private final ServicePackageSelectorBox servicePackageSelector;
+    private final ServiceSelectorBox serviceSelector;
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
     private final ComboBox<LocalTime> startTimeComboBox = new ComboBox<>();
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
-
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-    private final ServiceSelectorBox serviceSelector;
-
-    private VBox contentBox;
+    private final Label priceNoticeLabel = new Label();
 
     // previous may be null
     public CreateBookingDialog(
@@ -65,28 +58,94 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
             Booking previous
     ) {
         this.bookingService = bookingService;
-
-        this.servicePackageSelector = new ServicePackageSelectorBox(
-                servicePackageService.findAll());
-
+        this.servicePackageSelector = new ServicePackageSelectorBox(servicePackageService.findAll());
         this.serviceSelector = new ServiceSelectorBox(serviceItems);
-
-        setTitle(lang.get("booking.new"));
-        setHeaderText(lang.get("booking.create"));
-
-        DialogUtil.applyTheme(this);
-
-        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
 
         vehicleComboBox.getItems().addAll(vehicles);
         mechanicComboBox.getItems().addAll(mechanics);
         populateStartTimes();
-
-        setContent();
+        configureInputs();
+        configurePriceNotice();
 
         if (previous != null) {
             prefillFrom(previous);
         }
+
+        initDialog();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "booking.new";
+    }
+
+    @Override
+    protected String buildHeaderText() {
+        return lang.get("booking.create");
+    }
+
+    @Override
+    protected Node buildContent() {
+        VBox contentBox = new VBox(12);
+        contentBox.setPadding(new Insets(16));
+        contentBox.getChildren().addAll(
+                priceNoticeLabel,
+                new Label(lang.get("table.vehicle")), vehicleComboBox,
+                new Label(lang.get("table.date")), datePicker,
+                new Label(lang.get("table.startTime")), startTimeComboBox,
+                new Label(lang.get("table.desc")), descriptionTextField,
+                new Label(lang.get("table.suggestedMechanic")), suggestedMechanicBox(),
+                new Label(lang.get("servicePackage.label")), servicePackageSelector,
+                new Label(lang.get("table.serviceItem")), serviceSelector
+        );
+        return contentBox;
+    }
+
+    @Override
+    protected void submit() {
+    }
+
+    @Override
+    protected Result buildResult() {
+        Vehicle vehicle = vehicleComboBox.getValue();
+        Mechanic mechanic = mechanicComboBox.getValue();
+
+        return new Result(
+                vehicle == null ? null : vehicle.getId(),
+                mechanic == null ? null : mechanic.getId(),
+                datePicker.getValue(),
+                startTimeComboBox.getValue(),
+                descriptionTextField.getText(),
+                serviceSelector.getSelectedServiceIds()
+        );
+    }
+
+    private void configureInputs() {
+        setConverters();
+
+        servicePackageSelector.selectedPackageProperty()
+                .addListener((
+                        observable,
+                        oldPackage,
+                        newPackage) -> {
+                    if (newPackage == null) {
+                        return;
+                    }
+
+                    List<Integer> serviceIds = new ArrayList<>();
+                    for (ServiceItem service : newPackage.getServices()) {
+                        serviceIds.add(service.getId());
+                    }
+                    serviceSelector.selectServiceIds(serviceIds);
+                });
+    }
+
+    // Hidden until a copied booking has price changes
+    private void configurePriceNotice() {
+        priceNoticeLabel.setWrapText(true);
+        priceNoticeLabel.getStyleClass().add("text-warning");
+        priceNoticeLabel.setVisible(false);
+        priceNoticeLabel.managedProperty().bind(priceNoticeLabel.visibleProperty());
     }
 
     private void populateStartTimes() {
@@ -128,28 +187,8 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
                     .append(" → ").append(DialogUtil.formatMoney(c.getCurrentPrice()));
         }
 
-        Label notice = new Label(sb.toString());
-        notice.setWrapText(true);
-        notice.getStyleClass().add("text-warning");
-
-        contentBox.getChildren().add(1, notice);
-    }
-
-    private void setContent() {
-        contentBox = new VBox(12);
-        contentBox.setPadding(new Insets(16));
-        contentBox.getChildren().addAll(
-                new Label(lang.get("table.vehicle")), vehicleComboBox,
-                new Label(lang.get("table.date")), datePicker,
-                new Label(lang.get("table.startTime")), startTimeComboBox,
-                new Label(lang.get("table.desc")), descriptionTextField,
-                new Label(lang.get("table.suggestedMechanic")), suggestedMechanicBox(),
-                new Label(lang.get("servicePackage.label")), servicePackageSelector,
-                new Label(lang.get("table.serviceItem")), serviceSelector
-        );
-        getDialogPane().setContent(contentBox);
-
-        handleInput();
+        priceNoticeLabel.setText(sb.toString());
+        priceNoticeLabel.setVisible(true);
     }
 
     // The suggestion is optional, so a selected suggestion can be cleared without cancelling the dialog.
@@ -164,43 +203,7 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         return new HBox(8, mechanicComboBox, clearButton);
     }
 
-    private void handleInput() {
-
-        setConverters();
-
-        servicePackageSelector.selectedPackageProperty().addListener((observable, oldPackage, newPackage) -> {
-            if (newPackage == null) {
-                return;
-            }
-
-            List<Integer> serviceIds = new ArrayList<>();
-            for (ServiceItem service : newPackage.getServices()) {
-                serviceIds.add(service.getId());
-            }
-            serviceSelector.selectServiceIds(serviceIds);
-        });
-
-        setResultConverter(buttonType -> {
-            if (buttonType != saveButtonType) {
-                return null;
-            }
-
-            Vehicle vehicle = vehicleComboBox.getValue();
-            Mechanic mechanic = mechanicComboBox.getValue();
-
-            return new Result(
-                    vehicle == null ? null : vehicle.getId(),
-                    mechanic == null ? null : mechanic.getId(),
-                    datePicker.getValue(),
-                    startTimeComboBox.getValue(),
-                    descriptionTextField.getText(),
-                    serviceSelector.getSelectedServiceIds()
-            );
-        });
-    }
-
     private void setConverters() {
-
         vehicleComboBox.setConverter(new StringConverter<Vehicle>() {
             @Override
             public String toString(Vehicle v) {
@@ -236,7 +239,6 @@ public class CreateBookingDialog extends Dialog<CreateBookingDialog.Result> {
         private final List<Integer> serviceItemIds;
 
         public Result(Integer vehicleId, Integer mechanicId, LocalDate date, LocalTime startTime, String description, List<Integer> serviceItemIds) {
-
             this.vehicleId = vehicleId;
             this.mechanicId = mechanicId;
             this.date = date;

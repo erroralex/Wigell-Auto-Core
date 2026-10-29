@@ -2,16 +2,15 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.ServicePackage;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.component.ServiceSelectorBox;
-import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.event.ActionEvent;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
@@ -22,13 +21,12 @@ import java.util.Objects;
  * <b>ServicePackageDialog</b>
  * <p>Responsibility: Create or edit a service package. The same dialog for both modes; the mode is chosen with
  * the factory methods {@link #forCreate} and {@link #forEdit} (<b>Factory Method</b>).</p>
- * <p>Saves via ServicePackageService when Save is pressed. On error the error is shown via ErrorFacade
- * and the dialog stays open, so the user can correct it without losing what has been written.</p>
  * <p>Services are selected with {@link ServiceSelectorBox}, which is built on MultiSelectListView.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class ServicePackageDialog extends Dialog<ServicePackage> {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class ServicePackageDialog extends FormDialog<ServicePackage> {
 
     private final ServicePackageService servicePackageService;
     private final ServicePackage existingServicePackage;
@@ -37,12 +35,8 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
     private final TextArea descriptionArea = new TextArea();
     private final ServiceSelectorBox serviceSelector;
 
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-
     private ServicePackage savedServicePackage;
 
-    // Factory methods:
     public static ServicePackageDialog forCreate(
             ServicePackageService servicePackageService,
             List<ServiceItem> availableServices) {
@@ -71,26 +65,32 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
         this.existingServicePackage = existingServicePackage;
         this.serviceSelector = new ServiceSelectorBox(availableServices);
 
-        setTitle(lang.get(isEdit() ? "servicePackage.editTitle" : "servicePackage.createTitle"));
-        setHeaderText(isEdit() ? existingServicePackage.getName() : null);
-        DialogUtil.applyTheme(this);
-
-        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
-
-        buildContent();
         if (isEdit()) {
             prefill();
         }
-        setupSaveButton();
 
-        setResultConverter(buttonType -> buttonType == saveButtonType ? savedServicePackage : null);
+        initDialog();
     }
 
-    private boolean isEdit() {
-        return existingServicePackage != null;
+    @Override
+    protected String getTitleKey() {
+        return isEdit() ? "servicePackage.editTitle" : "servicePackage.createTitle";
     }
 
-    private void buildContent() {
+    @Override
+    protected String buildHeaderText() {
+        return isEdit() ? existingServicePackage.getName() : null;
+    }
+
+    @Override
+    protected ObservableBooleanValue saveDisabled() {
+        return Bindings.createBooleanBinding(
+                () -> trim(nameField.getText()).isEmpty() || serviceSelector.isEmpty(),
+                nameField.textProperty(), serviceSelector.emptyProperty());
+    }
+
+    @Override
+    protected Node buildContent() {
         descriptionArea.setPrefRowCount(3);
         descriptionArea.setWrapText(true);
 
@@ -101,7 +101,21 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
         content.setPadding(new Insets(16));
         content.setPrefWidth(480);
 
-        getDialogPane().setContent(content);
+        return content;
+    }
+
+    @Override
+    protected void submit() {
+        savedServicePackage = save();
+    }
+
+    @Override
+    protected ServicePackage buildResult() {
+        return savedServicePackage;
+    }
+
+    private boolean isEdit() {
+        return existingServicePackage != null;
     }
 
     private void prefill() {
@@ -113,24 +127,6 @@ public class ServicePackageDialog extends Dialog<ServicePackage> {
             serviceIds.add(service.getId());
         }
         serviceSelector.selectServiceIds(serviceIds);
-    }
-
-    private void setupSaveButton() {
-        Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
-
-        BooleanBinding invalid = Bindings.createBooleanBinding(
-                () -> trim(nameField.getText()).isEmpty() || serviceSelector.isEmpty(),
-                nameField.textProperty(), serviceSelector.emptyProperty());
-        saveButton.disableProperty().bind(invalid);
-
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            try {
-                savedServicePackage = save();
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-                event.consume();
-            }
-        });
     }
 
     private ServicePackage save() {

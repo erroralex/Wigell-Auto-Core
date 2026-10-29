@@ -1,19 +1,13 @@
 package com.wac.autocore.view.dialog;
 
+import com.wac.autocore.exception.ValidationException;
 import com.wac.autocore.model.Customer;
+import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.CustomerService;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.VehicleService;
-import com.wac.autocore.view.util.AlertHelper;
-import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -22,23 +16,21 @@ import javafx.util.StringConverter;
 /**
  * <b>CreateVehicleDialog</b>
  * <p>Responsibility: Dialog for creating a vehicle.</p>
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class CreateVehicleDialog {
-
-    private static final LanguageManager lang = LanguageManager.getInstance();
+public class CreateVehicleDialog extends FormDialog<Vehicle> {
 
     private final CustomerService customerService;
     private final VehicleService vehicleService;
-    private final Dialog<Boolean> dialog = new Dialog<>();
     private final TextField registrationNumberField = new TextField();
     private final TextField makeField = new TextField();
     private final TextField modelField = new TextField();
     private final TextField yearField = new TextField();
     private final ComboBox<Customer> customerComboBox = new ComboBox<>();
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
 
     private final Customer preselectedCustomer;
+    private Vehicle createdVehicle;
 
     public CreateVehicleDialog(CustomerService customerService, VehicleService vehicleService) {
         this(customerService, vehicleService, null);
@@ -49,18 +41,74 @@ public class CreateVehicleDialog {
         this.customerService = customerService;
         this.vehicleService = vehicleService;
         this.preselectedCustomer = preselectedCustomer;
-        dialog.setTitle(lang.get("vehicle.new"));
-        dialog.getDialogPane().getButtonTypes().addAll(cancelButtonType, saveButtonType);
-        DialogUtil.applyTheme(dialog);
-        dialog.getDialogPane().setContent(createContent());
+
         configureFields();
         configureCustomerComboBox();
-        configureButtons();
-        dialog.setResultConverter(buttonType -> buttonType == saveButtonType);
+        initDialog();
     }
 
-    public boolean showAndWait() {
-        return dialog.showAndWait().orElse(false);
+    @Override
+    protected String getTitleKey() {
+        return "vehicle.new";
+    }
+
+    @Override
+    protected Node buildContent() {
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(10, 0, 0, 0));
+
+        grid.add(new Label(lang.get("table.regNumber")), 0, 0);
+        grid.add(registrationNumberField, 1, 0);
+        grid.add(new Label(lang.get("table.make")), 0, 1);
+        grid.add(makeField, 1, 1);
+        grid.add(new Label(lang.get("table.model")), 0, 2);
+        grid.add(modelField, 1, 2);
+        grid.add(new Label(lang.get("table.year")), 0, 3);
+        grid.add(yearField, 1, 3);
+        grid.add(new Label(lang.get("table.customer")), 0, 4);
+        grid.add(customerComboBox, 1, 4);
+
+        return grid;
+    }
+
+    @Override
+    protected void submit() {
+        resetFieldErrorState();
+
+        String registrationNumber = getTrimmedValue(registrationNumberField);
+        String make = getTrimmedValue(makeField);
+        String model = getTrimmedValue(modelField);
+        String yearValue = getTrimmedValue(yearField);
+        Customer selectedCustomer = customerComboBox.getValue();
+
+        Integer year = null;
+        if (!yearValue.isEmpty()) {
+            try {
+                year = Integer.valueOf(yearValue);
+            } catch (NumberFormatException exception) {
+                markFieldError(yearField);
+                throw new ValidationException("error.invalidYear");
+            }
+        }
+
+        createdVehicle = vehicleService.create(
+                registrationNumber,
+                make,
+                model,
+                year,
+                selectedCustomer == null ? null : selectedCustomer.getId()
+        );
+    }
+
+    @Override
+    protected Vehicle buildResult() {
+        return createdVehicle;
+    }
+
+    private String getTrimmedValue(TextField field) {
+        return field.getText() == null ? "" : field.getText().trim();
     }
 
     private void configureFields() {
@@ -97,80 +145,6 @@ public class CreateVehicleDialog {
                     .findFirst()
                     .ifPresent(customerComboBox::setValue);
         }
-    }
-
-    private void configureButtons() {
-        Button saveButton = (Button) dialog.getDialogPane().lookupButton(saveButtonType);
-        Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
-
-        saveButton.getStyleClass().addAll("btn", "btn-primary");
-        cancelButton.getStyleClass().addAll("btn", "btn-secondary");
-
-        saveButton.addEventFilter(ActionEvent.ACTION, event -> {
-            if (!saveVehicle()) {
-                event.consume();
-            }
-        });
-    }
-
-    private GridPane createContent() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10, 0, 0, 0));
-
-        grid.add(new Label(lang.get("table.regNumber")), 0, 0);
-        grid.add(registrationNumberField, 1, 0);
-        grid.add(new Label(lang.get("table.make")), 0, 1);
-        grid.add(makeField, 1, 1);
-        grid.add(new Label(lang.get("table.model")), 0, 2);
-        grid.add(modelField, 1, 2);
-        grid.add(new Label(lang.get("table.year")), 0, 3);
-        grid.add(yearField, 1, 3);
-        grid.add(new Label(lang.get("table.customer")), 0, 4);
-        grid.add(customerComboBox, 1, 4);
-
-        return grid;
-    }
-
-    private boolean saveVehicle() {
-        resetFieldErrorState();
-
-        String registrationNumber = getTrimmedValue(registrationNumberField);
-        String make = getTrimmedValue(makeField);
-        String model = getTrimmedValue(modelField);
-        String yearValue = getTrimmedValue(yearField);
-        Customer selectedCustomer = customerComboBox.getValue();
-
-        Integer year = null;
-        if (!yearValue.isEmpty()) {
-            try {
-                year = Integer.valueOf(yearValue);
-            } catch (NumberFormatException exception) {
-                markFieldError(yearField);
-                AlertHelper.showError(lang.get("error.validation"), lang.get("error.invalidYear"));
-                return false;
-            }
-        }
-
-        try {
-            vehicleService.create(
-                    registrationNumber,
-                    make,
-                    model,
-                    year,
-                    selectedCustomer == null ? null : selectedCustomer.getId()
-            );
-        } catch (RuntimeException exception) {
-            ErrorFacade.handle(exception);
-            return false;
-        }
-
-        return true;
-    }
-
-    private String getTrimmedValue(TextField field) {
-        return field.getText() == null ? "" : field.getText().trim();
     }
 
     private void resetFieldErrorState() {

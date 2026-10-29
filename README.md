@@ -177,8 +177,9 @@ wigell-auto-core/
 │               └── fixtures/autocore-3.5.db      # Copy of a WAC 3.5 database for the data test
 │
 └── autocore-standalone/                 # Standalone mode without Spring, GUI and database
-    ├── pom.xml                          # Depends only on autocore-core
+    ├── pom.xml                          # Depends only on autocore-core. maven-shade-plugin builds autocore-standalone.jar
     └── src/
+        ├── main/resources/logback.xml       # Logging for the standalone jar (WARN to the console)
         ├── main/java/com/wac/autocore/standalone/
         │   ├── StandaloneMain               # Entry point: reads --role and --lang, prints the report, sets the exit code
         │   ├── StandaloneAutoCore           # Composition root: repositories, seed data, services and proxy with new
@@ -191,7 +192,8 @@ wigell-auto-core/
             ├── architecture/StandaloneArchitectureTest  # No Spring, JavaFX or views
             └── com/wac/autocore/
                 ├── integration/WorkOrderLifeCycleIntegrationTest  # The whole lifecycle without Spring and database
-                └── standalone/              # Every role runs as expected, the proxy, shared language texts
+                └── standalone/              # Every role runs as expected, the proxy, shared language texts,
+                                             # StandaloneMainProcessTest (own JVM, exit code 0, no Spring output)
 ```
 
 # Building and running
@@ -331,17 +333,18 @@ before each call. It gives the standalone program the same rules that `@PreAutho
 main class `com.wac.autocore.standalone.StandaloneMain` and the arguments under *Program arguments*,
 for example `--role=READ_ONLY --lang=en`.
 
-**From Git Bash:** a runnable jar is added in a separate card. Until then, build and run from the class folders:
+**From the command line:** build the runnable jar and start it with `java -jar`, like any separate application:
 
 ```bash
-./mvnw -q -pl autocore-standalone -am install -DskipTests
-./mvnw -q -pl autocore-standalone dependency:build-classpath -Dmdep.outputFile=cp.txt
-java -cp "autocore-standalone/target/classes;$(cat autocore-standalone/cp.txt)" \
-     com.wac.autocore.standalone.StandaloneMain --role=READ_ONLY --lang=en
+./mvnw clean package -DskipTests
+java -jar autocore-standalone/target/autocore-standalone.jar --role=READ_ONLY --lang=en
 echo $?
 ```
 
-On macOS and Linux, use `:` instead of `;` as the classpath separator.
+The jar is built with `maven-shade-plugin` and has `StandaloneMain` as its `Main-Class`. No Spring banner or Spring
+log lines are printed, because no Spring context is started. Logging is configured in
+`autocore-standalone/src/main/resources/logback.xml` (`logback-spring.xml` is only read by Spring Boot).
+`StandaloneMainProcessTest` starts the program in its own JVM and checks that the exit code is `0`.
 
 ## Known limits without Spring
 

@@ -5,10 +5,11 @@ import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.view.component.ServiceSelectorBox;
-import com.wac.autocore.view.i18n.LanguageManager;
-import com.wac.autocore.view.util.DialogUtil;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
-import javafx.scene.control.*;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
@@ -17,23 +18,20 @@ import java.util.stream.Collectors;
 /**
  * <b>EditBookingServicesDialog</b>
  * <p>Responsibility: Dialog for editing the services on an existing booking.</p>
+ *
+ * <p>Concrete subclass in the Template Method pattern: {@link FormDialog} builds the dialog,
+ * and this class supplies only the content, the save action and the result.</p>
  */
-public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.Result> {
+public class EditBookingServicesDialog extends FormDialog<EditBookingServicesDialog.Result> {
 
     private final Booking booking;
 
     private final Label infoLabel = new Label();
     private final ServiceSelectorBox serviceSelector;
 
-    private static final LanguageManager lang =  LanguageManager.getInstance();
-
-    private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
-    private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
-
     public EditBookingServicesDialog(Booking booking, List<ServiceItem> serviceItems, Vehicle vehicle, Mechanic mechanic) {
         this.booking = booking;
 
-        // Initialize serviceSelector with all available services
         serviceSelector = new ServiceSelectorBox(serviceItems);
 
         serviceSelector.selectServiceIds(
@@ -42,17 +40,45 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
                         .collect(Collectors.toList())
         );
 
-        setTitle(lang.get("booking.editTitle"));
-        setHeaderText(lang.get("booking.editHeader"));
-
-        DialogUtil.applyTheme(this);
-
-        getDialogPane().getButtonTypes().addAll(saveButtonType, cancelButtonType);
-
         buildInfoLabel(vehicle, mechanic);
 
-        setContent();
-        handleInput();
+        initDialog();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "booking.editTitle";
+    }
+
+    @Override
+    protected String buildHeaderText() {
+        return lang.get("booking.editHeader");
+    }
+
+    @Override
+    protected ObservableBooleanValue saveDisabled() {
+        return serviceSelector.emptyProperty();
+    }
+
+    @Override
+    protected Node buildContent() {
+        VBox content = new VBox(12);
+        content.setPadding(new Insets(16));
+        content.getChildren().addAll(
+                infoLabel,
+                new Separator(),
+                new Label(lang.get("table.serviceItems")), serviceSelector
+        );
+        return content;
+    }
+
+    @Override
+    protected void submit() {
+    }
+
+    @Override
+    protected Result buildResult() {
+        return new Result(serviceSelector.getSelectedServiceIds());
     }
 
     private void buildInfoLabel(Vehicle vehicle, Mechanic mechanic) {
@@ -67,29 +93,6 @@ public class EditBookingServicesDialog extends Dialog<EditBookingServicesDialog.
 
         infoLabel.setText(info);
         infoLabel.getStyleClass().add("text-secondary");
-    }
-
-    private void setContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
-        content.getChildren().addAll(
-                infoLabel,
-                new Separator(),
-                new Label(lang.get("table.serviceItems")), serviceSelector
-        );
-        getDialogPane().setContent(content);
-    }
-
-    private void handleInput() {
-        Button saveButton = (Button) getDialogPane().lookupButton(saveButtonType);
-        saveButton.disableProperty().bind(serviceSelector.emptyProperty());
-
-        setResultConverter(buttonType -> {
-            if (buttonType == saveButtonType) {
-                return new Result(serviceSelector.getSelectedServiceIds());
-            }
-            return null;
-        });
     }
 
     public static class Result {
