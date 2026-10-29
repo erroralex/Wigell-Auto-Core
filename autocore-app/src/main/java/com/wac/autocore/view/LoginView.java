@@ -1,6 +1,7 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.view.i18n.LanguageManager;
+import com.wac.autocore.view.util.Stylesheets;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
@@ -29,9 +30,7 @@ public class LoginView extends VBox {
         this.loginButton = new Button(lang.get("login.loginButton"));
         this.errorLabel = new Label();
 
-        String cssPath = getClass().getResource("style.css").toExternalForm();
-        String loginCssPath = getClass().getResource("login.css").toExternalForm();
-        this.getStylesheets().addAll(cssPath, loginCssPath);
+        Stylesheets.addViewStylesheet(this, "login.css");
     }
 
     public void show() {

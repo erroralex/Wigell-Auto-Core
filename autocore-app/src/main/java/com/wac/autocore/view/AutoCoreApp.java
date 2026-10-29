@@ -1,10 +1,19 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.AutoCoreConfig;
-import com.wac.autocore.service.*;
+import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.InvoiceService;
+import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.PaymentService;
+import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.service.VehicleService;
+import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.ErrorFacade;
 import com.wac.autocore.view.util.GlobalExceptionHandler;
+import com.wac.autocore.view.util.Stylesheets;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.input.ScrollEvent;
@@ -60,11 +69,7 @@ public class AutoCoreApp extends Application {
         loginView.getLoginButton().setOnAction(e -> handleLogin(loginView));
 
         Scene scene = new Scene(loginView, WIDTH, HEIGHT);
-        scene.setFill(javafx.scene.paint.Color.web("#212121"));
-
-        // Loads the stylesheet from the same package via the classpath
-        String cssPath = getClass().getResource("style.css").toExternalForm();
-        scene.getStylesheets().add(cssPath);
+        Stylesheets.applyTo(scene);
 
         primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
 
