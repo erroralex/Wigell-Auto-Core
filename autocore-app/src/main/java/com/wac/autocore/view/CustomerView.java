@@ -1,9 +1,11 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.model.Customer;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.view.dialog.CreateCustomerDialog;
 import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -114,6 +116,7 @@ public class CustomerView extends BaseView {
         Button newCustomerButton = new Button(lang.get("customer.new"));
         newCustomerButton.getStyleClass().addAll("btn", "btn-primary");
         newCustomerButton.setOnAction(event -> openCreateCustomerDialog());
+        ViewPermissionUtil.hideUnless(Permission.CUSTOMER_WRITE, newCustomerButton);
 
         HBox toolbar = new HBox(15, newCustomerButton, searchField);
         toolbar.setAlignment(Pos.CENTER_LEFT);
