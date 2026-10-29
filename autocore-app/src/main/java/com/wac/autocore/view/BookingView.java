@@ -4,6 +4,7 @@ import com.wac.autocore.model.Booking;
 import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.Mechanic;
 import com.wac.autocore.model.Vehicle;
+import com.wac.autocore.security.Permission;
 import com.wac.autocore.service.BookingService;
 import com.wac.autocore.service.MechanicService;
 import com.wac.autocore.service.ServiceItemService;
@@ -13,6 +14,7 @@ import com.wac.autocore.view.dialog.CreateBookingDialog;
 import com.wac.autocore.view.dialog.EditBookingServicesDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.ErrorFacade;
+import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -211,6 +213,9 @@ public class BookingView extends BaseView {
         btnCancelBooking.getStyleClass().addAll("btn", btnPrimary);
         btnCancelBooking.setOnAction(e -> cancelSelectedBooking());
         btnCancelBooking.setDisable(true);
+
+        ViewPermissionUtil.hideUnless(Permission.BOOKING_WRITE,
+                btnCreate, btnEditServices, btnCopyBooking, btnCancelBooking);
 
         showCancelled.setOnAction(e -> refreshBookings());
 
