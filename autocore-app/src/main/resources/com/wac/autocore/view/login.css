@@ -1,38 +1,112 @@
-/* Root container for the login view */
+/* ──────────────────────────────────────────────────────────────────────────────
+   Login view
+   A dark brand panel on the left and the form on the right. Only what is
+   specific to the login screen lives here; fields and buttons get their look
+   from style.css and colors from theme.css.
+   Base size 15px for the whole screen; the other sizes are relative to it.
+   ────────────────────────────────────────────────────────────────────────────── */
+
 .login-view {
-    -fx-font-size: 2em;
+    -fx-font-size: 19px;
+    -fx-background-color: -color-bg;
 }
 
-/* The form container */
-.login-panel {
-    -fx-background-color: -color-surface;
-    -fx-border-color: -color-border;
-    -fx-border-radius: 0.6em;
-    -fx-background-radius: 0.6em;
-    -fx-padding: 2.5em;
-    -fx-spacing: 1.5em;
-    -fx-effect: dropshadow(three-pass-box, -color-shadow-soft, 15, 0, 0, 5);
+/* Both halves grow equally from a pref width of 0, so they split the window 50/50. */
+.login-brand,
+.login-form-panel {
+    -fx-pref-width: 0;
 }
 
-.login-panel .text-field {
+/* ── Brand panel (left) ────────────────────────────────────────────────────── */
+
+.login-brand {
+    -fx-background-color: -color-sidebar;
+    -fx-padding: 3.73em;                    /* 56px */
+    -fx-min-width: 22em;
+}
+
+.login-brand-header {
+    -fx-spacing: 0.8em;
+    -fx-alignment: center-left;
+}
+
+/* Light tile behind the app icon. Also used by the side menu brand mark (SCRUM-306). */
+.brand-tile {
+    -fx-background-color: -color-bg;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 0.27em;
+}
+
+.login-brand-name {
+    -fx-text-fill: -color-on-primary;
+    -fx-font-size: 1.2em;                   /* 18px */
+    -fx-font-weight: 700;
+}
+
+.login-hero {
+    -fx-spacing: 0.93em;
+    -fx-max-width: 29em;
+}
+
+.login-headline {
+    -fx-text-fill: -color-on-primary;
+    -fx-font-size: 2.67em;                  /* 40px */
+    -fx-font-weight: 700;
+    -fx-wrap-text: true;
+}
+
+.login-tagline {
+    -fx-text-fill: -color-sidebar-text;
+    -fx-font-size: 1.07em;                  /* 16px */
+    -fx-wrap-text: true;
+}
+
+/* ── Form panel (right) ────────────────────────────────────────────────────── */
+
+.login-form-panel {
+    -fx-padding: 3.73em 2.13em;             /* 56px 32px */
+    -fx-alignment: center;
+}
+
+.login-form {
+    -fx-spacing: 1.33em;                    /* 20px */
+    -fx-pref-width: 25.3em;                 /* 380px */
+    -fx-max-width: 25.3em;
+}
+
+.login-intro {
+    -fx-spacing: 0.4em;
+}
+
+.login-title {
+    -fx-font-size: 1.87em;                  /* 28px */
+    -fx-font-weight: 700;
+}
+
+.login-field {
+    -fx-spacing: 0.4em;
+}
+
+.login-field-label {
     -fx-text-fill: -color-text-secondary;
+    -fx-font-size: 0.87em;                  /* 13px */
+    -fx-font-weight: 600;
 }
 
-.login-panel .label {
-    -fx-font-size: 0.8em;
+/* Taller fields and button than in the rest of the app (44–46px). */
+.login-form .text-field {
+    -fx-padding: 0.6em 0.8em;
 }
 
-.floating-label {
-    -fx-text-fill: -color-text-placeholder;
-    -fx-background-color: transparent;
-    -fx-padding: 0 5 0 5;
+.login-form .button {
+    -fx-padding: 0.73em 1.07em;
 }
 
-.floating-label-active {
-    -fx-text-fill: -color-primary;
-    -fx-background-color: -color-surface;
-}
-
+/* Shown below the button when the username or password is wrong.
+   min-height keeps the space reserved so the layout does not jump. */
 .login-error-text {
     -fx-text-fill: -color-error;
+    -fx-font-weight: 600;
+    -fx-wrap-text: true;
+    -fx-min-height: 1.5em;
 }

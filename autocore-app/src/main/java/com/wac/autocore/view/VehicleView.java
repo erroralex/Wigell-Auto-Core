@@ -177,7 +177,8 @@ public class VehicleView extends BaseView {
         newVehicleButton.setOnAction(event -> openCreateVehicleDialog());
         ViewPermissionUtil.hideUnless(Permission.VEHICLE_WRITE, newVehicleButton);
 
-        HBox toolbar = new HBox(15, newVehicleButton, customerFilter);
+        HBox toolbar = new HBox(newVehicleButton, customerFilter);
+        toolbar.getStyleClass().add("toolbar");
         toolbar.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(customerFilter, Priority.ALWAYS);
         return toolbar;

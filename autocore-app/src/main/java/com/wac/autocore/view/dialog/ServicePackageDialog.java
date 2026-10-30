@@ -6,7 +6,6 @@ import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -94,11 +93,11 @@ public class ServicePackageDialog extends FormDialog<ServicePackage> {
         descriptionArea.setPrefRowCount(3);
         descriptionArea.setWrapText(true);
 
-        VBox content = new VBox(8,
+        VBox content = new VBox(
                 new Label(lang.get("table.name")), nameField,
                 new Label(lang.get("table.desc")), descriptionArea,
                 new Label(lang.get("table.serviceItems")), serviceSelector);
-        content.setPadding(new Insets(16));
+
         content.setPrefWidth(480);
 
         return content;

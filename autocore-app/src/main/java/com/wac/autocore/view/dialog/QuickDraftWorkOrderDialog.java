@@ -8,7 +8,6 @@ import com.wac.autocore.view.component.CustomerVehiclePicker;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.DialogEvent;
 import javafx.scene.control.Label;
@@ -77,8 +76,7 @@ public class QuickDraftWorkOrderDialog extends FormDialog<DropInWorkOrder> {
 
     @Override
     protected Node buildContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
+        VBox content = new VBox();
         content.getChildren().addAll(picker, problemLabel, problemDescription, hintLabel);
         return content;
     }

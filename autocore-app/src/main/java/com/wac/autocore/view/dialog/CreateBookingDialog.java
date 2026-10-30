@@ -10,7 +10,6 @@ import com.wac.autocore.service.ServicePackageService;
 import com.wac.autocore.view.component.ServicePackageSelectorBox;
 import com.wac.autocore.view.component.ServiceSelectorBox;
 import com.wac.autocore.view.util.DialogUtil;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -86,8 +85,7 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
 
     @Override
     protected Node buildContent() {
-        VBox contentBox = new VBox(12);
-        contentBox.setPadding(new Insets(16));
+        VBox contentBox = new VBox();
         contentBox.getChildren().addAll(
                 priceNoticeLabel,
                 new Label(lang.get("table.vehicle")), vehicleComboBox,
@@ -200,7 +198,10 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
 
         mechanicComboBox.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(mechanicComboBox, Priority.ALWAYS);
-        return new HBox(8, mechanicComboBox, clearButton);
+
+        HBox row = new HBox(mechanicComboBox, clearButton);
+        row.getStyleClass().add("inline-row");
+        return row;
     }
 
     private void setConverters() {

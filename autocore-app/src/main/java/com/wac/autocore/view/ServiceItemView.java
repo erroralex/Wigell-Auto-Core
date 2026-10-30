@@ -3,18 +3,20 @@ package com.wac.autocore.view;
 import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.security.Permission;
-import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.dialog.AdminServiceItemDialog;
+import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -93,11 +95,10 @@ public class ServiceItemView extends BaseView {
                 openAdminServiceItemDialog(itemTableView));
         ViewPermissionUtil.hideUnless(Permission.SERVICE_CATALOG_WRITE, btnEditPrice);
 
-        HBox hBox = new HBox(15, btnEditPrice);
-        hBox.setPadding(new Insets(15, 0, 0, 0));
-        hBox.setAlignment(Pos.CENTER_LEFT);
-
-        return hBox;
+        HBox toolbar = new HBox(btnEditPrice);
+        toolbar.getStyleClass().add("toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        return toolbar;
     }
 
     private void setPriceColumn(TableColumn<ServiceItem, Money> priceColumn) {

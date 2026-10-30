@@ -1,7 +1,6 @@
 package com.wac.autocore.view.util;
 
 import com.wac.autocore.view.i18n.LanguageManager;
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -91,11 +90,11 @@ public class AlertHelper {
         referenceField.setFocusTraversable(false);
         referenceField.setPrefColumnCount(reference.length() + 2);
 
-        HBox referenceRow = new HBox(8, new Label(referenceLabel), referenceField);
-        referenceRow.setAlignment(Pos.CENTER_LEFT);
+        HBox referenceRow = new HBox(new Label(referenceLabel), referenceField);
+        referenceRow.getStyleClass().add("inline-row");
 
-        VBox content = new VBox(12, messageLabel, referenceRow);
-        content.setPrefWidth(420);
+        VBox content = new VBox(messageLabel, referenceRow);
+        content.getStyleClass().add("alert-content");
 
         alert.getDialogPane().setContent(content);
         DialogUtil.applyTheme(alert);

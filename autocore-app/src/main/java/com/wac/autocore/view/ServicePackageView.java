@@ -16,9 +16,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -114,7 +115,7 @@ public class ServicePackageView extends BaseView {
 
         createButton.getStyleClass().addAll("btn", "btn-primary");
         editButton.getStyleClass().addAll("btn", "btn-secondary");
-        deleteButton.getStyleClass().addAll("btn", "btn-secondary");
+        deleteButton.getStyleClass().addAll("btn", "btn-danger");
 
         // Edit and Delete require a selected row
         BooleanBinding noSelection = table.getSelectionModel().selectedItemProperty().isNull();
@@ -129,10 +130,9 @@ public class ServicePackageView extends BaseView {
 
         ViewPermissionUtil.hideUnless(Permission.SERVICE_CATALOG_WRITE, createButton, editButton, deleteButton);
 
-        HBox bar = new HBox(15, createButton, editButton, deleteButton);
-        bar.setPadding(new Insets(15, 0, 0, 0));
-        bar.setAlignment(Pos.CENTER_LEFT);
-        return bar;
+        HBox toolbar = new HBox(createButton, editButton, deleteButton);
+        toolbar.getStyleClass().add("toolbar");
+        return toolbar;
     }
 
     private ServicePackage selectedPackage() {

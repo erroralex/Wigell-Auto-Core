@@ -118,7 +118,8 @@ public class CustomerView extends BaseView {
         newCustomerButton.setOnAction(event -> openCreateCustomerDialog());
         ViewPermissionUtil.hideUnless(Permission.CUSTOMER_WRITE, newCustomerButton);
 
-        HBox toolbar = new HBox(15, newCustomerButton, searchField);
+        HBox toolbar = new HBox(newCustomerButton, searchField);
+        toolbar.getStyleClass().add("toolbar");
         toolbar.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(searchField, Priority.ALWAYS);
         return toolbar;
@@ -127,7 +128,7 @@ public class CustomerView extends BaseView {
     private void openCreateCustomerDialog() {
         CreateCustomerDialog dialog = new CreateCustomerDialog(customerService);
         dialog.showAndWait().ifPresent(customer -> {
-            AlertHelper.showInfo("customer.created", "customer.createdMsg");
+            AlertHelper.showInfo(lang.get("customer.created"), lang.get("customer.createdMsg"));
             refreshData();
         });
     }

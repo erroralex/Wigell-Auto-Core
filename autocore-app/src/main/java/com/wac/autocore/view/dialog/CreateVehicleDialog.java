@@ -5,7 +5,6 @@ import com.wac.autocore.model.Customer;
 import com.wac.autocore.model.Vehicle;
 import com.wac.autocore.service.CustomerService;
 import com.wac.autocore.service.VehicleService;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -55,9 +54,7 @@ public class CreateVehicleDialog extends FormDialog<Vehicle> {
     @Override
     protected Node buildContent() {
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10, 0, 0, 0));
+        grid.getStyleClass().add("form-grid");
 
         grid.add(new Label(lang.get("table.regNumber")), 0, 0);
         grid.add(registrationNumberField, 1, 0);

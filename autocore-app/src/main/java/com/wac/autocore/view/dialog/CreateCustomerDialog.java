@@ -2,7 +2,6 @@ package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Customer;
 import com.wac.autocore.service.CustomerService;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -40,9 +39,7 @@ public class CreateCustomerDialog extends FormDialog<Customer> {
     @Override
     protected Node buildContent() {
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10, 0, 0, 0));
+        grid.getStyleClass().add("form-grid");
 
         grid.add(new Label(lang.get("table.name")), 0, 0);
         grid.add(nameField, 1, 0);

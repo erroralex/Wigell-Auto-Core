@@ -41,7 +41,7 @@ public class AutoCoreApp extends Application {
     private static final double MAX_ZOOM = 3.0;
     private static final double ZOOM_STEP = 1.05;
 
-    private static final double BASE_FONT_SIZE = 13;
+    public static final double BASE_FONT_SIZE = 19;
     private double currentZoom = 1.0;
 
     private static final LanguageManager lang = LanguageManager.getInstance();

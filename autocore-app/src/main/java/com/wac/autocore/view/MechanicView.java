@@ -30,7 +30,7 @@ public class MechanicView extends BaseView {
     private final VehicleService vehicleService;
 
     private final ObservableList<Mechanic> mechanicObservableList;
-    private final VBox contentColumn = new VBox(20);
+    private final VBox contentColumn = new VBox();
     private final VBox tableContainer = new VBox();
     private MechanicBookingsView bookingsView;
 
@@ -52,6 +52,7 @@ public class MechanicView extends BaseView {
         VBox.setVgrow(contentColumn, Priority.ALWAYS);
 
         contentColumn.getChildren().add(tableContainer);
+        contentColumn.getStyleClass().add("section-stack");
         getChildren().add(contentColumn);
 
         initializeTable();

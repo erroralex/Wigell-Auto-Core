@@ -28,8 +28,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -197,7 +195,6 @@ public class WorkOrderView extends BaseView {
                 new SimpleStringProperty(lang.get("workOrder.status." + c.getValue().getStatus()))
         );
 
-        idCol.setMaxWidth(80);
         problemCol.setPrefWidth(300);
 
         workOrderTable.getColumns().addAll(
@@ -237,12 +234,12 @@ public class WorkOrderView extends BaseView {
 
     private VBox createJobSection() {
         Label jobTitle = new Label(lang.get("workOrder.jobs"));
-        jobTitle.getStyleClass().add("text-title");
+        jobTitle.getStyleClass().add("text-header");
 
         jobSummaryLabel.getStyleClass().add("text-secondary");
 
-        VBox box = new VBox(8, jobTitle, jobTable, jobSummaryLabel);
-        box.setAlignment(Pos.TOP_LEFT);
+        VBox box = new VBox(jobTitle, jobTable, jobSummaryLabel);
+        box.getStyleClass().add("section");
         return box;
     }
 
@@ -305,22 +302,21 @@ public class WorkOrderView extends BaseView {
     }
 
     private HBox createButtonBar() {
-        setupButton(btnQuickDraft, this::openQuickDraftDialog);
-        setupButton(btnConfirm, () -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
-        setupButton(btnStart, () -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
-        setupButton(btnComplete, () -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
-        setupButton(btnCancel, this::cancelSelectedWorkOrder);
-        setupButton(btnReopen, this::reopenSelectedWorkOrder);
-        setupButton(btnCreate, this::openCreateWorkOrderDialog);
-        setupButton(btnEdit, this::openEditWorkOrderDialog);
+        setupButton(btnQuickDraft, "btn-primary", this::openQuickDraftDialog);
+        setupButton(btnConfirm, "btn-secondary", () -> runAction(workOrderService::confirmWorkOrder, "workOrder.confirmed", "workOrder.confirmedMsg"));
+        setupButton(btnStart, "btn-secondary", () -> runAction(workOrderService::startWorkOrder, "workOrder.started", "workOrder.startedMsg"));
+        setupButton(btnComplete, "btn-secondary", () -> runAction(workOrderService::completeWorkOrder, "workOrder.completed", "workOrder.completedMsg"));
+        setupButton(btnCancel, "btn-danger", this::cancelSelectedWorkOrder);
+        setupButton(btnReopen, "btn-secondary", this::reopenSelectedWorkOrder);
+        setupButton(btnCreate, "btn-primary", this::openCreateWorkOrderDialog);
+        setupButton(btnEdit, "btn-secondary", this::openEditWorkOrderDialog);
 
         ViewPermissionUtil.hideUnless(Permission.WORK_ORDER_WRITE,
                 btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
 
-        HBox box = new HBox(15, btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
-        box.setPadding(new Insets(15, 0, 0, 0));
-        box.setAlignment(Pos.CENTER_LEFT);
-        return box;
+        HBox toolbar = new HBox(btnQuickDraft, btnConfirm, btnStart, btnComplete, btnCancel, btnReopen, btnCreate, btnEdit);
+        toolbar.getStyleClass().add("toolbar");
+        return toolbar;
     }
 
     private void openQuickDraftDialog() {
@@ -523,9 +519,9 @@ public class WorkOrderView extends BaseView {
         }
     }
 
-    // The same style for all buttons in the toolbar
-    private void setupButton(Button button, Runnable action) {
-        button.getStyleClass().addAll("btn", "btn-primary");
+    // Every toolbar button gets the shared .btn class plus its variant (primary, secondary or danger)
+    private void setupButton(Button button, String variant, Runnable action) {
+        button.getStyleClass().addAll("btn", variant);
         button.setOnAction(event -> action.run());
     }
 }

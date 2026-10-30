@@ -2,20 +2,33 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.Stylesheets;
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class LoginView extends VBox {
+import java.net.URL;
+
+/**
+ * <b>LoginView</b>
+ * <p>Responsibility: The login screen. A dark brand panel on the left and the login form on the right.
+ * All sizes, spacing and colors come from login.css and theme.css.</p>
+ */
+public class LoginView extends HBox {
+
+    private static final Logger log = LoggerFactory.getLogger(LoginView.class);
+
+    private static final String ICON_PATH = "assets/wigell_auto_icon.png";
 
     private final LanguageManager lang = LanguageManager.getInstance();
 
@@ -34,118 +47,107 @@ public class LoginView extends VBox {
     }
 
     public void show() {
-        this.getStyleClass().add("login-view");
-        setAlignment(Pos.CENTER);
-        setFocusTraversable(true);
+        getStyleClass().add("login-view");
 
-        usernameField.setPrefWidth(400);
-        passwordField.setPrefWidth(400);
-        loginButton.setPrefWidth(250);
-        loginButton.setDefaultButton(true);
+        VBox brandPanel = createBrandPanel();
+        StackPane formPanel = createFormPanel();
 
-        errorLabel.getStyleClass().add("login-error-text");
-        errorLabel.setOpacity(0);
-        errorLabel.setMinHeight(20);
-        errorLabel.setWrapText(true);
-        errorLabel.setPrefWidth(300);
-        errorLabel.setPrefHeight(30);
-        errorLabel.setAlignment(Pos.CENTER);
-        errorLabel.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(brandPanel, Priority.ALWAYS);
+        HBox.setHgrow(formPanel, Priority.ALWAYS);
+        getChildren().addAll(brandPanel, formPanel);
 
         usernameField.textProperty().addListener((obs, oldVal, newVal) -> hideError());
         passwordField.textProperty().addListener((obs, oldVal, newVal) -> hideError());
-        errorLabel.setOnMouseClicked(e -> hideError());
 
-        StackPane usernameStack = createFloatingLabelField(usernameField, lang.get("login.usernameLabel"));
-        StackPane passwordStack = createFloatingLabelField(passwordField, lang.get("login.passwordLabel"));
-
-        VBox panel = new VBox();
-        panel.getStyleClass().add("login-panel");
-        panel.setAlignment(Pos.CENTER);
-        panel.setSpacing(15);
-        panel.setMaxWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-
-        panel.getChildren().addAll(usernameStack, passwordStack, loginButton, errorLabel);
-
-        getChildren().add(panel);
-
-        this.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            javafx.scene.Node target = (javafx.scene.Node) event.getTarget();
-            boolean clickedOnField = false;
-
-            while (target != null) {
-                if (target == usernameField || target == passwordField) {
-                    clickedOnField = true;
-                    break;
-                }
-                target = target.getParent();
-            }
-
-            if (!clickedOnField) {
-                Platform.runLater(this::requestFocus);
-            }
-        });
-        Platform.runLater(this::requestFocus);
+        Platform.runLater(usernameField::requestFocus);
     }
 
-    private StackPane createFloatingLabelField(TextField field, String labelText) {
-        Label floatingLabel = new Label(labelText);
-        floatingLabel.getStyleClass().add("floating-label");
+    private VBox createBrandPanel() {
+        Label brandName = new Label(lang.get("login.brand"));
+        brandName.getStyleClass().add("login-brand-name");
 
-        StackPane stack = new StackPane(field, floatingLabel);
-        stack.setAlignment(Pos.CENTER_LEFT);
-        stack.setPrefWidth(400);
-        stack.setMaxWidth(400);
+        HBox brandHeader = new HBox(createBrandTile(), brandName);
+        brandHeader.getStyleClass().add("login-brand-header");
 
-        floatingLabel.setMouseTransparent(true);
-        floatingLabel.setTranslateX(10);
-        floatingLabel.setTranslateY(0);
+        Label headline = new Label(lang.get("login.headline"));
+        headline.getStyleClass().add("login-headline");
 
-        // Define the animation to move the label up when the field gains focus
-        TranslateTransition moveUp = new TranslateTransition(Duration.millis(150), floatingLabel);
-        moveUp.setToY(-22);
+        Label tagline = new Label(lang.get("login.tagline"));
+        tagline.getStyleClass().add("login-tagline");
 
-        // Define the animation to shrink the label slightly when it moves up
-        ScaleTransition shrink = new ScaleTransition(Duration.millis(150), floatingLabel);
-        shrink.setToX(0.8);
-        shrink.setToY(0.8);
+        VBox hero = new VBox(headline, tagline);
+        hero.getStyleClass().add("login-hero");
 
-        // Define the animation to move the label back down when the field loses focus
-        TranslateTransition moveDown = new TranslateTransition(Duration.millis(150), floatingLabel);
-        moveDown.setToY(0);
+        Region topSpacer = new Region();
+        Region bottomSpacer = new Region();
+        VBox.setVgrow(topSpacer, Priority.ALWAYS);
+        VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
 
-        // Define the animation to grow the label back to its original size
-        ScaleTransition grow = new ScaleTransition(Duration.millis(150), floatingLabel);
-        grow.setToX(1.0);
-        grow.setToY(1.0);
+        VBox panel = new VBox(brandHeader, topSpacer, hero, bottomSpacer);
+        panel.getStyleClass().add("login-brand");
+        return panel;
+    }
 
-        // Trigger animations based on focus changes
-        field.focusedProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal) {
-                // Field gained focus: move label up and shrink it
-                moveUp.playFromStart();
-                shrink.playFromStart();
-                floatingLabel.getStyleClass().add("floating-label-active");
-            } else {
-                // Field lost focus: if empty, move label back down
-                if (field.getText().isEmpty()) {
-                    moveDown.playFromStart();
-                    grow.playFromStart();
-                    floatingLabel.getStyleClass().remove("floating-label-active");
-                }
-            }
-        });
+    // The app icon on a light tile, so its dark outlines stay visible on the dark panel
+    private StackPane createBrandTile() {
+        StackPane tile = new StackPane();
+        tile.getStyleClass().add("brand-tile");
 
-        // Reset label position if the field is cleared while not focused
-        field.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (field.getText().isEmpty() && !field.isFocused()) {
-                moveDown.playFromStart();
-                grow.playFromStart();
-                floatingLabel.getStyleClass().remove("floating-label-active");
-            }
-        });
+        URL iconUrl = getClass().getResource(ICON_PATH);
+        if (iconUrl != null) {
+            ImageView icon = new ImageView(new Image(iconUrl.toExternalForm()));
+            icon.setFitWidth(40);
+            icon.setFitHeight(40);
+            icon.setPreserveRatio(true);
+            tile.getChildren().add(icon);
+        } else {
+            log.warn("Could not load icon {}", ICON_PATH);
+        }
+        return tile;
+    }
 
-        return stack;
+    private StackPane createFormPanel() {
+        Label title = new Label(lang.get("login.title"));
+        title.getStyleClass().add("login-title");
+
+        Label subtitle = new Label(lang.get("login.subtitle"));
+        subtitle.getStyleClass().add("text-secondary");
+
+        VBox intro = new VBox(title, subtitle);
+        intro.getStyleClass().add("login-intro");
+
+        loginButton.setDefaultButton(true);
+        loginButton.getStyleClass().addAll("btn", "btn-primary");
+        loginButton.setMaxWidth(Double.MAX_VALUE);
+
+        errorLabel.getStyleClass().add("login-error-text");
+        errorLabel.setMaxWidth(Double.MAX_VALUE);
+        errorLabel.setOpacity(0);
+        errorLabel.setOnMouseClicked(e -> hideError());
+
+        VBox form = new VBox(
+                intro,
+                createField(lang.get("login.usernameLabel"), usernameField),
+                createField(lang.get("login.passwordLabel"), passwordField),
+                loginButton,
+                errorLabel
+        );
+        form.getStyleClass().add("login-form");
+        form.setMaxHeight(Region.USE_PREF_SIZE);
+
+        StackPane panel = new StackPane(form);
+        panel.getStyleClass().add("login-form-panel");
+        return panel;
+    }
+
+    private VBox createField(String labelText, TextField field) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("login-field-label");
+        label.setLabelFor(field);
+
+        VBox group = new VBox(label, field);
+        group.getStyleClass().add("login-field");
+        return group;
     }
 
     public Button getLoginButton() {

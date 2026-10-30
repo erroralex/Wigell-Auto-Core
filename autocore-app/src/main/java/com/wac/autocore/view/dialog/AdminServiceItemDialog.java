@@ -4,7 +4,6 @@ import com.wac.autocore.model.ServiceItem;
 import com.wac.autocore.model.value.Money;
 import com.wac.autocore.service.ServiceItemService;
 import com.wac.autocore.view.util.DialogUtil;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -46,9 +45,7 @@ public class AdminServiceItemDialog extends FormDialog<ServiceItem> {
 
     @Override
     protected Node buildContent() {
-        VBox content = new VBox(12);
-        content.setPadding(new Insets(16));
-
+        VBox content = new VBox();
         content.getChildren().addAll(
                 new Label(lang.get("table.price")),
                 priceTextField

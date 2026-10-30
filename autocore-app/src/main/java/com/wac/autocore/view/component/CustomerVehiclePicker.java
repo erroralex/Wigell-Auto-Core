@@ -48,7 +48,9 @@ public class CustomerVehiclePicker extends VBox {
 
     public CustomerVehiclePicker(CustomerService customerService,
                                  VehicleService vehicleService) {
-        setSpacing(12);
+
+        getStyleClass().add("customer-vehicle-picker");
+
         this.customerService = customerService;
         this.vehicleService = vehicleService;
         this.vehicles = vehicleService.findAll();
@@ -108,7 +110,8 @@ public class CustomerVehiclePicker extends VBox {
 
     private static HBox createRow(ComboBox<?> combo, Button button) {
         HBox.setHgrow(combo, Priority.ALWAYS);
-        HBox row = new HBox(8, combo, button);
+        HBox row = new HBox(combo, button);
+        row.getStyleClass().add("inline-row");
         row.setFillHeight(true);
         return row;
     }
