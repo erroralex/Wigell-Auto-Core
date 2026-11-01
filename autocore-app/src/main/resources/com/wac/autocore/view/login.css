@@ -66,24 +66,18 @@
 
 /* ── Gears ─────────────────────────────────────────────────────────────────── */
 
-/* Pushed past the bottom right corner; the panel clips them. */
 .login-gears {
-    -fx-alignment: top-left;
-    -fx-spacing: -4.5em;
     -fx-translate-x: 220;
     -fx-translate-y: 240;
     -fx-opacity: 0.45;
 }
 
-.login-gears .gear-large {
-    -fx-min-width: 36em;  -fx-pref-width: 36em;  -fx-max-width: 36em;
-    -fx-min-height: 36em; -fx-pref-height: 36em; -fx-max-height: 36em;
-}
-
-.login-gears .gear-small {
-    -fx-min-width: 17em;  -fx-pref-width: 17em;  -fx-max-width: 17em;
-    -fx-min-height: 17em; -fx-pref-height: 17em; -fx-max-height: 17em;
-    -fx-rotate: 15;
+/* Large gear about 36em across, as before. 54 x 46.98em keeps the shape's 1 : 0.87 ratio.
+   Mirrored so the small gear sits up to the left, towards the brand text. */
+.login-gears .gear-login {
+    -fx-min-width: 54em;     -fx-pref-width: 54em;     -fx-max-width: 54em;
+    -fx-min-height: 46.98em; -fx-pref-height: 46.98em; -fx-max-height: 46.98em;
+    -fx-scale-x: -1;
 }
 
 
