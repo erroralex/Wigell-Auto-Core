@@ -606,6 +606,7 @@
 /* ──────────────────────────────────────────────────────────────────────────────
    10. Side menu
    Scoped under .side-navigation to override the shared button rules.
+   Sections: one .nav-group per NavigationGroup, with a .nav-section label.
    Item states: base, hover, focus, active (also on hover).
    ────────────────────────────────────────────────────────────────────────────── */
 
@@ -638,6 +639,32 @@
 
 /* ── Menu items ────────────────────────────────────────────────────────────── */
 
+.side-navigation .nav-group {
+    -fx-spacing: 0.1em;
+}
+
+/* Section label above a group. Sizes are relative to its own 0.72em font */
+.side-navigation .nav-section {
+    -fx-alignment: center-left;
+    -fx-spacing: 0.5em;
+    -fx-padding: 0.95em 0.72em 0.25em 0.72em;
+}
+
+.side-navigation .nav-section-text {
+    -fx-text-fill: -color-sidebar-label;
+    -fx-font-size: 0.72em;
+    -fx-font-weight: 700;
+}
+
+/* Decorative, so it stays faint. */
+.side-navigation .nav-section-rule {
+    -fx-background-color: -color-sidebar-label;
+    -fx-opacity: 0.25;
+    -fx-min-height: 1px;
+    -fx-pref-height: 1px;
+    -fx-max-height: 1px;
+}
+
 /* Flat on the dark menu: one background layer instead of the button drawing. */
 .side-navigation .nav-button {
     -fx-background-color: transparent;
@@ -646,7 +673,9 @@
     -fx-border-color: transparent;
     -fx-border-radius: 0.15em;
     -fx-text-fill: -color-sidebar-text;
+    -fx-font-size: 0.9em;
     -fx-font-weight: 500;
+    -fx-padding: 0.5em 0.8em;
 }
 
 .side-navigation .nav-button:hover {

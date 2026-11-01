@@ -4,6 +4,10 @@ import com.wac.autocore.view.component.BrandMark;
 import com.wac.autocore.view.component.Gear;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.ViewPermissionUtil;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.StringBinding;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -12,12 +16,16 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <b>SideNavigation</b>
- * <p>Responsibility: Builds the side menu's navigation buttons, marks the active choice, switches view in {@link MainLayout} on click and toggles language.</p>
+ * <p>Responsibility: Builds the side menu, one section per {@link NavigationGroup}, marks the active
+ * choice, switches view in {@link MainLayout} on click and toggles language.</p>
  */
 public class SideNavigation extends VBox {
 
@@ -35,17 +43,12 @@ public class SideNavigation extends VBox {
         // Icon and app name at the top of the menu, with the signed-in role right under it
         this.getChildren().addAll(new BrandMark(lang.get("app.brand")), createRoleLabel());
 
-        // Build a navigation button for each section defined in NavigationItem,
-        // so new sections are added just by extending the enum
-        Button firstButton = null;
-        for (NavigationItem item : NavigationItem.values()) {
-            Button btn = createNavButton(item);
-            buttons.put(item, btn);
-            this.getChildren().add(btn);
-            if (firstButton == null) {
-                firstButton = btn;
-            }
-        }
+        // One section per group, in the groups' declaration order
+        Map<NavigationGroup, List<NavigationItem>> itemsByGroup = Arrays.stream(NavigationItem.values())
+                .collect(Collectors.groupingBy(NavigationItem::getGroup,
+                        () -> new EnumMap<>(NavigationGroup.class),
+                        Collectors.toList()));
+        itemsByGroup.forEach((group, items) -> this.getChildren().add(createGroup(group, items)));
 
         // Pushes the language and log out buttons down to the bottom of the menu
         Region spacer = new Region();
@@ -53,9 +56,52 @@ public class SideNavigation extends VBox {
         this.getChildren().addAll(spacer, createDecoration(), createLanguageButton(), createLogoutButton(onLogout));
 
         // Show the first section as selected at startup
-        if (firstButton != null) {
-            select(NavigationItem.values()[0], firstButton);
+        select(NavigationItem.values()[0]);
+    }
+
+    // A section: an optional label followed by the group's buttons.
+    private VBox createGroup(NavigationGroup group, List<NavigationItem> items) {
+        VBox section = new VBox();
+        section.getStyleClass().add("nav-group");
+
+        if (group.hasLabel()) {
+            section.getChildren().add(createSectionLabel(group));
         }
+
+        Button[] groupButtons = new Button[items.size()];
+        for (int i = 0; i < items.size(); i++) {
+            NavigationItem item = items.get(i);
+            Button btn = createNavButton(item);
+            buttons.put(item, btn);
+            groupButtons[i] = btn;
+        }
+        section.getChildren().addAll(groupButtons);
+
+        BooleanBinding anyVisible = Bindings.createBooleanBinding(
+                () -> Arrays.stream(groupButtons).anyMatch(Button::isVisible),
+                Arrays.stream(groupButtons).map(Button::visibleProperty).toArray(ObservableValue[]::new));
+        section.visibleProperty().bind(anyVisible);
+        section.managedProperty().bind(anyVisible);
+
+        return section;
+    }
+
+    // Section label followed by a thin rule that fills the rest of the row, so it reads as a heading
+    // rather than an item. Upper case is set here.
+    private HBox createSectionLabel(NavigationGroup group) {
+        StringBinding text = lang.bind(group.getKey());
+        Label label = new Label();
+        label.textProperty().bind(Bindings.createStringBinding(
+                () -> text.get().toUpperCase(lang.getLocale()), text));
+        label.getStyleClass().add("nav-section-text");
+
+        Region rule = new Region();
+        rule.getStyleClass().add("nav-section-rule");
+        HBox.setHgrow(rule, Priority.ALWAYS);
+
+        HBox header = new HBox(label, rule);
+        header.getStyleClass().add("nav-section");
+        return header;
     }
 
     // The signed-in user's role under the app name. Bound, so it follows a language switch.
@@ -123,22 +169,5 @@ public class SideNavigation extends VBox {
 
     public void select(NavigationItem item) {
         select(item, buttons.get(item));
-    }
-
-    // Signed-in role and a Log out button
-    private VBox createAccountBox(Runnable onLogout) {
-        Label roleLabel = new Label();
-        roleLabel.getStyleClass().add("nav-user");
-        ViewPermissionUtil.currentRole().ifPresent(role ->
-                roleLabel.textProperty().bind(lang.bind("role." + role.name())));
-
-        Button logoutButton = new Button();
-        logoutButton.textProperty().bind(lang.bind("nav.logout"));
-        logoutButton.getStyleClass().add("nav-logout");
-        logoutButton.setOnAction(e -> onLogout.run());
-
-        VBox box = new VBox(roleLabel, logoutButton);
-        box.getStyleClass().add("nav-account");
-        return box;
     }
 }
