@@ -68,6 +68,18 @@ class InvoicePaymentCatalogSecurityTest {
 
     @Test
     @WithMockUser(roles = "WORKSHOP")
+    void workshopCannotChangeAPrice() {
+        assertThrows(AccessDeniedException.class, () -> items.updatePrice(1, null));
+    }
+
+    @Test
+    @WithAdmin
+    void adminPassesThePriceChangeSecurityCheck() {
+        assertThrows(EntityNotFoundException.class, () -> items.updatePrice(999, null));
+    }
+
+    @Test
+    @WithMockUser(roles = "WORKSHOP")
     void workshopPassesTheInvoiceAndPaymentSecurityCheck() {
         assertThrows(EntityNotFoundException.class, () -> invoices.markPaid(999));
     }
