@@ -7,14 +7,14 @@
    ────────────────────────────────────────────────────────────────────────────── */
 
 .login-view {
-    -fx-font-size: 19px;
     -fx-background-color: -color-bg;
 }
 
-/* Both halves grow equally from a pref width of 0, so they split the window 50/50. */
+/* Both halves grow equally from a pref width of 0, so they split the window 50/50 */
 .login-brand,
 .login-form-panel {
     -fx-pref-width: 0;
+    -fx-font-size: 1.1em;
 }
 
 /* ── Brand panel (left) ────────────────────────────────────────────────────── */

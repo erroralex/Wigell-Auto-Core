@@ -608,6 +608,12 @@
     -fx-padding: 1.23em 1.85em;
 }
 
+/* Alert text wraps at a readable width instead of stretching the window. */
+.alert.dialog-pane > .content.label {
+    -fx-wrap-text: true;
+    -fx-pref-width: 24em;
+}
+
 /* Message and reference row in AlertHelper's unexpected error dialog. */
 .alert-content {
     -fx-padding: 1.23em 1.85em;
