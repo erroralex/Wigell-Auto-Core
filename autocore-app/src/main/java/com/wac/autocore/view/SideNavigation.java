@@ -1,11 +1,13 @@
 package com.wac.autocore.view;
 
 import com.wac.autocore.view.component.BrandMark;
+import com.wac.autocore.view.component.Gear;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -42,7 +44,7 @@ public class SideNavigation extends VBox {
         // Pushes the language and log out buttons down to the bottom of the menu
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
-        this.getChildren().addAll(spacer, createLanguageButton(), createLogoutButton(onLogout));
+        this.getChildren().addAll(spacer, createDecoration(), createLanguageButton(), createLogoutButton(onLogout));
 
         // Show the first section as selected at startup
         if (firstButton != null) {
@@ -90,6 +92,13 @@ public class SideNavigation extends VBox {
 
         btn.setOnAction(e -> lang.toggleLanguage());
         return btn;
+    }
+
+    // Two outline gears above the language toggle
+    private HBox createDecoration() {
+        HBox gears = new HBox(new Gear("gear-large"), new Gear("gear-small"));
+        gears.getStyleClass().add("nav-decoration");
+        return gears;
     }
 
     // Updates the CSS class to visually mark which section is selected

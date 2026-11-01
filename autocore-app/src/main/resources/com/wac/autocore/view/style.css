@@ -1,36 +1,91 @@
-/* JavaFX root: shared typography. Colors are defined in theme.css. */
+/* ──────────────────────────────────────────────────────────────────────────────
+   style.css
+   Typography, layout and every shared control. Colors come from theme.css.
+   All sizes are in em, relative to the root font size, so they follow the zoom.
+   Spacing scale: xs 0.31em · sm 0.62em · md 0.92em · lg 1.23em · xl 1.54em · xxl 1.85em
+   ────────────────────────────────────────────────────────────────────────────── */
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   1. Base
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Base font size must match ZoomManager.BASE_FONT_SIZE. */
 .root {
     -fx-font-family: "Segoe UI", "System";
     -fx-font-size: 19px;
 }
 
-/* Used by MainLayout as the application's outer BorderPane. */
+.label {
+    -fx-text-fill: -color-text;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   2. Typography
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Page heading in every main view. */
+.text-title {
+    -fx-font-size: 2.15em;
+    -fx-font-weight: 700;
+}
+
+/* Section heading inside a view. */
+.text-header {
+    -fx-font-size: 1.38em;
+    -fx-font-weight: 600;
+}
+
+.text-body {
+    -fx-font-size: 1em;
+}
+
+/* Captions, summaries and helper text. */
+.text-small {
+    -fx-font-size: 0.92em;
+}
+
+/* Prominent content text in HomeView and MechanicBookingsView. */
+.text-content {
+    -fx-font-size: 1.7em;
+    -fx-font-weight: 700;
+}
+
+.text-secondary {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.text-muted {
+    -fx-text-fill: -color-muted;
+}
+
+.text-error {
+    -fx-text-fill: -color-error;
+    -fx-font-weight: 700;
+}
+
+.text-warning {
+    -fx-text-fill: -color-warning;
+    -fx-font-weight: 600;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   3. Layout
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* Outer BorderPane (MainLayout). */
 .main-layout {
     -fx-background-color: -color-bg;
 }
 
-/* Used by SideNavigation for the menu on the left. */
-.side-navigation {
-    -fx-background-color: -color-sidebar;
-    -fx-padding: 1.5em;
-    -fx-spacing: 0.6em;
-    -fx-border-color: -color-sidebar;
-    -fx-border-width: 0 1px 0 0;
-    -fx-pref-width: 17em;
-}
-
-/* Used by all main views (BaseView) as the shared content area. */
+/* Every main view (BaseView). */
 .content-area {
     -fx-background-color: -color-bg;
-    -fx-padding: 1.85em;   /* 24px */
-    -fx-spacing: 1.54em;   /* 20px – was setSpacing(20) in BaseView */
+    -fx-padding: 1.85em;          /* xxl */
+    -fx-spacing: 1.54em;          /* xl */
 }
-
-/* ──────────────────────────────────────────────────────────────────────────────
-   Layout
-   Spacing scale (13px base): xs 0.31em · sm 0.62em · md 0.92em
-                              lg 1.23em · xl 1.54em · xxl 1.85em
-   ────────────────────────────────────────────────────────────────────────────── */
 
 /* Row of action buttons under a view's title. */
 .toolbar {
@@ -38,48 +93,43 @@
     -fx-alignment: center-left;
 }
 
-/* Header row with a title and actions, e.g. MechanicBookingsView. */
+/* Title with actions on the same row. */
 .view-header {
     -fx-spacing: 0.77em;
     -fx-alignment: center-left;
 }
 
-/* A titled block inside a view: heading, table and summary. */
+/* Heading, table and summary as one block. */
 .section {
     -fx-spacing: 0.62em;          /* sm */
 }
 
-/* Column that stacks larger sections, e.g. the mechanic table and its bookings. */
+/* Column of larger sections. */
 .section-stack {
     -fx-spacing: 1.54em;          /* xl */
 }
 
-/* A control with a button next to it, e.g. a combo box and "Add". */
+/* A control with a button next to it. */
 .inline-row {
     -fx-spacing: 0.62em;          /* sm */
     -fx-alignment: center-left;
 }
 
+
 /* ──────────────────────────────────────────────────────────────────────────────
-   Buttons
-   .button is added by JavaFX to every Button. .btn is a marker set from Java;
-   .btn-primary, .btn-secondary and .btn-danger choose the variant.
-
-   One structural rule draws every button from five looked-up colors.
-   Variants and states (hover, armed, focused, disabled) only change those
-   colors, never the drawing.
-
-   Layers, outside in:
-     -btn-ring       focus ring, 2px outside (transparent when not focused)
+   4. Buttons
+   .button is added by JavaFX to every Button; .btn-primary, .btn-secondary and
+   .btn-danger choose the variant. One rule draws every button from five
+   looked-up colors; variants and states only change those colors.
+     -btn-ring       focus ring outside the button
      -btn-border     border
-     -btn-highlight  1px light edge at the bottom
-     -btn-shadow     1px inner shadow at the top
+     -btn-highlight  light edge at the bottom
+     -btn-shadow     inner shadow at the top
      -btn-fill       face
-   Order matters: on equal specificity the later rule wins, so states for a
-   variant come after the shared states, and :disabled comes last.
+   Variant states follow the shared states, and :disabled comes last.
    ────────────────────────────────────────────────────────────────────────────── */
 
-/* Every Button. Without a variant class this is the neutral (secondary) look. */
+/* Without a variant class this is the neutral look. */
 .button {
     -btn-ring: transparent;
     -btn-border: -color-border;
@@ -89,32 +139,28 @@
 
     -fx-background-color: -btn-ring, -btn-border, -btn-highlight, -btn-shadow, -btn-fill;
     -fx-background-insets: -2, 0, 1, 1 1 2 1, 2 1 2 1;
-    -fx-background-radius: 0.3em, 0.15em;   /* ring, then all other layers */
-    -fx-border-color: null;                 /* the border is drawn as a background layer */
+    -fx-background-radius: 0.3em, 0.15em;
+    -fx-border-color: null;
 
     -fx-text-fill: -color-text;
     -fx-font-weight: 600;
-    -fx-padding: 0.62em 1.23em;             /* 8px 16px */
+    -fx-padding: 0.62em 1.23em;
 }
-
-/* ── Shared states ─────────────────────────────────────────────────────────── */
 
 .button:hover {
     -btn-fill: -color-surface-hover;
 }
 
-/* Pressed: darker face and a deeper inner shadow. */
 .button:armed {
     -btn-fill: derive(-color-surface-hover, -6%);
     -btn-shadow: -color-inset-shadow-strong;
 }
 
-/* Keyboard focus: a ring outside the button. */
 .button:focus-visible {
     -btn-ring: -color-primary;
 }
 
-/* ── Secondary (explicit class, same as the default look) ──────────────────── */
+/* ── Secondary ─────────────────────────────────────────────────────────────── */
 
 .btn-secondary {
     -btn-fill: -color-sunken;
@@ -138,7 +184,7 @@
     -btn-fill: derive(-color-primary, -20%);
 }
 
-/* ── Danger: remove and cancel actions ─────────────────────────────────────── */
+/* ── Danger ────────────────────────────────────────────────────────────────── */
 
 .btn-danger {
     -btn-border: derive(-color-error, -15%);
@@ -160,9 +206,9 @@
     -btn-ring: -color-error;
 }
 
-/* ── Disabled: last, so it wins over every variant ─────────────────────────── */
+/* ── Disabled ──────────────────────────────────────────────────────────────── */
 
-/* Replaces Modena's 40% opacity with flat, readable colors. */
+/* Flat, readable colors instead of Modena's 40 % opacity. */
 .button:disabled {
     -fx-opacity: 1;
     -btn-border: -color-divider;
@@ -172,14 +218,364 @@
     -fx-text-fill: -color-disabled-text;
 }
 
+
 /* ──────────────────────────────────────────────────────────────────────────────
-   Brand mark (BrandMark): app icon on a light tile next to the app name.
-   Shared by the side menu and the login screen; each place sets its own
-   name color and size below or in login.css.
+   5. Form fields
+   TextField, TextArea, ComboBox and DatePicker (both .combo-box-base) share one
+   look, drawn from four looked-up colors:
+     -field-ring    glow outside the field
+     -field-border  border
+     -field-shadow  inner shadow at the top
+     -field-fill    face
+   States: hover, focused, error, error on hover/focus, disabled last.
    ────────────────────────────────────────────────────────────────────────────── */
 
+.text-field,
+.text-area,
+.combo-box-base {
+    -field-ring: transparent;
+    -field-border: -color-border;
+    -field-shadow: -color-inset-shadow;
+    -field-fill: -color-field;
+
+    -fx-background-color: -field-ring, -field-border, -field-shadow, -field-fill;
+    -fx-background-insets: -3, 0, 1, 2 1 1 1;
+    -fx-background-radius: 0.38em, 0.15em;
+    -fx-border-color: null;
+
+    -fx-text-fill: -color-text;
+    -fx-prompt-text-fill: -color-text-placeholder;
+    -fx-highlight-fill: -color-primary;
+    -fx-highlight-text-fill: -color-on-primary;
+}
+
+.text-field {
+    -fx-padding: 0.54em 0.77em;
+}
+
+/* TextArea draws its text on an inner region with its own background. */
+.text-area .content {
+    -fx-background-color: transparent;
+    -fx-padding: 0.38em 0.54em;
+}
+
+.text-area .scroll-pane,
+.text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Editor and value cell inside ComboBox and DatePicker: only the outer field is drawn. */
+.combo-box-base > .text-field,
+.date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+/* Value shown in a closed ComboBox, never painted as a selected row. */
+.combo-box > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-padding: 0.54em 0.77em;
+}
+
+.combo-box-base > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0.77em;
+}
+
+.combo-box-base > .arrow-button > .arrow {
+    -fx-background-color: -color-text-secondary;
+}
+
+/* ── States ────────────────────────────────────────────────────────────────── */
+
+.text-field:hover,
+.text-area:hover,
+.combo-box-base:hover {
+    -field-border: derive(-color-border, -12%);
+}
+
+.text-field:focused,
+.text-area:focused,
+.combo-box-base:focused {
+    -field-border: -color-primary;
+    -field-ring: -color-focus-glow;
+}
+
+/* Invalid field, set from Java. */
+.input-error,
+.input-error:hover,
+.input-error:focused {
+    -field-border: -color-error;
+    -field-ring: -color-error-glow;
+}
+
+.text-field:disabled,
+.text-area:disabled,
+.combo-box-base:disabled {
+    -fx-opacity: 1;
+    -field-border: -color-divider;
+    -field-shadow: transparent;
+    -field-fill: -color-disabled-bg;
+    -fx-text-fill: -color-disabled-text;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   6. Lists
+   Scoped to .list-view, so the rules never reach the ComboBox value cell.
+   The ComboBox drop-down is a .list-view and follows them.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.list-view {
+    -fx-background-color: -color-border, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 1;
+    -fx-border-color: null;
+}
+
+.list-view:focused {
+    -fx-background-color: -color-primary, -color-surface;
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-padding: 0.46em 0.77em;
+}
+
+.list-view .list-cell:filled:hover {
+    -fx-background-color: -color-row-hover;
+}
+
+.list-view .list-cell:filled:selected,
+.list-view .list-cell:filled:selected:hover {
+    -fx-background-color: -color-primary;
+    -fx-text-fill: -color-on-primary;
+}
+
+.list-view .placeholder .label {
+    -fx-text-fill: -color-muted;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   7. Tables
+   Flat rows with a divider, subtle hover and primary selection. Cell alignment
+   is set in Java (money columns are right-aligned), never here.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.table-view {
+    -fx-background-color: -color-divider, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 1;
+    -fx-border-color: null;
+}
+
+.table-view:focused {
+    -fx-background-color: -color-primary, -color-surface;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+
+.table-view .column-header-background,
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: -color-surface-alt;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-border-color: -color-divider;
+    -fx-border-width: 0 0 1 0;
+    -fx-size: 2.62em;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -color-text-secondary;
+    -fx-font-weight: 600;
+    -fx-alignment: center-left;
+    -fx-padding: 0 0.54em;
+}
+
+.table-view .column-header .arrow {
+    -fx-background-color: -color-text-secondary;
+}
+
+/* ── Rows and cells ────────────────────────────────────────────────────────── */
+
+.table-view .table-row-cell {
+    -fx-background-color: -color-divider, -color-surface;
+    -fx-background-insets: 0, 0 0 1 0;
+    -fx-text-background-color: -color-text;
+}
+
+/* Empty rows below the data: no divider. */
+.table-view .table-row-cell:empty {
+    -fx-background-color: -color-surface;
+}
+
+/* Equal vertical padding centers the text and sets the row height. */
+.table-view .table-cell {
+    -fx-padding: 0.69em 0.77em;
+    -fx-border-color: transparent;
+}
+
+.table-view .table-row-cell:filled:hover {
+    -fx-background-color: -color-divider, -color-row-hover;
+}
+
+.table-view .table-row-cell:filled:selected {
+    -fx-background-color: -color-divider, -color-primary;
+    -fx-text-background-color: -color-on-primary;
+}
+
+.table-view .table-row-cell:filled:selected:hover {
+    -fx-background-color: -color-divider, -color-primary-hover;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -color-muted;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   8. Dialogs
+   Form dialogs and Alerts are a .dialog-pane with a header panel (only when
+   header text is set), content and a button bar.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.dialog-pane {
+    -fx-background-color: -color-surface;
+}
+
+.form-dialog {
+    -fx-min-width: 28em;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+
+.dialog-pane > .header-panel {
+    -fx-background-color: -color-sidebar;
+    -fx-padding: 1.08em 1.85em;
+}
+
+.dialog-pane > .header-panel .label {
+    -fx-text-fill: -color-sidebar-text-active;
+    -fx-font-size: 1.38em;
+    -fx-font-weight: 600;
+}
+
+/* ── Content ───────────────────────────────────────────────────────────────── */
+
+/* ScrollPane that DialogUtil wraps around form content. */
+.dialog-pane > .content.scroll-pane,
+.dialog-pane > .content.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* Set by FormDialog on the node returned by buildContent(). */
+.form-content {
+    -fx-padding: 1.23em 1.85em;   /* lg xxl */
+    -fx-spacing: 0.92em;          /* md */
+}
+
+.form-grid {
+    -fx-hgap: 0.92em;             /* md */
+    -fx-vgap: 0.62em;             /* sm */
+}
+
+/* Inline error area at the top of a form dialog. */
+.form-error {
+    -fx-background-color: -color-error-border, -color-error-bg;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0.15em;
+    -fx-padding: 0.69em 0.92em;
+    -fx-spacing: 0.62em;
+    -fx-alignment: top-left;
+}
+
+.form-error .label {
+    -fx-text-fill: -color-error;
+    -fx-wrap-text: true;
+}
+
+/* ── Alerts ────────────────────────────────────────────────────────────────── */
+
+.dialog-pane > .content.label {
+    -fx-text-fill: -color-text;
+    -fx-padding: 1.23em 1.85em;
+}
+
+/* Wraps at a readable width instead of stretching the window. */
+.alert.dialog-pane > .content.label {
+    -fx-wrap-text: true;
+    -fx-pref-width: 24em;
+}
+
+.alert.error.dialog-pane > .content.label,
+.alert.error.dialog-pane > .header-panel .label {
+    -fx-font-weight: 700;
+}
+
+/* Message and reference row in AlertHelper.showUnexpected. */
+.alert-content {
+    -fx-padding: 1.23em 1.85em;
+    -fx-spacing: 0.92em;
+    -fx-pref-width: 32.3em;
+}
+
+/* ── Button bar ────────────────────────────────────────────────────────────── */
+
+.dialog-pane > .button-bar {
+    -fx-background-color: -color-divider, -color-surface-alt;
+    -fx-background-insets: 0, 1 0 0 0;
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-padding: 0.92em 1.85em;
+}
+
+/* The default button (OK, Save) is primary in every dialog. More specific than
+   the shared button states, so hover, pressed and disabled are repeated. */
+.dialog-pane .button:default {
+    -btn-border: -color-primary-border;
+    -btn-highlight: -color-highlight-dark;
+    -btn-shadow: -color-inset-shadow-strong;
+    -btn-fill: -color-primary;
+    -fx-text-fill: -color-on-primary;
+}
+
+.dialog-pane .button:default:hover {
+    -btn-fill: -color-primary-hover;
+}
+
+.dialog-pane .button:default:armed {
+    -btn-fill: derive(-color-primary, -20%);
+}
+
+.dialog-pane .button:default:disabled {
+    -btn-border: -color-divider;
+    -btn-highlight: transparent;
+    -btn-shadow: transparent;
+    -btn-fill: -color-disabled-bg;
+    -fx-text-fill: -color-disabled-text;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   9. Brand and decoration
+   Shared by the side menu and the login view; each place sets its own sizes.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/* ── Brand mark (BrandMark) ────────────────────────────────────────────────── */
+
 .brand-mark {
-    -fx-spacing: 0.62em;          /* sm */
+    -fx-spacing: 0.62em;
     -fx-alignment: center-left;
 }
 
@@ -190,8 +586,7 @@
     -fx-padding: 0.2em;
 }
 
-/* Soft shadow under the icon, so the light lower gear stands out from the light tile
-   (same idea as .home-logo, scaled down for the small icon). */
+/* Lifts the light lower gear of the icon off the light tile. */
 .brand-tile .image-view {
     -fx-effect: dropshadow(gaussian, -color-shadow-strong, 4, 0.2, 0, 1);
 }
@@ -200,7 +595,37 @@
     -fx-font-weight: 700;
 }
 
-/* At the top of the side menu: some air below before the first menu item. */
+/* ── Gear (Gear) ───────────────────────────────────────────────────────────── */
+
+/* The Region takes this SVG shape; scale-shape fits it to the size in em,
+   and the transparent background with a border gives an outline. */
+.gear {
+    -fx-shape: "M177.5 80.3 L179.4 89.9 L195.4 89.5 L195.4 110.5 L179.4 110.1 L177.5 119.7 L177.0 121.7 L173.8 130.9 L187.9 138.6 L177.4 156.8 L163.7 148.4 L157.3 155.8 L155.8 157.3 L148.4 163.7 L156.8 177.4 L138.6 187.9 L130.9 173.8 L121.7 177.0 L119.7 177.5 L110.1 179.4 L110.5 195.4 L89.5 195.4 L89.9 179.4 L80.3 177.5 L78.3 177.0 L69.1 173.8 L61.4 187.9 L43.2 177.4 L51.6 163.7 L44.2 157.3 L42.7 155.8 L36.3 148.4 L22.6 156.8 L12.1 138.6 L26.2 130.9 L23.0 121.7 L22.5 119.7 L20.6 110.1 L4.6 110.5 L4.6 89.5 L20.6 89.9 L22.5 80.3 L23.0 78.3 L26.2 69.1 L12.1 61.4 L22.6 43.2 L36.3 51.6 L42.7 44.2 L44.2 42.7 L51.6 36.3 L43.2 22.6 L61.4 12.1 L69.1 26.2 L78.3 23.0 L80.3 22.5 L89.9 20.6 L89.5 4.6 L110.5 4.6 L110.1 20.6 L119.7 22.5 L121.7 23.0 L130.9 26.2 L138.6 12.1 L156.8 22.6 L148.4 36.3 L155.8 42.7 L157.3 44.2 L163.7 51.6 L177.4 43.2 L187.9 61.4 L173.8 69.1 L177.0 78.3 Z M144 100 A44 44 0 1 0 56 100 A44 44 0 1 0 144 100 Z M116 100 A16 16 0 1 0 84 100 A16 16 0 1 0 116 100 Z";
+    -fx-scale-shape: true;
+    -fx-position-shape: true;
+    -fx-background-color: transparent;
+    -fx-border-color: -color-brand-light;
+    -fx-border-width: 1.2;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   10. Side menu
+   Scoped under .side-navigation to override the shared button rules.
+   Item states: base, hover, focus, active (also on hover).
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.side-navigation {
+    -fx-background-color: -color-sidebar;
+    -fx-padding: 1.5em;
+    -fx-spacing: 0.6em;
+    -fx-border-color: -color-sidebar;
+    -fx-border-width: 0 1px 0 0;
+    -fx-pref-width: 17em;
+}
+
+/* ── Brand and signed-in user ──────────────────────────────────────────────── */
+
 .side-navigation .brand-mark {
     -fx-padding: 0 0.46em 0.31em 0.46em;
 }
@@ -214,11 +639,45 @@
     -fx-text-fill: -color-sidebar-label;
     -fx-font-size: 0.85em;
     -fx-font-weight: 600;
-    -fx-padding: 0 0.46em 1.23em 0.46em;   /* air below, before the first menu item */
+    -fx-padding: 0 0.46em 1.23em 0.46em;
 }
 
-/* Small sunken button on the dark menu, the same look as the SV/EN switch in SCRUM-307.
-   One background layer with a dark line on top replaces the five-layer button drawing. */
+/* ── Menu items ────────────────────────────────────────────────────────────── */
+
+/* Flat on the dark menu: one background layer instead of the button drawing. */
+.side-navigation .nav-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0.15em;
+    -fx-border-color: transparent;
+    -fx-border-radius: 0.15em;
+    -fx-text-fill: -color-sidebar-text;
+    -fx-font-weight: 500;
+}
+
+.side-navigation .nav-button:hover {
+    -fx-background-color: -color-sidebar-hover;
+    -fx-text-fill: -color-sidebar-text-active;
+}
+
+.side-navigation .nav-button:focus-visible {
+    -fx-border-color: -color-sidebar-focus;
+}
+
+.side-navigation .nav-button-active,
+.side-navigation .nav-button-active:hover {
+    -fx-background-color: -color-sidebar-sunken;
+    -fx-border-color: -color-sidebar-sunken;
+    -fx-text-fill: -color-sidebar-text-active;
+    -fx-font-weight: 600;
+}
+
+.side-navigation .nav-button-language {
+    -fx-text-fill: -color-sidebar-label;
+}
+
+/* ── Log out ───────────────────────────────────────────────────────────────── */
+
 .side-navigation .nav-logout {
     -fx-background-color: -color-inset-shadow-strong, -color-sidebar-sunken;
     -fx-background-insets: 0, 1 0 0 0;
@@ -241,570 +700,101 @@
     -fx-border-color: -color-sidebar-focus;
 }
 
-/* ──────────────────────────────────────────────────────────────────────────────
-   Side menu items
-   Scoped under .side-navigation so they override the shared button rules
-   above without touching buttons elsewhere. Order matters: hover after the
-   base rule, the active item after hover, active+hover last.
-   ────────────────────────────────────────────────────────────────────────────── */
+/* ── Gears ─────────────────────────────────────────────────────────────────── */
 
-/* Menu items: flat on the dark menu, no button chrome.
-   Insets and radius reset the five-layer button drawing to a single layer. */
-.side-navigation .nav-button {
-    -fx-background-color: transparent;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0.15em;
-    -fx-border-color: transparent;
-    -fx-border-radius: 0.15em;
-    -fx-text-fill: -color-sidebar-text;
-    -fx-font-weight: 500;
-}
-
-/* Hover: a slightly lighter strip behind the item. */
-.side-navigation .nav-button:hover {
-    -fx-background-color: -color-sidebar-hover;
-    -fx-text-fill: -color-sidebar-text-active;
-}
-
-/* Keyboard focus: a light green ring (not shown after a mouse click). */
-.side-navigation .nav-button:focus-visible {
-    -fx-border-color: -color-sidebar-focus;
-}
-
-/* Active item: darker than the menu, as if pressed in. */
-.side-navigation .nav-button-active,
-.side-navigation .nav-button-active:hover {
-    -fx-background-color: -color-sidebar-sunken;
-    -fx-border-color: -color-sidebar-sunken;
-    -fx-text-fill: -color-sidebar-text-active;
-    -fx-font-weight: 600;
-}
-
-/* Language toggle at the bottom of the menu: quieter than the menu items.
-   Replaced by a segmented SV/EN switch in SCRUM-307. */
-.side-navigation .nav-button-language {
-    -fx-text-fill: -color-sidebar-label;
-}
-
-/* JavaFX automatically adds .label to all Label controls. */
-.label {
-    -fx-text-fill: -color-text;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────────
-   Typography
-   Base size is 13px (set on the root, scaled by Ctrl+scroll zoom).
-   All sizes in em so they follow the zoom.
-   title 28px · header 18px · body 13px · small 12px
-   ────────────────────────────────────────────────────────────────────────────── */
-
-/* Page heading in every main view (BaseView). */
-.text-title {
-    -fx-font-size: 2.15em;
-    -fx-font-weight: 700;
-}
-
-/* Section heading inside a view, e.g. "Jobs to do" in Work orders. */
-.text-header {
-    -fx-font-size: 1.38em;
-    -fx-font-weight: 600;
-}
-
-/* Running text. */
-.text-body {
-    -fx-font-size: 1em;
-}
-
-/* Captions, summaries and helper text. */
-.text-small {
-    -fx-font-size: 0.92em;
-}
-
-/* Secondary text color, combined with a size class when needed. */
-.text-secondary {
-    -fx-text-fill: -color-text-secondary;
-}
-
-.text-muted {
-    -fx-text-fill: -color-muted;
-}
-
-/* Validation and error messages. */
-.text-error {
-    -fx-text-fill: -color-error;
-    -fx-font-weight: 700;
-}
-
-/* Warnings, e.g. the price notice in CreateBookingDialog (set in Java, was never styled). */
-.text-warning {
-    -fx-text-fill: -color-warning;
-    -fx-font-weight: 600;
-}
-
-/* Used by HomeView and MechanicBookingsView for prominent content text. */
-.text-content {
-    -fx-font-size: 1.7em;
-    -fx-font-weight: 700;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────────
-   Form fields
-   TextField, TextArea, ComboBox and DatePicker share one look: a slightly
-   sunken face with an inner shadow at the top. ComboBox and DatePicker are
-   both .combo-box-base, so one selector covers them.
-
-   Same idea as the buttons: one rule draws the field from four looked-up
-   colors, and states only change those colors.
-     -field-ring    glow outside the field (focus or error)
-     -field-border  border
-     -field-shadow  1px inner shadow at the top
-     -field-fill    face
-   Order matters: focused, then error, then error+focused, disabled last.
-   ────────────────────────────────────────────────────────────────────────────── */
-
-.text-field,
-.text-area,
-.combo-box-base {
-    -field-ring: transparent;
-    -field-border: -color-border;
-    -field-shadow: -color-inset-shadow;
-    -field-fill: -color-field;
-
-    -fx-background-color: -field-ring, -field-border, -field-shadow, -field-fill;
-    -fx-background-insets: -3, 0, 1, 2 1 1 1;
-    -fx-background-radius: 0.38em, 0.15em;  /* glow, then all other layers */
-    -fx-border-color: null;                 /* the border is drawn as a background layer */
-
-    -fx-text-fill: -color-text;
-    -fx-prompt-text-fill: -color-text-placeholder;
-    -fx-highlight-fill: -color-primary;     /* selected text */
-    -fx-highlight-text-fill: -color-on-primary;
-}
-
-.text-field {
-    -fx-padding: 0.54em 0.77em;             /* ~7px 10px */
-}
-
-/* TextArea draws its text on an inner .content region with its own background. */
-.text-area .content {
-    -fx-background-color: transparent;
-    -fx-padding: 0.38em 0.54em;
-}
-
-.text-area .scroll-pane,
-.text-area .scroll-pane .viewport {
-    -fx-background-color: transparent;
-}
-
-/* ComboBox and DatePicker: the editor and the value cell sit inside the field,
-   so they are transparent and only the outer field is drawn. */
-.combo-box-base > .text-field,
-.date-picker > .text-field {
-    -fx-background-color: transparent;
-    -fx-background-insets: 0;
-}
-
-/* The value shown in a closed ComboBox. Not a list row: never painted as selected.
-   This fixes combo boxes turning green when a value is chosen. */
-.combo-box > .list-cell {
-    -fx-background-color: transparent;
-    -fx-text-fill: -color-text;
-    -fx-padding: 0.54em 0.77em;
-}
-
-/* Arrow button: no button chrome, only the arrow. */
-.combo-box-base > .arrow-button {
-    -fx-background-color: transparent;
-    -fx-padding: 0 0.77em;
-}
-
-.combo-box-base > .arrow-button > .arrow {
-    -fx-background-color: -color-text-secondary;
-}
-
-/* ── States ────────────────────────────────────────────────────────────────── */
-
-.text-field:hover,
-.text-area:hover,
-.combo-box-base:hover {
-    -field-border: derive(-color-border, -12%);
-}
-
-/* Keyboard focus: primary border and a soft glow in the logo green. */
-.text-field:focused,
-.text-area:focused,
-.combo-box-base:focused {
-    -field-border: -color-primary;
-    -field-ring: -color-focus-glow;
-}
-
-/* Invalid field, set from Java. .input is a marker on some text fields and has no own style. */
-.input-error {
-    -field-border: -color-error;
-    -field-ring: -color-error-glow;
-}
-
-/* An invalid field keeps its error look on hover and while focused
-   (the :hover and :focused rules above are more specific than .input-error). */
-.input-error:hover,
-.input-error:focused {
-    -field-border: -color-error;
-    -field-ring: -color-error-glow;
-}
-
-/* Disabled: last. Replaces Modena's 40% opacity with flat, readable colors. */
-.text-field:disabled,
-.text-area:disabled,
-.combo-box-base:disabled {
-    -fx-opacity: 1;
-    -field-border: -color-divider;
-    -field-shadow: transparent;
-    -field-fill: -color-disabled-bg;
-    -fx-text-fill: -color-disabled-text;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────────
-   Lists
-   Scoped to .list-view so the rules never reach the ComboBox value cell above.
-   The ComboBox drop-down is a .list-view too and follows these rules.
-   ────────────────────────────────────────────────────────────────────────────── */
-
-.list-view {
-    -fx-background-color: -color-border, -color-surface;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 0.15em;
-    -fx-padding: 1;
-    -fx-border-color: null;
-}
-
-.list-view:focused {
-    -fx-background-color: -color-primary, -color-surface;
-}
-
-.list-view .list-cell {
-    -fx-background-color: transparent;
-    -fx-text-fill: -color-text;
-    -fx-padding: 0.46em 0.77em;             /* ~6px 10px */
-}
-
-.list-view .list-cell:filled:hover {
-    -fx-background-color: -color-row-hover;
-}
-
-.list-view .list-cell:filled:selected,
-.list-view .list-cell:filled:selected:hover {
-    -fx-background-color: -color-primary;
-    -fx-text-fill: -color-on-primary;
-}
-
-/* Empty-state text, e.g. "No service items selected". */
-.list-view .placeholder .label {
-    -fx-text-fill: -color-muted;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────────
-   Tables
-   Flat rows with a 1px divider, a subtle hover and a primary selection.
-   No vertical grid lines. Cell alignment is left to Java (money columns are
-   right-aligned with setAlignment), so it is never set here.
-   ────────────────────────────────────────────────────────────────────────────── */
-
-.table-view {
-    -fx-background-color: -color-divider, -color-surface;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 0.15em;
-    -fx-padding: 1;
-    -fx-border-color: null;
-}
-
-.table-view:focused {
-    -fx-background-color: -color-primary, -color-surface;
-}
-
-/* Header row. */
-.table-view .column-header-background,
-.table-view .column-header,
-.table-view .filler {
-    -fx-background-color: -color-surface-alt;
-}
-
-.table-view .column-header,
-.table-view .filler {
-    -fx-border-color: -color-divider;
-    -fx-border-width: 0 0 1 0;
-    -fx-size: 2.62em;                       /* header height, 34px */
-}
-
-.table-view .column-header .label {
-    -fx-text-fill: -color-text-secondary;
-    -fx-font-weight: 600;
-    -fx-alignment: center-left;
-    -fx-padding: 0 0.54em;
-}
-
-.table-view .column-header .arrow {
-    -fx-background-color: -color-text-secondary;
-}
-
-/* Rows: surface with a divider line at the bottom. */
-.table-view .table-row-cell {
-    -fx-background-color: -color-divider, -color-surface;
-    -fx-background-insets: 0, 0 0 1 0;
-    -fx-text-background-color: -color-text;
-}
-
-/* Empty filler rows below the data: no divider lines. */
-.table-view .table-row-cell:empty {
-    -fx-background-color: -color-surface;
-}
-
-/* Cells: equal padding above and below centers the text and sets the row height (~36px).
-   No fixed cell size: a fixed row height leaves Modena's 2em cells at the top of the row. */
-.table-view .table-cell {
-    -fx-padding: 0.69em 0.77em;             /* 9px 10px */
-    -fx-border-color: transparent;
-}
-
-.table-view .table-row-cell:filled:hover {
-    -fx-background-color: -color-divider, -color-row-hover;
-}
-
-.table-view .table-row-cell:filled:selected {
-    -fx-background-color: -color-divider, -color-primary;
-    -fx-text-background-color: -color-on-primary;
-}
-
-.table-view .table-row-cell:filled:selected:hover {
-    -fx-background-color: -color-divider, -color-primary-hover;
-}
-
-/* Empty-state text, e.g. "Select a work order to see its jobs". */
-.table-view .placeholder .label {
-    -fx-text-fill: -color-muted;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────────
-   Dialogs
-   Every form dialog and Alert is a .dialog-pane with three parts:
-     .header-panel  only when header text is set; dark like the side menu
-     .content       the form (inside DialogUtil's ScrollPane) or the Alert text
-     .button-bar    the buttons, on a light bar with a divider above
-   The window title bar is drawn by the OS and cannot be styled.
-   ────────────────────────────────────────────────────────────────────────────── */
-
-/* JavaFX automatically adds .dialog-pane to all form dialogs and Alerts. */
-.dialog-pane {
-    -fx-background-color: -color-surface;
-}
-
-/* ── Header ────────────────────────────────────────────────────────────────── */
-
-.dialog-pane > .header-panel {
-    -fx-background-color: -color-sidebar;
-    -fx-padding: 1.08em 1.85em;             /* 14px 24px */
-}
-
-.dialog-pane > .header-panel .label {
-    -fx-text-fill: -color-sidebar-text-active;
-    -fx-font-size: 1.38em;                  /* same as .text-header */
-    -fx-font-weight: 600;
-}
-
-/* ── Content ───────────────────────────────────────────────────────────────── */
-
-/* DialogUtil wraps form content in a ScrollPane: no background, border or focus ring of its own. */
-.dialog-pane > .content.scroll-pane,
-.dialog-pane > .content.scroll-pane > .viewport {
-    -fx-background-color: transparent;
-    -fx-background-insets: 0;
-    -fx-padding: 0;
-}
-
-/* Content of every form dialog. FormDialog adds .form-content to the node
-   returned by buildContent(), so each dialog gets the same padding and spacing. */
-.form-content {
-    -fx-padding: 1.23em 1.85em;   /* 16px 24px */
-    -fx-spacing: 0.92em;          /* md */
-}
-
-/* Label/field grids in form dialogs. */
-.form-grid {
-    -fx-hgap: 0.92em;             /* md */
-    -fx-vgap: 0.62em;             /* sm */
-}
-
-/* Alert text: same side padding as the forms. */
-.dialog-pane > .content.label {
-    -fx-text-fill: -color-text;
-    -fx-padding: 1.23em 1.85em;
-}
-
-/* Alert text wraps at a readable width instead of stretching the window. */
-.alert.dialog-pane > .content.label {
-    -fx-wrap-text: true;
-    -fx-pref-width: 24em;
-}
-
-/* Message and reference row in AlertHelper's unexpected error dialog. */
-.alert-content {
-    -fx-padding: 1.23em 1.85em;
-    -fx-spacing: 0.92em;          /* md */
-    -fx-pref-width: 32.3em;       /* 420px at 13px base – was setPrefWidth(420) */
-}
-
-/* Content and header in JavaFX Alerts of type ERROR. */
-.alert.error.dialog-pane > .content.label,
-.alert.error.dialog-pane > .header-panel .label {
-    -fx-font-weight: 700;
-}
-
-/* Every form dialog: wide enough for the window title and a comfortable form. */
-.form-dialog {
-    -fx-min-width: 28em;          /* ~360px at 13px base */
-}
-
-/* Inline error area at the top of a form dialog (used by SCRUM-286). */
-.form-error {
-    -fx-background-color: -color-error-border, -color-error-bg;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 0.15em;
-    -fx-padding: 0.69em 0.92em;             /* 9px 12px */
-    -fx-spacing: 0.62em;
+/* Top-aligned with negative spacing: the small gear sits higher and overlaps. */
+.nav-decoration {
     -fx-alignment: top-left;
+    -fx-spacing: -0.9em;
+    -fx-padding: 0 0 0.92em 0.31em;
+    -fx-opacity: 0.7;
 }
 
-.form-error .label {
-    -fx-text-fill: -color-error;
-    -fx-wrap-text: true;
+.nav-decoration .gear-large {
+    -fx-min-width: 6em;  -fx-pref-width: 6em;  -fx-max-width: 6em;
+    -fx-min-height: 6em; -fx-pref-height: 6em; -fx-max-height: 6em;
 }
 
-/* ── Button bar ────────────────────────────────────────────────────────────── */
-
-.dialog-pane > .button-bar {
-    -fx-background-color: -color-divider, -color-surface-alt;
-    -fx-background-insets: 0, 1 0 0 0;      /* 1px divider line on top */
+.nav-decoration .gear-small {
+    -fx-min-width: 4em;  -fx-pref-width: 4em;  -fx-max-width: 4em;
+    -fx-min-height: 4em; -fx-pref-height: 4em; -fx-max-height: 4em;
+    -fx-rotate: 15;
 }
 
-.dialog-pane > .button-bar > .container {
-    -fx-padding: 0.92em 1.85em;             /* 12px 24px */
-}
-
-/* The default button (OK, Save) is primary in every dialog, also in Alerts that
-   never set a class. More specific than the shared button states, so hover,
-   pressed and disabled are repeated here. */
-.dialog-pane .button:default {
-    -btn-border: -color-primary-border;
-    -btn-highlight: -color-highlight-dark;
-    -btn-shadow: -color-inset-shadow-strong;
-    -btn-fill: -color-primary;
-    -fx-text-fill: -color-on-primary;
-}
-
-.dialog-pane .button:default:hover {
-    -btn-fill: -color-primary-hover;
-}
-
-.dialog-pane .button:default:armed {
-    -btn-fill: derive(-color-primary, -20%);
-}
-
-/* A disabled Save (e.g. required fields empty) must look disabled, not green. */
-.dialog-pane .button:default:disabled {
-    -btn-border: -color-divider;
-    -btn-highlight: transparent;
-    -btn-shadow: transparent;
-    -btn-fill: -color-disabled-bg;
-    -fx-text-fill: -color-disabled-text;
-}
-
-/* Content and header in JavaFX Alerts of type ERROR. */
-.alert.error.dialog-pane .content.label,
-.alert.error.dialog-pane .header-panel .label {
-    -fx-font-weight: 700;
-}
-
-/* JavaFX automatically adds .alert to information, error and confirmation dialogs. */
-.alert {
-    -fx-background-color: -color-surface-alt;
-}
 
 /* ──────────────────────────────────────────────────────────────────────────────
-   Components
+   11. Components
    ────────────────────────────────────────────────────────────────────────────── */
 
-/* ServiceSelector: row with ComboBox and Add button in the Work Order dialog. */
+/* ── ServiceSelectorBox ────────────────────────────────────────────────────── */
+
 .service-selector {
     -fx-spacing: 0.6em;
 }
 
-/* The row with ComboBox and Add button. */
 .service-selector-picker {
     -fx-spacing: 0.6em;
     -fx-alignment: center-left;
 }
 
-/* ServicePackageSelectorBox in the booking dialog: combo box and its summary. */
-.service-package-selector {
-    -fx-spacing: 0.62em;          /* sm */
-}
-
-/* "Total: 2 495,00 kr · 90 min" under the selected service items. */
 .service-selector-summary {
-    -fx-font-size: 0.92em;        /* same as .text-small */
+    -fx-font-size: 0.92em;
 }
 
-/* CustomerVehiclePicker: customer and vehicle rows in the work order dialogs. */
+/* ── ServicePackageSelectorBox ─────────────────────────────────────────────── */
+
+.service-package-selector {
+    -fx-spacing: 0.62em;
+}
+
+/* ── CustomerVehiclePicker ─────────────────────────────────────────────────── */
+
 .customer-vehicle-picker {
-    -fx-spacing: 0.92em;          /* md */
+    -fx-spacing: 0.92em;
 }
 
-/* MultiSelectListView: size in em instead of ListView's fixed default height. */
+/* ── MultiSelectListView ───────────────────────────────────────────────────── */
+
 .multi-select-list {
     -fx-pref-width: 28em;
     -fx-pref-height: 12em;
     -fx-min-height: 6em;
 }
 
-/* MultiSelectListView: cells with text and a Remove button in the Work Order dialog.
-   Scoped like the shared list rules so this tighter padding wins over them. */
+.multi-select-list.input-error {
+    -fx-background-color: -color-error, -color-surface;
+}
+
 .multi-select-list .multi-select-cell {
     -fx-padding: 0.3em 0.5em;
 }
 
-/* MultiSelectListView: a row with text on the left and a Remove button on the right in the Work Order dialog. */
+.multi-select-list .list-cell:filled:selected .label {
+    -fx-text-fill: -color-on-primary;
+}
+
 .multi-select-row {
     -fx-spacing: 0.6em;
     -fx-alignment: center-left;
 }
 
-/* A more compact Remove button so the row does not become too tall. */
 .multi-select-remove {
     -fx-padding: 0.25em 0.7em;
 }
 
-/* .label sets dark text explicitly; light text is required on the green selected row. */
-.multi-select-list .list-cell:filled:selected .label {
-    -fx-text-fill: -color-on-primary;
-}
 
-/* An invalid selection list gets a red border. Lists draw their border as a background layer. */
-.multi-select-list.input-error {
-    -fx-background-color: -color-error, -color-surface;
-}
+/* ──────────────────────────────────────────────────────────────────────────────
+   12. Views
+   ────────────────────────────────────────────────────────────────────────────── */
 
-/* Used by HomeView for the shadow behind the logo. */
+/* ── HomeView ──────────────────────────────────────────────────────────────── */
+
 .home-logo {
-    -fx-effect: dropshadow(
-            gaussian,
-            -color-shadow-strong,
-            18,
-            0.25,
-            0,
-            8
-    );
+    -fx-effect: dropshadow(gaussian, -color-shadow-strong, 18, 0.25, 0, 8);
 }
 
-/* Used by InvoiceView for the content in the invoice details. */
+/* ── InvoiceView ───────────────────────────────────────────────────────────── */
+
 .invoice-detail-content {
     -fx-padding: 1.2em;
     -fx-spacing: 0.8em;
