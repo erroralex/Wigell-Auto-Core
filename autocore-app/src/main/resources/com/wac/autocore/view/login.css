@@ -122,6 +122,12 @@
     -fx-min-height: 1.5em;
 }
 
+/* Language switch under the log in button, compact and centered.
+   Uses the light LanguageSwitch variant from style.css. */
+.login-language {
+    -fx-alignment: center;
+}
+
 /* ── Floating labels ───────────────────────────────────────────────────────── */
 
 /* Sits inside the empty field like a placeholder. */

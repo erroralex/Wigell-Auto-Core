@@ -2,12 +2,16 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.view.component.BrandMark;
 import com.wac.autocore.view.component.Gear;
+import com.wac.autocore.view.component.LanguageSwitch;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.Stylesheets;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -23,6 +27,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
+import java.util.Locale;
+
 /**
  * <b>LoginView</b>
  * <p>Responsibility: The login screen. A dark brand panel on the left and the login form on the right.
@@ -37,11 +43,15 @@ public class LoginView extends HBox {
     private final Button loginButton;
     private final Label errorLabel;
 
+    private final ChangeListener<Locale> hideErrorOnLanguageSwitch = (obs, oldLocale, newLocale) -> hideError();
+
     public LoginView() {
         this.usernameField = new TextField();
         this.passwordField = new PasswordField();
-        this.loginButton = new Button(lang.get("login.loginButton"));
+        this.loginButton = new Button();
         this.errorLabel = new Label();
+
+        loginButton.textProperty().bind(lang.bind("login.loginButton"));
 
         Stylesheets.addViewStylesheet(this, "login.css");
     }
@@ -59,6 +69,8 @@ public class LoginView extends HBox {
         usernameField.textProperty().addListener((obs, oldVal, newVal) -> hideError());
         passwordField.textProperty().addListener((obs, oldVal, newVal) -> hideError());
 
+        lang.localeProperty().addListener(new WeakChangeListener<>(hideErrorOnLanguageSwitch));
+
         // Nothing focused at start, so both labels begin inside their fields.
         // A click outside the fields moves focus to the view, so an empty field's label drops back.
         setFocusTraversable(true);
@@ -74,10 +86,12 @@ public class LoginView extends HBox {
     private StackPane createBrandPanel() {
         BrandMark brandHeader = new BrandMark(lang.get("app.brand"));
 
-        Label headline = new Label(lang.get("login.headline"));
+        Label headline = new Label();
+        headline.textProperty().bind(lang.bind("login.headline"));
         headline.getStyleClass().add("login-headline");
 
-        Label tagline = new Label(lang.get("login.tagline"));
+        Label tagline = new Label();
+        tagline.textProperty().bind(lang.bind("login.tagline"));
         tagline.getStyleClass().add("login-tagline");
 
         VBox hero = new VBox(headline, tagline);
@@ -114,10 +128,12 @@ public class LoginView extends HBox {
     }
 
     private StackPane createFormPanel() {
-        Label title = new Label(lang.get("login.title"));
+        Label title = new Label();
+        title.textProperty().bind(lang.bind("login.title"));
         title.getStyleClass().add("login-title");
 
-        Label subtitle = new Label(lang.get("login.subtitle"));
+        Label subtitle = new Label();
+        subtitle.textProperty().bind(lang.bind("login.subtitle"));
         subtitle.getStyleClass().add("text-secondary");
 
         VBox intro = new VBox(title, subtitle);
@@ -132,12 +148,16 @@ public class LoginView extends HBox {
         errorLabel.setOpacity(0);
         errorLabel.setOnMouseClicked(e -> hideError());
 
+        StackPane usernameStack = createFloatingLabelField(lang.bind("login.usernameLabel"), usernameField);
+        StackPane passwordStack = createFloatingLabelField(lang.bind("login.passwordLabel"), passwordField);
+
         VBox form = new VBox(
                 intro,
-                createFloatingLabelField(lang.get("login.usernameLabel"), usernameField),
-                createFloatingLabelField(lang.get("login.passwordLabel"), passwordField),
+                usernameStack,
+                passwordStack,
                 loginButton,
-                errorLabel
+                errorLabel,
+                createLanguageRow()
         );
         form.getStyleClass().add("login-form");
         form.setMaxHeight(Region.USE_PREF_SIZE);
@@ -147,8 +167,21 @@ public class LoginView extends HBox {
         return panel;
     }
 
-    private StackPane createFloatingLabelField(String labelText, TextField field) {
-        Label floatingLabel = new Label(labelText);
+    // The language can be chosen before signing in. LanguageManager is a singleton,
+    // so the choice carries over to the main layout after login.
+    private HBox createLanguageRow() {
+        LanguageSwitch languageSwitch = new LanguageSwitch();
+        languageSwitch.setMaxWidth(Region.USE_PREF_SIZE);
+
+        HBox row = new HBox(languageSwitch);
+        row.getStyleClass().add("login-language");
+        return row;
+    }
+
+    private StackPane createFloatingLabelField(ObservableValue<String> labelText, TextField field) {
+        Label floatingLabel = new Label();
+        // Bound, so the label follows the language switch both inside the field and when raised
+        floatingLabel.textProperty().bind(labelText);
         floatingLabel.getStyleClass().add("floating-label");
         floatingLabel.setLabelFor(field);
 
