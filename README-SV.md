@@ -95,7 +95,7 @@ wigell-auto-core/
 │       ├── main/java/com/wac/autocore/
 │       │   ├── Main.java                    # Startpunkt
 │       │   ├── AutoCoreConfig.java          # @SpringBootApplication – skannar com.wac.autocore i alla moduler
-│       │   ├── headless/HeadlessRunner.java # @Profile("headless"): kör DropInScenario utan GUI
+│       │   ├── headless/HeadlessRunner.java # @Profile("headless"): loggar in, kör sedan DropInScenario utan GUI
 │       │   └── view/                        # JavaFX-vyer, byggda i kod (ingen FXML)
 │       │       ├── AutoCoreApp              # Application: startar/stänger Spring, bygger scenen
 │       │       ├── MainLayout  SideNavigation  NavigationItem   # Skal och sidomeny
@@ -152,12 +152,40 @@ java -jar autocore-app/target/autocore-app-4.0.0.jar
  
 > Databasfilen `autocore.db` skapas i den mapp du startar från. Starta från repots rot så
 > används samma databas varje gång.
+
+## Konfiguration och hemligheter
+
+Inga hemligheter ligger i källkoden. Inställningar med inloggningsuppgifter, till exempel headless-kontot,
+läses från miljövariabler eller från en valfri lokal fil. Båda är valfria, och appen startar utan dem.
+
+| Inställning | Miljövariabel | Property |
+|---|---|---|
+| Headless-konto, användarnamn | `AUTOCORE_HEADLESS_USERNAME` | `autocore.headless.username` |
+| Headless-konto, lösenord | `AUTOCORE_HEADLESS_PASSWORD` | `autocore.headless.password` |
+
+**Miljövariabler** (PowerShell, gäller bara den aktuella terminalen):
+
+```powershell
+$env:AUTOCORE_HEADLESS_USERNAME = "<användarnamn>"
+$env:AUTOCORE_HEADLESS_PASSWORD = "<lösenord>"
+```
+
+**Lokal fil:** kopiera `autocore-app/src/main/resources/application-local.properties.example` till
+`application-local.properties` i mappen du startar appen från, och fyll i dina egna värden.
+Filen läses om den finns. Den står i `.gitignore` och får aldrig committas.
+
+Ett värde i miljön går före samma värde i den lokala filen.
  
 # Köra utan gränssnitt (headless)
  
 Applikationens tjänster kan köras utan JavaFX. Headless-läget kör ett komplett drop-in-flöde
 (skapa, lägg till tjänster och mekaniker, bekräfta, starta, slutför, fakturera, betala) och därefter
 två otillåtna operationer, och skriver ut resultatet med samma felnycklar och texter som gränssnittet.
+
+Headless-läget kräver ett konto. Innan scenariot körs loggar `HeadlessRunner` in med användarnamn och lösenord
+från `AUTOCORE_HEADLESS_USERNAME` och `AUTOCORE_HEADLESS_PASSWORD`, eller från `application-local.properties`
+(se [Konfiguration och hemligheter](#konfiguration-och-hemligheter)). Scenariot körs med kontots rättigheter, så använd
+en `WORKSHOP`- eller `ADMIN`-användare. En `READ_ONLY`-användare nekas vid första skrivningen.
  
 ```bash
 ./mvnw clean package
@@ -169,10 +197,12 @@ Engelska:
 java -jar autocore-app/target/autocore-app-4.0.0.jar --spring.profiles.active=headless --headless.lang=en
 ```
  
-- Scenariot (`DropInScenario`) ligger i core, och `HeadlessRunner` i app kör det med Spring och SQLite.
+- Scenariot (`DropInScenario`) ligger i core, och `HeadlessRunner` i app kör det med Spring och SQLite, inloggad som headless-kontot.
 - Kör mot en egen databasfil, `autocore-headless.db`. Den vanliga `autocore.db` rörs inte.
+- Utan inloggningsuppgifter, eller med fel, loggas en WARN (aldrig lösenordet), `Headless login failed. See logs/autocore-headless.log.`
+  skrivs ut och programmet avslutas med en felkod innan någon operation har körts.
 - Avslutar med kod `0` om alla steg blev som förväntat, annars med en felkod.
-- Samma scenario körs som integrationstest i `HeadlessDropInScenarioIntegrationTest`.
+- Samma scenario körs som integrationstest i `HeadlessDropInScenarioIntegrationTest`, som ett `WORKSHOP`-testkonto.
 **Windows:** visas `å`, `ä` och `ö` fel i konsolen, kör `chcp 65001` först.
  
 # Fristående läge (standalone)
