@@ -142,7 +142,7 @@ wigell-auto-core/
 │       ├── main/java/com/wac/autocore/
 │       │   ├── Main.java                    # Entry point: picks GUI or headless before Spring starts
 │       │   ├── AutoCoreConfig.java          # @SpringBootApplication – scans com.wac.autocore in all modules
-│       │   ├── headless/HeadlessRunner.java # @Profile("headless"): runs DropInScenario as ADMIN without a GUI
+│       │   ├── headless/HeadlessRunner.java # @Profile("headless"): logs in, then runs DropInScenario without a GUI
 │       │   ├── security/AccessEvaluator     # Bean behind @PreAuthorize("@access.can('...')"), asks AccessPolicy
 │       │   ├── logging/CorrelationAspect    # Proxy (AOP): correlation id, operation and user in MDC per service call
 │       │   └── view/                        # JavaFX views, built in code (no FXML)
@@ -290,6 +290,11 @@ Headless mode runs the app's services with Spring and SQLite but without JavaFX.
 (create, add services and mechanic, confirm, start, complete, invoice, pay) followed by two disallowed
 operations, and prints the result with the same error keys and texts as the UI.
 
+Headless mode needs an account. Before the scenario runs, `HeadlessRunner` logs in with the user name and password
+from `AUTOCORE_HEADLESS_USERNAME` and `AUTOCORE_HEADLESS_PASSWORD`, or from `application-local.properties`
+(see [Configuration and secrets](#configuration-and-secrets)). The scenario runs with the rights of that account,
+so use a `WORKSHOP` or `ADMIN` user. A `READ_ONLY` user is denied on the first write.
+
 ```bash
 ./mvnw clean package -DskipTests
 java -jar autocore-app/target/autocore-app-4.0.0.jar --spring.profiles.active=headless
@@ -306,11 +311,13 @@ java -jar autocore-app/target/autocore-app-4.0.0.jar --spring.profiles.active=he
 ```
 
 - `Main` picks the mode before Spring starts, so JavaFX is never loaded.
-- The scenario (`DropInScenario`) lives in core, and `HeadlessRunner` in app runs it as a system `ADMIN`.
+- The scenario (`DropInScenario`) lives in core, and `HeadlessRunner` in app runs it as the logged-in headless account.
 - Runs against a separate database file, `autocore-headless.db`. The regular `autocore.db` is not touched.
 - The report is printed to the console, and the log goes to `logs/autocore-headless.log`.
+- Without credentials, or with wrong ones, it logs a WARN (never the password), prints
+  `Headless login failed. See logs/autocore-headless.log.` and exits with an error code before any operation.
 - Exits with code `0` if all steps went as expected, otherwise with an error code.
-- The same scenario runs as an integration test in `HeadlessDropInScenarioIntegrationTest`.
+- The same scenario runs as an integration test in `HeadlessDropInScenarioIntegrationTest`, as a `WORKSHOP` test account.
 
 **Windows:** if `å`, `ä` and `ö` are displayed incorrectly in the console, run `chcp 65001` first.
 
