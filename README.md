@@ -234,12 +234,31 @@ Users are stored in the `app_user` table (migration V14). Three users are seeded
 The rules live in `AccessPolicy` in core. The services are protected with `@PreAuthorize`, so a denied operation
 gives the same error whether it comes from a button or another entry point.
 
-The login dialog is not built yet. Until then the GUI signs in automatically as `admin`. To try another role,
-pass the user with `--autocore.dev-user`:
+The GUI starts with a login dialog. Sign in with one of the users above to try a role.
 
-```bash
-java -jar autocore-app/target/autocore-app-4.0.0.jar --autocore.dev-user=readonly
+### Configuration and secrets
+
+No secret is stored in the source code. Settings that hold credentials, such as the headless account, are read
+from environment variables or from an optional local file. Both are optional, and the app starts without them.
+
+| Setting | Environment variable | Property |
+|---|---|---|
+| Headless account, user name | `AUTOCORE_HEADLESS_USERNAME` | `autocore.headless.username` |
+| Headless account, password | `AUTOCORE_HEADLESS_PASSWORD` | `autocore.headless.password` |
+
+**Environment variables** (PowerShell, for the current terminal only):
+
+```powershell
+$env:AUTOCORE_HEADLESS_USERNAME = "<user name>"
+$env:AUTOCORE_HEADLESS_PASSWORD = "<password>"
 ```
+
+**Local file:** copy `autocore-app/src/main/resources/application-local.properties.example` to
+`application-local.properties` in the folder you start the app from, and fill in your own values.
+The file is read if it exists. It is listed in `.gitignore` and must never be committed.
+
+A value in the environment overrides the same value in the local file. The passwords of the seeded users are
+stored only as BCrypt hashes in the migration, never as plain text.
 
 ## Logging
 
