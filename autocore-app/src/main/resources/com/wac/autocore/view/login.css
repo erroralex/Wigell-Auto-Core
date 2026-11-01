@@ -1,46 +1,49 @@
 /* ──────────────────────────────────────────────────────────────────────────────
-   Login view
-   A dark brand panel on the left and the form on the right. Only what is
-   specific to the login screen lives here; fields and buttons get their look
-   from style.css and colors from theme.css.
-   Base size 15px for the whole screen; the other sizes are relative to it.
+   login.css
+   Login view only: a dark brand panel on the left, the form on the right.
+   Fields, buttons, brand mark and gears get their base look from style.css.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   1. Layout
    ────────────────────────────────────────────────────────────────────────────── */
 
 .login-view {
     -fx-background-color: -color-bg;
 }
 
-/* Both halves grow equally from a pref width of 0, so they split the window 50/50 */
+/* Both halves grow from a pref width of 0, so they split the window evenly.
+   1.1em makes the login view one step larger than the rest of the app. */
 .login-brand,
 .login-form-panel {
     -fx-pref-width: 0;
     -fx-font-size: 1.1em;
 }
 
-/* ── Brand panel (left) ────────────────────────────────────────────────────── */
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   2. Brand panel
+   ────────────────────────────────────────────────────────────────────────────── */
 
 .login-brand {
     -fx-background-color: -color-sidebar;
-    -fx-padding: 3.73em;                    /* 56px */
     -fx-min-width: 22em;
 }
 
-.login-brand-header {
-    -fx-spacing: 0.8em;
-    -fx-alignment: center-left;
+/* Brand mark, headline and tagline, on top of the gears. */
+.login-brand-content {
+    -fx-padding: 3.73em;
 }
 
-/* Light tile behind the app icon. Also used by the side menu brand mark (SCRUM-306). */
-.brand-tile {
-    -fx-background-color: -color-bg;
-    -fx-background-radius: 0.15em;
-    -fx-padding: 0.27em;
+/* The icon is sized from the name's font size, so both grow together. */
+.login-brand .brand-mark {
+    -fx-spacing: 0.92em;
 }
 
-.login-brand-name {
+.login-brand .brand-name {
     -fx-text-fill: -color-on-primary;
-    -fx-font-size: 1.2em;                   /* 18px */
-    -fx-font-weight: 700;
+    -fx-font-size: 2em;
 }
 
 .login-hero {
@@ -50,27 +53,52 @@
 
 .login-headline {
     -fx-text-fill: -color-on-primary;
-    -fx-font-size: 2.67em;                  /* 40px */
+    -fx-font-size: 2.67em;
     -fx-font-weight: 700;
     -fx-wrap-text: true;
 }
 
 .login-tagline {
     -fx-text-fill: -color-sidebar-text;
-    -fx-font-size: 1.07em;                  /* 16px */
+    -fx-font-size: 1.07em;
     -fx-wrap-text: true;
 }
 
-/* ── Form panel (right) ────────────────────────────────────────────────────── */
+/* ── Gears ─────────────────────────────────────────────────────────────────── */
+
+/* Pushed past the bottom right corner; the panel clips them. */
+.login-gears {
+    -fx-alignment: top-left;
+    -fx-spacing: -4.5em;
+    -fx-translate-x: 220;
+    -fx-translate-y: 240;
+    -fx-opacity: 0.45;
+}
+
+.login-gears .gear-large {
+    -fx-min-width: 36em;  -fx-pref-width: 36em;  -fx-max-width: 36em;
+    -fx-min-height: 36em; -fx-pref-height: 36em; -fx-max-height: 36em;
+}
+
+.login-gears .gear-small {
+    -fx-min-width: 17em;  -fx-pref-width: 17em;  -fx-max-width: 17em;
+    -fx-min-height: 17em; -fx-pref-height: 17em; -fx-max-height: 17em;
+    -fx-rotate: 15;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   3. Form panel
+   ────────────────────────────────────────────────────────────────────────────── */
 
 .login-form-panel {
-    -fx-padding: 3.73em 2.13em;             /* 56px 32px */
+    -fx-padding: 3.73em 2.13em;
     -fx-alignment: center;
 }
 
 .login-form {
-    -fx-spacing: 1.33em;                    /* 20px */
-    -fx-pref-width: 25.3em;                 /* 380px */
+    -fx-spacing: 1.33em;
+    -fx-pref-width: 25.3em;
     -fx-max-width: 25.3em;
 }
 
@@ -79,21 +107,11 @@
 }
 
 .login-title {
-    -fx-font-size: 1.87em;                  /* 28px */
+    -fx-font-size: 1.87em;
     -fx-font-weight: 700;
 }
 
-.login-field {
-    -fx-spacing: 0.4em;
-}
-
-.login-field-label {
-    -fx-text-fill: -color-text-secondary;
-    -fx-font-size: 0.87em;                  /* 13px */
-    -fx-font-weight: 600;
-}
-
-/* Taller fields and button than in the rest of the app (44–46px). */
+/* Taller fields and button than in the rest of the app. */
 .login-form .text-field {
     -fx-padding: 0.6em 0.8em;
 }
@@ -102,11 +120,25 @@
     -fx-padding: 0.73em 1.07em;
 }
 
-/* Shown below the button when the username or password is wrong.
-   min-height keeps the space reserved so the layout does not jump. */
+/* min-height reserves the space, so the form does not move when an error shows. */
 .login-error-text {
     -fx-text-fill: -color-error;
     -fx-font-weight: 600;
     -fx-wrap-text: true;
     -fx-min-height: 1.5em;
+}
+
+/* ── Floating labels ───────────────────────────────────────────────────────── */
+
+/* Sits inside the empty field like a placeholder. */
+.floating-label {
+    -fx-text-fill: -color-text-placeholder;
+    -fx-background-color: transparent;
+    -fx-padding: 0 0.33em;
+}
+
+/* On the field's top border. The background matches the panel, so the label cuts the border line. */
+.floating-label-active {
+    -fx-text-fill: -color-primary;
+    -fx-background-color: -color-bg;
 }
