@@ -228,7 +228,7 @@ Users are stored in the `app_user` table (migration V14). Three users are seeded
 | User | Role | May |
 |---|---|---|
 | `admin` | `ADMIN` | Everything |
-| `workshop` | `WORKSHOP` | Read, and write customers, vehicles, bookings and work orders |
+| `workshop` | `WORKSHOP` | Read, and write customers, vehicles, bookings and work orders, create invoices and register payments |
 | `readonly` | `READ_ONLY` | Read only |
 
 The rules live in `AccessPolicy` in core. The services are protected with `@PreAuthorize`, so a denied operation
@@ -368,8 +368,8 @@ log lines are printed, because no Spring context is started. Logging is configur
 ## Known limits without Spring
 
 - Bean Validation and `@Transactional` have no effect. The domain rules apply fully.
-- Only the work order operations are access checked. `WORKSHOP` lacks `INVOICE_CREATE` in `AccessPolicy`,
-  but can still create the invoice in standalone, since `InvoiceService` has no proxy.
+- Only the work order operations are access checked. The other services run without a Spring proxy, so their
+  `@PreAuthorize` rules have no effect in standalone.
 - Data lives only in memory and is gone when the program exits.
 
 # Git flow: from branch to Pull Request
