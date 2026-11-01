@@ -35,7 +35,8 @@ public class MainLayout extends BorderPane {
                       WorkOrderService workOrderService,
                       ServiceItemService serviceItemService,
                       MechanicService mechanicService,
-                      ServicePackageService servicePackageService) {
+                      ServicePackageService servicePackageService,
+                      Runnable onLogout) {
 
         this.invoiceService = invoiceService;
         this.paymentService = paymentService;
@@ -55,7 +56,7 @@ public class MainLayout extends BorderPane {
                     }
                 });
 
-        this.sideNavigation = new SideNavigation(this);
+        this.sideNavigation = new SideNavigation(this, onLogout);
         this.setLeft(sideNavigation);
     }
 

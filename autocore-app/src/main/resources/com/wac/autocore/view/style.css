@@ -202,12 +202,43 @@
 
 /* At the top of the side menu: some air below before the first menu item. */
 .side-navigation .brand-mark {
-    -fx-padding: 0 0.46em 1.08em 0.46em;
+    -fx-padding: 0 0.46em 0.31em 0.46em;
 }
 
 .side-navigation .brand-name {
     -fx-text-fill: -color-on-primary;
     -fx-font-size: 1.08em;
+}
+
+.side-navigation .nav-user {
+    -fx-text-fill: -color-sidebar-label;
+    -fx-font-size: 0.85em;
+    -fx-font-weight: 600;
+    -fx-padding: 0 0.46em 1.23em 0.46em;   /* air below, before the first menu item */
+}
+
+/* Small sunken button on the dark menu, the same look as the SV/EN switch in SCRUM-307.
+   One background layer with a dark line on top replaces the five-layer button drawing. */
+.side-navigation .nav-logout {
+    -fx-background-color: -color-inset-shadow-strong, -color-sidebar-sunken;
+    -fx-background-insets: 0, 1 0 0 0;
+    -fx-background-radius: 0.15em;
+    -fx-border-color: transparent;
+    -fx-border-radius: 0.15em;
+    -fx-text-fill: -color-sidebar-text;
+    -fx-font-size: 0.85em;
+    -fx-font-weight: 600;
+    -fx-padding: 0.62em 0.92em;
+    -fx-alignment: center;
+}
+
+.side-navigation .nav-logout:hover {
+    -fx-background-color: -color-inset-shadow-strong, -color-sidebar-hover;
+    -fx-text-fill: -color-sidebar-text-active;
+}
+
+.side-navigation .nav-logout:focus-visible {
+    -fx-border-color: -color-sidebar-focus;
 }
 
 /* ──────────────────────────────────────────────────────────────────────────────

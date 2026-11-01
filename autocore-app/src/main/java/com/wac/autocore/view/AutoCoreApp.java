@@ -78,6 +78,12 @@ public class AutoCoreApp extends Application {
         return loginView;
     }
 
+    // Clears the signed-in user and shows a fresh login view.
+    private void logout() {
+        SecurityContextHolder.clearContext();
+        primaryStage.getScene().setRoot(createLoginView());
+    }
+
     private void handleLogin(LoginView loginView) {
         try {
             AuthenticationManager authManager = springContext.getBean(AuthenticationManager.class);
@@ -117,7 +123,8 @@ public class AutoCoreApp extends Application {
                     workOrderService,
                     serviceItemService,
                     mechanicService,
-                    servicePackageService
+                    servicePackageService,
+                    this::logout
             );
 
             currentScene.setRoot(layout);
