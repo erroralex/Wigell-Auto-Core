@@ -695,10 +695,6 @@
     -fx-font-weight: 600;
 }
 
-.side-navigation .nav-button-language {
-    -fx-text-fill: -color-sidebar-label;
-}
-
 /* ── Log out ───────────────────────────────────────────────────────────────── */
 
 .side-navigation .nav-logout {
@@ -720,6 +716,33 @@
 }
 
 .side-navigation .nav-logout:focus-visible {
+    -fx-border-color: -color-sidebar-focus;
+}
+
+/* ── Language switch, dark variant ─────────────────────────────────────────── */
+
+/* Same sunken look as Log out. The selected option is raised in the hover color
+   with a lighter edge, so it does not rely on the fill alone. */
+.side-navigation .nav-language-switch {
+    -fx-background-color: -color-inset-shadow-strong, -color-sidebar-sunken;
+}
+
+.side-navigation .language-option {
+    -fx-text-fill: -color-sidebar-text;
+}
+
+.side-navigation .language-option:hover {
+    -fx-background-color: -color-sidebar;
+    -fx-text-fill: -color-sidebar-text-active;
+}
+
+.side-navigation .language-option:selected {
+    -fx-background-color: -color-sidebar-hover;
+    -fx-border-color: derive(-color-sidebar-hover, 18%);
+    -fx-text-fill: -color-sidebar-text-active;
+}
+
+.side-navigation .language-option:focus-visible {
     -fx-border-color: -color-sidebar-focus;
 }
 
@@ -748,6 +771,50 @@
 /* ──────────────────────────────────────────────────────────────────────────────
    11. Components
    ────────────────────────────────────────────────────────────────────────────── */
+
+/* ── LanguageSwitch ────────────────────────────────────────────────────────── */
+
+/* Light variant, used on the login form. A sunken well with two options;
+   the selected one is raised like a card. The side menu overrides the colors in section 10.
+   Option sizes are relative to their own 0.8em font (base 19px -> 15.2px). */
+.nav-language-switch {
+    -fx-background-color: -color-inset-shadow, -color-sunken;
+    -fx-background-insets: 0, 1 0 0 0;
+    -fx-background-radius: 0.16em;
+    -fx-padding: 0.16em;
+    -fx-spacing: 0.16em;
+}
+
+.language-option {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0.13em;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-border-radius: 0.13em;
+    -fx-text-fill: -color-text-secondary;
+    -fx-font-size: 0.8em;
+    -fx-font-weight: 500;
+    -fx-padding: 0.35em 0.9em;
+    -fx-min-width: 3.4em;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+}
+
+.language-option:hover {
+    -fx-background-color: -color-surface-hover;
+}
+
+.language-option:selected {
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text;
+    -fx-font-weight: 600;
+}
+
+.language-option:focus-visible {
+    -fx-border-color: -color-primary;
+}
 
 /* ── ServiceSelectorBox ────────────────────────────────────────────────────── */
 

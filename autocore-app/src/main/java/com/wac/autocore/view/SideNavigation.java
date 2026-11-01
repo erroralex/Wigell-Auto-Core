@@ -2,6 +2,7 @@ package com.wac.autocore.view;
 
 import com.wac.autocore.view.component.BrandMark;
 import com.wac.autocore.view.component.Gear;
+import com.wac.autocore.view.component.LanguageSwitch;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.binding.Bindings;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * <b>SideNavigation</b>
  * <p>Responsibility: Builds the side menu, one section per {@link NavigationGroup}, marks the active
- * choice, switches view in {@link MainLayout} on click and toggles language.</p>
+ * choice, switches view in {@link MainLayout} on click and holds the language switch.</p>
  */
 public class SideNavigation extends VBox {
 
@@ -50,10 +51,10 @@ public class SideNavigation extends VBox {
                         Collectors.toList()));
         itemsByGroup.forEach((group, items) -> this.getChildren().add(createGroup(group, items)));
 
-        // Pushes the language and log out buttons down to the bottom of the menu
+        // Pushes the gears, language switch and log out button down to the bottom of the menu
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
-        this.getChildren().addAll(spacer, createDecoration(), createLanguageButton(), createLogoutButton(onLogout));
+        this.getChildren().addAll(spacer, createDecoration(), new LanguageSwitch(), createLogoutButton(onLogout));
 
         // Show the first section as selected at startup
         select(NavigationItem.values()[0]);
@@ -113,7 +114,7 @@ public class SideNavigation extends VBox {
         return roleLabel;
     }
 
-    // Last item in the menu, under the language toggle
+    // Last item in the menu, under the language switch
     private Button createLogoutButton(Runnable onLogout) {
         Button btn = new Button();
         btn.textProperty().bind(lang.bind("nav.logout"));
@@ -135,18 +136,7 @@ public class SideNavigation extends VBox {
         return btn;
     }
 
-    private Button createLanguageButton() {
-        Button btn = new Button();
-        btn.textProperty().bind(lang.bind("nav.toggleLanguage"));
-        btn.getStyleClass().addAll("nav-button", "nav-button-language");
-        btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setAlignment(Pos.CENTER_LEFT);
-
-        btn.setOnAction(e -> lang.toggleLanguage());
-        return btn;
-    }
-
-    // Two outline gears above the language toggle
+    // Two outline gears above the language switch
     private HBox createDecoration() {
         HBox gears = new HBox(new Gear("gear-large"), new Gear("gear-small"));
         gears.getStyleClass().add("nav-decoration");
