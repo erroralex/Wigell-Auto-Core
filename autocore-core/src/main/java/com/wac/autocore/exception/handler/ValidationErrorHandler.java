@@ -27,7 +27,7 @@ public class ValidationErrorHandler extends ErrorHandler {
         if (messageKey != null && messageKey.startsWith("{") && messageKey.endsWith("}")) {
             messageKey = messageKey.substring(1, messageKey.length() - 1);
         }
-        if (messageKey != null && messageKey.startsWith("javax.validation.constraints")) {
+        if (messageKey != null && messageKey.startsWith("jakarta.validation.constraints")) {
             messageKey = "error.fields";
         }
 

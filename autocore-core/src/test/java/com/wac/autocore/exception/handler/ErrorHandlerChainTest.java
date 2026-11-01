@@ -123,4 +123,17 @@ public class ErrorHandlerChainTest {
         assertEquals(fromSpring.getMessageKey(), fromProxy.getMessageKey());
         assertFalse(fromProxy.isUnexpected());
     }
+
+    @Test
+    @DisplayName("A built-in Jakarta constraint message falls back to the generic fields key")
+    void builtInJakartaMessageFallsBackToFieldsKey() {
+        Set<ConstraintViolation<?>> violations = new HashSet<>();
+        violations.add(violation("id", "{jakarta.validation.constraints.Positive.message}"));
+
+        ErrorReport report = ErrorHandlerChain.createDefault()
+                .resolve(new ConstraintViolationException(violations));
+
+        assertEquals("error.validation", report.getTitleKey());
+        assertEquals("error.fields", report.getMessageKey());
+    }
 }
