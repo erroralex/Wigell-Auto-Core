@@ -46,12 +46,6 @@
     -fx-font-size: 0.92em;
 }
 
-/* Prominent content text in HomeView and MechanicBookingsView. */
-.text-content {
-    -fx-font-size: 1.7em;
-    -fx-font-weight: 700;
-}
-
 .text-secondary {
     -fx-text-fill: -color-text-secondary;
 }
@@ -789,8 +783,35 @@
 
 /* ── HomeView ──────────────────────────────────────────────────────────────── */
 
+.home-view {
+    -fx-alignment: top-center;
+}
+
+/* Logo, heading and body text in one centered column. */
+.home-content {
+    -fx-max-width: 42em;
+    -fx-spacing: 0.62em;
+    -fx-alignment: top-center;
+    -fx-padding: 1.23em 0 0 0;
+}
+
+/* Lifts the light lower half of the logo's gear off the background. */
 .home-logo {
     -fx-effect: dropshadow(gaussian, -color-shadow-strong, 18, 0.25, 0, 8);
+}
+
+.home-heading {
+    -fx-font-size: 1.6em;
+    -fx-font-weight: 600;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+    -fx-padding: 0.46em 0 0 0;
+}
+
+.home-body {
+    -fx-font-size: 1.08em;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
 }
 
 /* ── InvoiceView ───────────────────────────────────────────────────────────── */
