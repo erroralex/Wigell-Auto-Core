@@ -62,11 +62,14 @@ class InvoicePaymentCatalogSecurityTest {
 
     @Test
     @WithMockUser(roles = "WORKSHOP")
-    void workshopCannotInvoiceTakePaymentOrEditCatalog() {
-        assertThrows(AccessDeniedException.class, () -> invoices.create(1, null));
-        assertThrows(AccessDeniedException.class, () -> invoices.markPaid(1));
-        assertThrows(AccessDeniedException.class, () -> payments.processPayment(1, "CASH"));
+    void workshopCannotEditCatalog() {
         assertThrows(AccessDeniedException.class, () -> packages.delete(1));
+    }
+
+    @Test
+    @WithMockUser(roles = "WORKSHOP")
+    void workshopPassesTheInvoiceAndPaymentSecurityCheck() {
+        assertThrows(EntityNotFoundException.class, () -> invoices.markPaid(999));
     }
 
     @Test

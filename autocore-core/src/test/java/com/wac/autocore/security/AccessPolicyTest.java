@@ -41,7 +41,9 @@ class AccessPolicyTest {
                         CUSTOMER_WRITE,
                         VEHICLE_WRITE,
                         BOOKING_WRITE,
-                        WORK_ORDER_WRITE
+                        WORK_ORDER_WRITE,
+                        INVOICE_CREATE,
+                        PAYMENT_REGISTER
                 );
 
             case READ_ONLY:

@@ -2,17 +2,16 @@ package com.wac.autocore.headless;
 
 import com.wac.autocore.i18n.ResourceBundleTranslator;
 import com.wac.autocore.i18n.Translator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Supplier;
 
 /**
  * <b>HeadlessRunner</b>
@@ -21,6 +20,8 @@ import java.util.function.Supplier;
  * program. Errors are translated the same way as in the UI, and the language key is printed
  * so it can be compared with the UI.</p>
  * <p>The language is chosen with {@code --headless.lang=en} (default is Swedish).</p>
+ * <p>Before the scenario runs, {@link HeadlessAuthenticator} logs in with the configured account. If the
+ * credentials are missing or wrong, the run stops before any operation.</p>
  * <p>If any step did not go as expected, an exception is thrown instead of {@code System.exit}:
  * Spring then closes the context and the process exits with an error code, and tests that load
  * the profile do not kill the test JVM.</p>
@@ -32,11 +33,16 @@ import java.util.function.Supplier;
 @Profile("headless")
 public class HeadlessRunner implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(HeadlessRunner.class);
+
     private final DropInScenario scenario;
+    private final HeadlessAuthenticator authenticator;
     private final String lang;
 
-    public HeadlessRunner(DropInScenario scenario, @Value("${headless.lang:sv}") String lang) {
+    public HeadlessRunner(DropInScenario scenario, HeadlessAuthenticator authenticator,
+                          @Value("${headless.lang:sv}") String lang) {
         this.scenario = scenario;
+        this.authenticator = authenticator;
         this.lang = lang;
     }
 
@@ -48,8 +54,15 @@ public class HeadlessRunner implements CommandLineRunner {
         System.out.println();
         System.out.println("=== Wigell AutoCore - headless drop-in flow ===");
 
-        // Run the scenario as a system ADMIN, so it can do everything without logging in.
-        List<StepResult> results = runAsSystem(scenario::run);
+        // Stops here if the credentials are missing or wrong, so no operation has run.
+        authenticate();
+
+        List<StepResult> results;
+        try {
+            results = scenario.run();
+        } finally {
+            authenticator.clear();
+        }
         printer.print(results);
 
         if (results.stream().anyMatch(result -> !result.isAsExpected())) {
@@ -57,15 +70,14 @@ public class HeadlessRunner implements CommandLineRunner {
         }
     }
 
-    // Runs the scenario as a system ADMIN on this thread only. The context is always cleared afterwards.
-    private List<StepResult> runAsSystem(Supplier<List<StepResult>> action) {
-        SecurityContextHolder.getContext().setAuthentication(
-                UsernamePasswordAuthenticationToken.authenticated("headless", null,
-                        AuthorityUtils.createAuthorityList("ROLE_ADMIN")));
+    // The message never contains the password: it is either "credentials are missing" or "Bad credentials".
+    private void authenticate() {
         try {
-            return action.get();
-        } finally {
-            SecurityContextHolder.clearContext();
+            authenticator.authenticate();
+        } catch (AuthenticationException ex) {
+            log.warn("Headless run stopped before any operation: {}", ex.getMessage());
+            System.err.println("Headless login failed. See logs/autocore-headless.log.");
+            throw new IllegalStateException("Headless authentication failed", ex);
         }
     }
 
