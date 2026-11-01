@@ -47,6 +47,12 @@
             <version>1.5.1</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Bean Validation implementation, so the same constraints apply without Spring. -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
