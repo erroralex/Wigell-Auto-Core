@@ -1,15 +1,16 @@
 package com.wac.autocore.view.dialog;
 
+import com.wac.autocore.exception.handler.ErrorHandlerChain;
+import com.wac.autocore.exception.handler.ErrorReport;
+import com.wac.autocore.i18n.LocalizedError;
 import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.DialogUtil;
 import com.wac.autocore.view.util.ErrorFacade;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
 /**
  * <b>FormDialog</b>
@@ -28,6 +29,8 @@ public abstract class FormDialog<T> extends Dialog<T> {
 
     private final ButtonType saveButtonType = new ButtonType(lang.get("btn.save"), ButtonBar.ButtonData.OK_DONE);
     private final ButtonType cancelButtonType = new ButtonType(lang.get("btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+    protected final Label inlineErrorLabel = new Label();
+
 
     protected abstract String getTitleKey();
 
@@ -48,9 +51,18 @@ public abstract class FormDialog<T> extends Dialog<T> {
     public final void initDialog() {
         applyStyling();
         buildHeader();
+
         Node content = buildContent();
         content.getStyleClass().add("form-content");
-        getDialogPane().setContent(content);
+
+        inlineErrorLabel.getStyleClass().add("text-error");
+        inlineErrorLabel.setWrapText(true);
+        inlineErrorLabel.setVisible(false);
+        inlineErrorLabel.setManaged(false);
+
+        VBox contentBox = new VBox(content, inlineErrorLabel);
+        getDialogPane().setContent(contentBox);
+
         buildButtons();
         installSaveHandler();
         installResultConverter();
@@ -86,10 +98,19 @@ public abstract class FormDialog<T> extends Dialog<T> {
     private void installSaveHandler() {
         getDialogPane().lookupButton(saveButtonType).addEventFilter(
                 ActionEvent.ACTION, event -> {
+                    clearInlineError();
                     try {
                         submit();
                     } catch (RuntimeException e) {
-                        ErrorFacade.handle(e);
+                        ErrorReport report = ErrorHandlerChain.createDefault().resolve(e);
+                        if (report.isUnexpected()) {
+                            ErrorFacade.handle(e);
+                        } else {
+                            LocalizedError localized = ErrorFacade.getLocalizedText(e);
+                            inlineErrorLabel.setText(localized.getMessage());
+                            inlineErrorLabel.setVisible(true);
+                            inlineErrorLabel.setManaged(true);
+                        }
                         event.consume();
                     }
                 });
@@ -103,5 +124,10 @@ public abstract class FormDialog<T> extends Dialog<T> {
                 return null;
             }
         });
+    }
+
+    protected void clearInlineError() {
+        inlineErrorLabel.setVisible(false);
+        inlineErrorLabel.setManaged(false);
     }
 }

@@ -2,10 +2,15 @@ package com.wac.autocore.headless;
 
 import com.wac.autocore.i18n.ResourceBundleTranslator;
 import com.wac.autocore.i18n.Translator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -35,9 +40,21 @@ public class HeadlessRunner implements CommandLineRunner {
     private final DropInScenario scenario;
     private final String lang;
 
-    public HeadlessRunner(DropInScenario scenario, @Value("${headless.lang:sv}") String lang) {
+    private final AuthenticationManager authenticationManager;
+
+    @Value("${AUTOCORE_HEADLESS_USERNAME:}")
+    private String username;
+
+    @Value("${AUTOCORE_HEADLESS_PASSWORD:}")
+    private String password;
+    private static final Logger logger = LoggerFactory.getLogger(HeadlessRunner.class);
+
+
+    public HeadlessRunner(DropInScenario scenario, @Value("${headless.lang:sv}") String lang, AuthenticationManager authenticationManager) {
         this.scenario = scenario;
         this.lang = lang;
+
+        this.authenticationManager = authenticationManager;
     }
 
     @Override
@@ -45,29 +62,41 @@ public class HeadlessRunner implements CommandLineRunner {
         Translator translator = new ResourceBundleTranslator(resolveLocale());
         ScenarioReportPrinter printer = new ScenarioReportPrinter(System.out, translator);
 
+        // Validate credentials exist before doing anything
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            logger.warn("Headless run aborted: AUTOCORE_HEADLESS_USERNAME and AUTOCORE_HEADLESS_PASSWORD are missing.");
+            throw new IllegalStateException("Missing headless credentials");
+        }
+
+        // Authenticate before running the scenario
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (AuthenticationException e) {
+            logger.warn("Headless run aborted: Invalid credentials provided.");
+            throw new IllegalStateException("Invalid headless credentials", e);
+        }
+
         System.out.println();
         System.out.println("=== Wigell AutoCore - headless drop-in flow ===");
 
-        // Run the scenario as a system ADMIN, so it can do everything without logging in.
-        List<StepResult> results = runAsSystem(scenario::run);
-        printer.print(results);
-
-        if (results.stream().anyMatch(result -> !result.isAsExpected())) {
-            throw new IllegalStateException("The headless scenario did not go as expected");
-        }
-    }
-
-    // Runs the scenario as a system ADMIN on this thread only. The context is always cleared afterwards.
-    private List<StepResult> runAsSystem(Supplier<List<StepResult>> action) {
-        SecurityContextHolder.getContext().setAuthentication(
-                UsernamePasswordAuthenticationToken.authenticated("headless", null,
-                        AuthorityUtils.createAuthorityList("ROLE_ADMIN")));
         try {
-            return action.get();
+            // Run the scenario now that we are authenticated
+            List<StepResult> results = scenario.run();
+            printer.print(results);
+
+            if (results.stream().anyMatch(result -> !result.isAsExpected())) {
+                throw new IllegalStateException("The headless scenario did not go as expected");
+            }
         } finally {
+            // Always clear the context afterwards
             SecurityContextHolder.clearContext();
         }
     }
+
+
 
     private Locale resolveLocale() {
         return "en".equalsIgnoreCase(lang) ? ResourceBundleTranslator.ENGLISH : ResourceBundleTranslator.SWEDISH;
