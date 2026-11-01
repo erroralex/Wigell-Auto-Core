@@ -12,11 +12,16 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * <b>SideNavigation</b>
  * <p>Responsibility: Builds the side menu's navigation buttons, marks the active choice, switches view in {@link MainLayout} on click and toggles language.</p>
  */
 public class SideNavigation extends VBox {
+
+    private final Map<NavigationItem, Button> buttons = new EnumMap<>(NavigationItem.class);
 
     private final MainLayout mainLayout;
     private final LanguageManager lang = LanguageManager.getInstance();
@@ -35,6 +40,7 @@ public class SideNavigation extends VBox {
         Button firstButton = null;
         for (NavigationItem item : NavigationItem.values()) {
             Button btn = createNavButton(item);
+            buttons.put(item, btn);
             this.getChildren().add(btn);
             if (firstButton == null) {
                 firstButton = btn;
@@ -113,6 +119,10 @@ public class SideNavigation extends VBox {
     private void select(NavigationItem item, Button btn) {
         mainLayout.show(item);
         setActiveButton(btn);
+    }
+
+    public void select(NavigationItem item) {
+        select(item, buttons.get(item));
     }
 
     // Signed-in role and a Log out button

@@ -1,15 +1,20 @@
 package com.wac.autocore.view;
 
+import com.wac.autocore.view.component.QuickLink;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
+import java.util.function.Consumer;
 
 /**
  * <b>HomeView</b>
@@ -20,6 +25,8 @@ public class HomeView extends BaseView {
 
     private static final Logger log = LoggerFactory.getLogger(HomeView.class);
 
+    private final Consumer<NavigationItem> onNavigate;
+
     private static final String LOGO_PATH = "assets/wigell-auto-logo.png";
 
     private static final double LOGO_TO_FONT_RATIO = 28;
@@ -27,7 +34,9 @@ public class HomeView extends BaseView {
     private final Label headingLabel = new Label();
     private final Label bodyLabel = new Label();
 
-    public HomeView() {
+    public HomeView(Consumer<NavigationItem> onNavigate) {
+        this.onNavigate = onNavigate;
+
         headingLabel.textProperty().bind(lang.bind("home.heading"));
         headingLabel.getStyleClass().add("home-heading");
         headingLabel.setWrapText(true);
@@ -73,11 +82,29 @@ public class HomeView extends BaseView {
     protected void buildHeader() { // Overrides BaseView: no page title on the home view.
     }
 
-    // One centered column with a max width: logo, heading and body text
+    // One centered column with a max width: logo, heading, body text and shortcuts
     @Override
     protected void buildContent() {
-        VBox column = new VBox(createLogo(), headingLabel, bodyLabel);
+        VBox column = new VBox(createLogo(), headingLabel, bodyLabel, createQuickLinks());
         column.getStyleClass().add("home-content");
         getChildren().add(column);
+    }
+
+    // Shortcuts to the most used views. Every role may read all three
+    private HBox createQuickLinks() {
+        HBox links = new HBox(
+                createQuickLink(NavigationItem.BOOKINGS, "home.link.bookings"),
+                createQuickLink(NavigationItem.CUSTOMERS, "home.link.customers"),
+                createQuickLink(NavigationItem.WORK_ORDERS, "home.link.workOrders"));
+        links.getStyleClass().add("quick-links");
+        links.setMaxHeight(Region.USE_PREF_SIZE);
+        return links;
+    }
+
+    // The card's title reuses the menu's text, so the shortcut and the menu always match
+    private QuickLink createQuickLink(NavigationItem item, String textKey) {
+        QuickLink link = new QuickLink(item.getKey(), textKey, () -> onNavigate.accept(item));
+        HBox.setHgrow(link, Priority.ALWAYS);
+        return link;
     }
 }

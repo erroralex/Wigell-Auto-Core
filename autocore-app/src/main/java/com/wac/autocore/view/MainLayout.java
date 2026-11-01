@@ -65,9 +65,13 @@ public class MainLayout extends BorderPane {
         setCenter(createView(item));
     }
 
+    public void navigate(NavigationItem item) {
+        sideNavigation.select(item);
+    }
+
     private Node createView(NavigationItem item) {
         switch (item) {
-            case HOME:              return new HomeView();
+            case HOME:              return new HomeView(this::navigate);
             case CUSTOMERS:         return new CustomerView(customerService);
             case VEHICLES:          return new VehicleView(customerService, vehicleService);
             case BOOKINGS:          return new BookingView(bookingService, servicePackageService, vehicleService, mechanicService, serviceItemService);
