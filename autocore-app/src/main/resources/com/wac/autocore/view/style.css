@@ -609,6 +609,8 @@
 /* ──────────────────────────────────────────────────────────────────────────────
    10. Side menu
    Scoped under .side-navigation to override the shared button rules.
+   Brand and role at the top and language switch and Log out at the bottom are fixed;
+   the sections and the gears in between scroll (.nav-scroll) when the window is low.
    Sections: one .nav-group per NavigationGroup, with a .nav-section label.
    Item states: base, hover, focus, active (also on hover).
    ────────────────────────────────────────────────────────────────────────────── */
@@ -620,6 +622,58 @@
     -fx-border-color: -color-sidebar;
     -fx-border-width: 0 1px 0 0;
     -fx-pref-width: 17em;
+}
+
+/* ── Scroll area ───────────────────────────────────────────────────────────── */
+
+/* Only a frame for the menu: no background, border or focus ring of its own.
+   Same reset as the dialog's content scroll pane in section 8. */
+.side-navigation .nav-scroll,
+.side-navigation .nav-scroll:focused,
+.side-navigation .nav-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+/* The sections used to be direct children of .side-navigation and got its spacing. */
+.side-navigation .nav-menu {
+    -fx-spacing: 0.6em;
+}
+
+/* A thin, quiet scroll bar: no arrows, no track, only a rounded thumb. */
+.side-navigation .nav-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 0.32em;
+    -fx-padding: 0;
+}
+
+.side-navigation .nav-scroll .scroll-bar .track,
+.side-navigation .nav-scroll .scroll-bar .track-background {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.side-navigation .nav-scroll .scroll-bar .increment-button,
+.side-navigation .nav-scroll .scroll-bar .decrement-button,
+.side-navigation .nav-scroll .scroll-bar .increment-arrow,
+.side-navigation .nav-scroll .scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: " ";
+}
+
+/* Same color and faint opacity as the section rule, a little stronger on hover and drag. */
+.side-navigation .nav-scroll .scroll-bar .thumb {
+    -fx-background-color: -color-sidebar-label;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0.16em;
+    -fx-opacity: 0.4;
+}
+
+.side-navigation .nav-scroll .scroll-bar .thumb:hover,
+.side-navigation .nav-scroll .scroll-bar .thumb:pressed {
+    -fx-opacity: 0.7;
 }
 
 /* ── Brand and signed-in user ──────────────────────────────────────────────── */
