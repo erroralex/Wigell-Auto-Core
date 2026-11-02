@@ -1,0 +1,87 @@
+package com.wac.autocore.view;
+
+import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.CustomerService;
+import com.wac.autocore.service.InvoiceService;
+import com.wac.autocore.service.MechanicService;
+import com.wac.autocore.service.PaymentService;
+import com.wac.autocore.service.ServiceItemService;
+import com.wac.autocore.service.ServicePackageService;
+import com.wac.autocore.service.VehicleService;
+import com.wac.autocore.service.WorkOrderService;
+import com.wac.autocore.view.i18n.LanguageManager;
+import javafx.scene.Node;
+import javafx.scene.layout.BorderPane;
+
+public class MainLayout extends BorderPane {
+
+    private final InvoiceService invoiceService;
+    private final PaymentService paymentService;
+    private final BookingService bookingService;
+    private final CustomerService customerService;
+    private final VehicleService vehicleService;
+    private final WorkOrderService workOrderService;
+    private final ServiceItemService serviceItemService;
+    private final MechanicService mechanicService;
+    private final ServicePackageService servicePackageService;
+    private final SideNavigation sideNavigation;
+    private NavigationItem currentItem;
+
+    public MainLayout(InvoiceService invoiceService,
+                      PaymentService paymentService,
+                      BookingService bookingService,
+                      CustomerService customerService,
+                      VehicleService vehicleService,
+                      WorkOrderService workOrderService,
+                      ServiceItemService serviceItemService,
+                      MechanicService mechanicService,
+                      ServicePackageService servicePackageService,
+                      Runnable onLogout) {
+
+        this.invoiceService = invoiceService;
+        this.paymentService = paymentService;
+        this.bookingService = bookingService;
+        this.customerService = customerService;
+        this.vehicleService = vehicleService;
+        this.workOrderService = workOrderService;
+        this.serviceItemService = serviceItemService;
+        this.mechanicService = mechanicService;
+        this.servicePackageService = servicePackageService;
+        this.getStyleClass().add("main-layout");
+
+        LanguageManager.getInstance().localeProperty()
+                .addListener((obs, oldLocale, newLocale) -> {
+                    if (currentItem != null) {
+                        setCenter(createView(currentItem));
+                    }
+                });
+
+        this.sideNavigation = new SideNavigation(this, onLogout);
+        this.setLeft(sideNavigation);
+    }
+
+    public void show(NavigationItem item) {
+        this.currentItem = item;
+        setCenter(createView(item));
+    }
+
+    public void navigate(NavigationItem item) {
+        sideNavigation.select(item);
+    }
+
+    private Node createView(NavigationItem item) {
+        switch (item) {
+            case HOME:              return new HomeView(this::navigate);
+            case CUSTOMERS:         return new CustomerView(customerService);
+            case VEHICLES:          return new VehicleView(customerService, vehicleService);
+            case BOOKINGS:          return new BookingView(bookingService, servicePackageService, vehicleService, mechanicService, serviceItemService);
+            case SERVICE_ITEMS:     return new ServiceItemView(serviceItemService);
+            case SERVICE_PACKAGES:  return new ServicePackageView(servicePackageService, serviceItemService);
+            case MECHANICS:         return new MechanicView(mechanicService, vehicleService);
+            case WORK_ORDERS:       return new WorkOrderView(workOrderService, customerService, vehicleService, bookingService, mechanicService, serviceItemService);
+            case INVOICES:          return new InvoiceView(invoiceService, workOrderService);
+            case PAYMENTS:          return new PaymentView(invoiceService, paymentService);
+            default:                throw new IllegalStateException("Unknown NavigationItem: " + item);
+        }
+    }
+}

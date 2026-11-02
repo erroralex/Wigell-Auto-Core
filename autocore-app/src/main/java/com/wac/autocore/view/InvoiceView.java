@@ -1,0 +1,200 @@
+package com.wac.autocore.view;
+
+import com.wac.autocore.model.Invoice;
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.security.Permission;
+import com.wac.autocore.service.InvoiceService;
+import com.wac.autocore.service.WorkOrderService;
+import com.wac.autocore.view.dialog.CreateInvoiceDialog;
+import com.wac.autocore.view.dialog.InvoiceDetailDialog;
+import com.wac.autocore.view.util.AlertHelper;
+import com.wac.autocore.view.util.DialogUtil;
+import com.wac.autocore.view.util.ViewPermissionUtil;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+
+import java.time.LocalDate;
+
+/**
+ * <b>InvoiceView</b>
+ * <p>Responsibility: Shows and manages invoices in the user interface.</p>
+ */
+public class InvoiceView extends BaseView {
+
+    private final InvoiceService invoiceService;
+    private final WorkOrderService workOrderService;
+
+    private final ObservableList<Invoice> invoiceMasterData = FXCollections.observableArrayList();
+    private final SortedList<Invoice> sortedData = new SortedList<>(invoiceMasterData);
+
+    private final TableView<Invoice> invoiceTable = new TableView<>();
+
+    private final Button btnCreateInvoice = new Button(lang.get("btn.create"));
+    private final Button btnViewDetails = new Button();
+
+    public InvoiceView(InvoiceService invoiceService, WorkOrderService workOrderService) {
+        this.invoiceService = invoiceService;
+        this.workOrderService = workOrderService;
+
+        this.loadMasterData();
+        this.initializeTable();
+
+        this.invoiceTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) ->
+                        btnViewDetails.setDisable(newValue == null)
+        );
+
+        btnViewDetails.setDisable(true);
+
+        initView();
+    }
+
+    @Override
+    protected String getTitleKey() {
+        return "invoice.title";
+    }
+
+    @Override
+    protected void buildContent() {
+        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
+        getChildren().addAll(createButtonBar(), invoiceTable);
+    }
+
+    private void loadMasterData() {
+        this.invoiceMasterData.setAll(invoiceService.findAll());
+    }
+
+    private void refreshData() {
+        this.invoiceMasterData.setAll(invoiceService.findAll());
+    }
+
+    private void initializeTable() {
+
+        TableColumn<Invoice, Integer> idCol = new TableColumn<>(lang.get("table.invoiceId"));
+        idCol.setCellValueFactory(c ->
+                new SimpleIntegerProperty(c.getValue().getId()).asObject()
+        );
+
+        TableColumn<Invoice, Integer> workOrderIdCol = new TableColumn<>(lang.get("table.workOrderId"));
+        workOrderIdCol.setCellValueFactory(c ->
+                new SimpleIntegerProperty(c.getValue().getWorkOrderId()).asObject()
+        );
+
+        TableColumn<Invoice, LocalDate> dateCol = new TableColumn<>(lang.get("table.invoiceDate"));
+        dateCol.setCellValueFactory(c ->
+                new SimpleObjectProperty<>(c.getValue().getInvoiceDate())
+        );
+
+        TableColumn<Invoice, Money> amountCol = new TableColumn<>(lang.get("table.amount"));
+        amountCol.setCellValueFactory(c ->
+                new SimpleObjectProperty<>(c.getValue().getAmount())
+        );
+
+        TableColumn<Invoice, Money> discountCol = new TableColumn<>(lang.get("table.discount"));
+        discountCol.setCellValueFactory(c ->
+                new SimpleObjectProperty<>(c.getValue().getDiscount())
+        );
+
+        TableColumn<Invoice, Money> totalCol = new TableColumn<>(lang.get("table.total"));
+        totalCol.setCellValueFactory(c ->
+                new SimpleObjectProperty<>(c.getValue().getTotalAmount())
+        );
+
+        TableColumn<Invoice, Boolean> paidCol = new TableColumn<>(lang.get("table.paid"));
+        paidCol.setCellValueFactory(c ->
+                new SimpleBooleanProperty(c.getValue().isPaid()).asObject()
+        );
+
+        paidCol.setCellFactory(col -> new TableCell<Invoice, Boolean>() {
+            @Override
+            protected void updateItem(Boolean paid, boolean empty) {
+                super.updateItem(paid, empty);
+                if (empty || paid == null) {
+                    setText(null);
+                } else {
+                    setText(paid ? lang.get("common.yes") : lang.get("common.no"));
+                }
+            }
+        });
+
+        DialogUtil.configureMoneyColumn(amountCol);
+        DialogUtil.configureMoneyColumn(discountCol);
+        DialogUtil.configureMoneyColumn(totalCol);
+
+        this.invoiceTable.getColumns().addAll(
+                idCol, workOrderIdCol, dateCol, amountCol, discountCol, totalCol, paidCol
+        );
+
+        this.invoiceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        this.invoiceTable.setPlaceholder(new Label(lang.get("table.empty")));
+
+        this.sortedData.comparatorProperty().bind(this.invoiceTable.comparatorProperty());
+        this.invoiceTable.setItems(this.sortedData);
+        invoiceTable.setRowFactory(table -> {
+            TableRow<Invoice> row = new TableRow<>();
+
+            row.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.PRIMARY
+                        && event.getClickCount() == 2
+                        && !row.isEmpty()) {
+                    invoiceTable.getSelectionModel().select(row.getItem());
+                    openDetailDialog();
+                }
+            });
+
+            return row;
+        });
+
+    }
+
+    private HBox createButtonBar() {
+        String btnPrimary = "btn-primary";
+
+        btnCreateInvoice.getStyleClass().addAll("btn", btnPrimary);
+        btnCreateInvoice.setOnAction(event -> this.openCreateInvoiceDialog());
+        btnViewDetails.textProperty().bind(lang.bind("invoice.viewDetails"));
+        btnViewDetails.getStyleClass().addAll("btn", btnPrimary);
+        btnViewDetails.setOnAction(event -> this.openDetailDialog());
+
+        ViewPermissionUtil.hideUnless(Permission.INVOICE_CREATE, btnCreateInvoice);
+
+        HBox toolbar = new HBox(btnCreateInvoice, btnViewDetails);
+        toolbar.getStyleClass().add("toolbar");
+        return toolbar;
+    }
+
+    private void openCreateInvoiceDialog() {
+        CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService, invoiceService);
+
+        dialog.showAndWait().ifPresent(result -> {
+            refreshData();
+            AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
+        });
+    }
+
+    private void openDetailDialog() {
+        Invoice selected = invoiceTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        InvoiceDetailDialog dialog = new InvoiceDetailDialog(selected);
+        dialog.showAndWait();
+    }
+
+}

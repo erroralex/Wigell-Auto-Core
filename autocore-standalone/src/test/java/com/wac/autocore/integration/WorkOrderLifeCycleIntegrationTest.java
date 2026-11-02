@@ -1,0 +1,178 @@
+package com.wac.autocore.integration;
+
+import com.wac.autocore.exception.ValidationException;
+import com.wac.autocore.model.*;
+import com.wac.autocore.model.value.Money;
+import com.wac.autocore.service.BookingService;
+import com.wac.autocore.service.WorkOrderScheduleResult;
+import com.wac.autocore.service.WorkOrderService;
+import com.wac.autocore.standalone.repository.InMemoryBookingRepository;
+import com.wac.autocore.standalone.repository.InMemoryMechanicRepository;
+import com.wac.autocore.standalone.repository.InMemoryServiceItemRepository;
+import com.wac.autocore.standalone.repository.InMemoryVehicleRepo;
+import com.wac.autocore.standalone.repository.InMemoryWorkOrderRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * <b>WorkOrderLifecycleInMemoryTest</b>
+ * <p>Responsibility: Proves that WorkOrderService can run a whole lifecycle without Spring and without a database,
+ * by using in-memory implementations of the repositories.</p>
+ */
+class WorkOrderLifeCycleIntegrationTest {
+
+    private InMemoryWorkOrderRepository workOrderRepo;
+    private InMemoryBookingRepository bookingRepo;
+    private InMemoryMechanicRepository mechanicRepo;
+    private InMemoryVehicleRepo vehicleRepo;
+    private InMemoryServiceItemRepository serviceItemRepo;
+
+    private WorkOrderService workOrderService;
+    private BookingService bookingService;
+
+    private WorkOrderEventPublisher recordingPublisher;
+    private List<WorkOrderEvent> publishedEvents;
+
+    private int bookingId;
+    private int mechanicId;
+
+    @BeforeEach
+    void setUp() {
+        publishedEvents = new ArrayList<>();
+        recordingPublisher = publishedEvents::add;
+
+        workOrderRepo = new InMemoryWorkOrderRepository();
+        bookingRepo = new InMemoryBookingRepository(workOrderRepo);
+        mechanicRepo = new InMemoryMechanicRepository();
+        vehicleRepo = new InMemoryVehicleRepo();
+        serviceItemRepo = new InMemoryServiceItemRepository();
+
+        bookingService = new BookingService(bookingRepo, serviceItemRepo, mechanicRepo, vehicleRepo);
+        workOrderService = new WorkOrderService(workOrderRepo, bookingRepo,
+                mechanicRepo, vehicleRepo,
+                serviceItemRepo, bookingService,
+                recordingPublisher);
+
+        // Arrange: Create a mechanic, a service, a vehicle and a booking
+        Mechanic mechanic = mechanicRepo.save(new Mechanic("Test Mechanic", "070-1234567", "General"));
+        mechanicId = mechanic.getId();
+
+        ServiceItem service = serviceItemRepo.save(
+                new ServiceItem("Test Service", "Desc", Money.of("100.00"), 60)
+        );
+
+        Vehicle vehicle = vehicleRepo.save(new Vehicle("ABC123", "Volvo", "V60", 2020, 1));
+
+        Booking booking = bookingRepo.save(new Booking(
+                vehicle.getId(),
+                mechanicId,
+                LocalDate.now(),
+                LocalTime.of(10, 0),
+                "Test",
+                Collections.singletonList(service)
+        ));
+        bookingId = booking.getId();
+    }
+
+    @Test
+    @DisplayName("Full work order lifecycle runs without Spring and without a database")
+    void fullLifecycleRunsInMemory() {
+        // 1. Create work order from booking
+        WorkOrderScheduleResult createResult = workOrderService.createWorkOrder(bookingId);
+        int workOrderId = createResult.getWorkOrder().getId();
+
+        WorkOrder order = workOrder(workOrderId);
+        assertEquals(WorkOrderStatus.DRAFT, order.getStatus());
+        assertEquals(BookingStatus.WORK_ORDER_CREATED, booking(bookingId).getStatus());
+
+        // 2. Confirm order
+        workOrderService.confirmWorkOrder(workOrderId);
+        order = workOrder(workOrderId);
+        assertEquals(WorkOrderStatus.CONFIRMED, order.getStatus());
+        assertEquals(BookingStatus.WORK_ORDER_CREATED, booking(bookingId).getStatus());
+
+        // 3. Start order
+        workOrderService.startWorkOrder(workOrderId);
+        order = workOrder(workOrderId);
+        assertEquals(WorkOrderStatus.IN_PROGRESS, order.getStatus());
+        assertEquals(BookingStatus.IN_PROGRESS, booking(bookingId).getStatus());
+
+        // 4. Complete order
+        workOrderService.completeWorkOrder(workOrderId);
+        order = workOrder(workOrderId);
+        assertEquals(WorkOrderStatus.COMPLETED, order.getStatus());
+        assertEquals(BookingStatus.COMPLETED, booking(bookingId).getStatus());
+
+        // 5. Assert that the correct WorkOrderEventActions are present.
+        assertEquals(List.of(
+                WorkOrderEvent.WorkOrderEventAction.CREATED,
+                WorkOrderEvent.WorkOrderEventAction.CONFIRMED,
+                WorkOrderEvent.WorkOrderEventAction.STARTED,
+                WorkOrderEvent.WorkOrderEventAction.COMPLETED
+        ), publishedEvents.stream().map(WorkOrderEvent::action).toList());
+
+        assertTrue(publishedEvents.stream()
+                .allMatch(event -> event.workOrderId() == workOrderId));
+        assertTrue(publishedEvents.stream()
+                .allMatch(event -> event.occurredAt() != null));
+    }
+
+    // A reopened draft still owns the plan, so the booking should remain locked and follow the order.
+    // Only a cancelled order releases the booking (BOOKED).
+    @Test
+    @DisplayName("Reopening a confirmed work order makes it a draft and keeps its booking locked")
+    void reopenConfirmedOrder_keepsBookingLocked() {
+        int workOrderId = workOrderService.createWorkOrder(bookingId).getWorkOrder().getId();
+        workOrderService.confirmWorkOrder(workOrderId);
+
+        workOrderService.reopenWorkOrder(workOrderId);
+
+        WorkOrder order = workOrder(workOrderId);
+        Booking booking = booking(bookingId);
+        assertEquals(WorkOrderStatus.DRAFT, order.getStatus());
+        assertTrue(order.getStatus().isEditable(), "The reopened draft should be editable");
+        assertEquals(BookingStatus.WORK_ORDER_CREATED, booking.getStatus());
+        assertFalse(booking.getStatus().isEditable(), "The booking should stay locked while the order owns the plan");
+        WorkOrderEvent event = publishedEvents.getFirst();
+        assertEquals(3, publishedEvents.size());
+        assertEquals(order.getId(), event.workOrderId());
+        assertEquals(WorkOrderEvent.WorkOrderEventAction.CREATED, event.action());
+    }
+      
+    @Test
+    @DisplayName("A confirmed work order cannot be edited to lose its mechanic")
+    void confirmedOrder_cannotLoseMechanic() {
+        int workOrderId = workOrderService.createWorkOrder(bookingId).getWorkOrder().getId();
+        workOrderService.confirmWorkOrder(workOrderId);
+        WorkOrder order = workOrder(workOrderId);
+        int serviceItemId = order.getItems().get(0).getServiceItemId();
+
+        assertThrows(ValidationException.class, () -> workOrderService.updateWorkOrder(
+                workOrderId,
+                Collections.singletonList(serviceItemId),
+                null,                                   // the mechanic is removed
+                order.getPlannedDate(),
+                order.getPlannedStartTime(),
+                null, null,
+                Collections.<Integer, Boolean>emptyMap()));
+    }
+
+    private WorkOrder workOrder(int id) {
+        return workOrderRepo.findById(id)
+                .orElseThrow(() -> new AssertionError("Work order " + id + " not found"));
+    }
+
+    private Booking booking(int id) {
+        return bookingRepo.findById(id)
+                .orElseThrow(() -> new AssertionError("Booking " + id + " not found"));
+    }
+}

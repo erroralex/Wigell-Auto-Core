@@ -1,0 +1,26 @@
+package com.wac.autocore.data;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * <b>LocalTimeConverter</b>
+ * <p>Responsibility: Stores LocalTime as TEXT in the correct format, matching V1__initial_schema.sql.</p>
+ */
+@Converter(autoApply = true)
+public class LocalTimeConverter implements AttributeConverter<LocalTime, String> {
+
+    private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
+    @Override
+    public String convertToDatabaseColumn(LocalTime time) {
+        return time == null ? null : time.format(FORMAT);
+    }
+
+    @Override
+    public LocalTime convertToEntityAttribute(String text) {
+        return text == null ? null : LocalTime.parse(text, FORMAT);
+    }
+}

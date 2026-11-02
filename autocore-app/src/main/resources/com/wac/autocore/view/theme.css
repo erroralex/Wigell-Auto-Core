@@ -1,0 +1,74 @@
+/* ──────────────────────────────────────────────────────────────────────────────
+   Theme: Dark side menu
+   The ONLY file with color values. Every other stylesheet refers to these
+   looked-up colors by name, so the theme is changed here and nowhere else.
+   JavaFX looked-up colors hold colors only; sizes, radii and spacing live
+   in style.css.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+.root {
+
+    /* ── Surfaces ─────────────────────────────────────────────────────────── */
+    -color-bg: #E6E3DB;              /* window and content background */
+    -color-surface: #F3F1EB;         /* fields, tables, lists, panels, cards */
+    -color-surface-alt: #E2DED4;     /* buttons, table headers, dialog bars */
+    -color-surface-hover: #D4CFC3;   /* hover on neutral buttons */
+    -color-border: #C9C3B5;          /* borders on controls (buttons, fields) */
+    -color-divider: #D3CEC2;         /* table, card and section dividers */
+    -color-sunken: #DCD8CD;          /* neutral buttons, pressed-in surfaces */
+    -color-disabled-bg: #E8E5DD;     /* disabled controls */
+    -color-field: #E9E6DE;           /* face of text fields, combo boxes, date pickers */
+    -color-row-hover: #ECE9E2;       /* hover on table rows and list cells */
+
+    /* ── Text ─────────────────────────────────────────────────────────────── */
+    -color-text: #23251F;
+    -color-text-secondary: #4A4D44;
+    -color-muted: #5E6157;           /* captions, section labels */
+    -color-text-placeholder: #63665B;
+    -color-disabled-text: #9A9A8E;   /* disabled controls (exempt from contrast rules) */
+
+    /* ── Brand ────────────────────────────────────────────────────────────── */
+    -color-primary: #4F5D4B;         /* primary buttons, selection */
+    -color-primary-hover: #45523F;   /* darker on hover = pressed feel */
+    -color-primary-faint: rgba(79, 93, 75, 0.20);
+    -color-on-primary: #F4F2EC;      /* text on primary */
+    -color-brand-light: #82916E;     /* logo green – focus ring on dark surfaces */
+    -color-primary-border: #3F4B3C;  /* border around primary buttons */
+
+    /* ── Status ───────────────────────────────────────────────────────────── */
+    -color-error: #9A3B2E;
+    -color-error-bg: #F2E3DF;        /* inline error area in dialogs */
+    -color-warning: #8A5A12;         /* .text-warning */
+    -color-success: #3F6B47;
+    -color-on-error: #FBF4F2;        /* text on danger buttons */
+    -color-error-border: #D9B4AC;    /* border of the inline error area in dialogs */
+
+    /* ── Side menu ────────────────────────────────────────────────────────── */
+    -color-sidebar: #3F4B3C;             /* menu background */
+    -color-sidebar-sunken: #333D30;      /* active item */
+    -color-sidebar-hover: #47543F;
+    -color-sidebar-text: #DDE2D6;        /* menu items */
+    -color-sidebar-text-active: #FFFFFF; /* active and hovered item */
+    -color-sidebar-label: #B8C1AF;       /* section labels in the menu */
+    -color-sidebar-focus: #A3B091;       /* focus ring on the dark menu */
+
+    /* ── Effects ──────────────────────────────────────────────────────────── */
+    -color-shadow-strong: rgba(0, 0, 0, 0.45);
+    -color-shadow-soft: rgba(0, 0, 0, 0.10);
+    -color-inset-shadow: rgba(35, 37, 31, 0.16);      /* top inner shadow, light buttons */
+    -color-inset-shadow-strong: rgba(0, 0, 0, 0.35);  /* top inner shadow, dark buttons and pressed */
+    -color-highlight: rgba(255, 255, 255, 0.55);      /* bottom light edge, light buttons */
+    -color-highlight-dark: rgba(255, 255, 255, 0.08); /* bottom light edge, dark buttons */
+    -color-focus-glow: rgba(130, 145, 110, 0.45);     /* focus glow around fields (logo green) */
+    -color-error-glow: rgba(154, 59, 46, 0.18);       /* error glow around invalid fields */
+
+    /* ── Modena hooks ─────────────────────────────────────────────────────── */
+    -fx-base: -color-bg;
+    -fx-control-inner-background: -color-surface;
+    -fx-accent: -color-primary;
+    -fx-focus-color: -color-primary;
+    -fx-faint-focus-color: -color-primary-faint;
+
+    -fx-background-color: -color-bg;
+    -fx-text-fill: -color-text;
+}

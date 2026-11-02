@@ -1,211 +1,91 @@
 # Styleguide för Wigell Auto Core
 
 ## Syfte
-Denna styleguide beskriver ett gemensamt visuellt språk för JavaFX-applikationen och ska användas konsekvent i hela gränssnittet.
+Gemensamt visuellt språk för JavaFX-applikationen: mörk sidomeny, ljus innehållsyta,
+raka hörn och intryckta kontroller. Färger från Wigell Autos logga.
 
-### Grundprinciper
-- Mörkt, rent och tydligt gränssnitt.
-- Få färger med tydliga kontraster.
-- Samma spacing, typografi och komponentstilar överallt.
-- Namnge CSS-klasser konsekvent och beskrivande.
+## Filer och ansvar
 
-### Temat utgår från:
-- mörk basyta
-- enkel sidonavigation
-- tydlig aktiv markering för vald vy
+| Fil | Ansvar |
+|---|---|
+| `theme.css` | **Enda** filen med färgvärden. Alla färger som looked-up colors i `.root`, plus kopplingen till Modenas variabler. |
+| `style.css` | Typografi, layout och alla komponenter. Refererar bara till färgnamn. |
+| `login.css` | Det som är unikt för inloggningen. |
+| `Stylesheets.java` | Enda stället som laddar stilmallarna (scen, inloggning, dialoger). Ny fil läggs till här. |
 
-### Klasser i kodbasen:
-- `main-layout`
-- `side_navigation`
-- `nav-button`
-- `nav-button-active`
+## Regler
+- Inga hex- eller rgba-värden utanför `theme.css`.
+- Inga `setStyle` i vyer. Enda undantaget är Ctrl+scroll-zoomen i `AutoCoreApp` och `DialogUtil`.
+- Inga avstånd i Java (`setSpacing`, `setPadding`, `new HBox(15, …)`). Använd en klass.
+- Alla storlekar i `em`, så att de följer zoomen. Basen är 14px (`.root` och `AutoCoreApp.BASE_FONT_SIZE`).
+- Klassnamn i kebab-case.
+- Lägen (hover, fokus, fel, inaktiverad) byter bara färgnamn, aldrig hur kontrollen ritas.
 
+## Färger
+
+| Namn | Värde | Används till |
+|---|---|---|
+| `-color-bg` | `#E6E3DB` | Fönster- och innehållsbakgrund |
+| `-color-surface` | `#F3F1EB` | Tabeller, listor, dialoger, kort |
+| `-color-surface-alt` | `#E2DED4` | Tabellhuvud, dialogens knappfält |
+| `-color-field` | `#E9E6DE` | Textfält, comboboxar, datumväljare |
+| `-color-sunken` | `#DCD8CD` | Neutrala knappar |
+| `-color-border` / `-color-divider` | `#C9C3B5` / `#D3CEC2` | Ramar på kontroller / skiljelinjer |
+| `-color-text` / `-color-text-secondary` / `-color-muted` | `#23251F` / `#4A4D44` / `#5E6157` | Text i tre nivåer |
+| `-color-primary` | `#4F5D4B` | Primärknapp, markering, fokus |
+| `-color-error` / `-color-warning` / `-color-success` | `#9A3B2E` / `#8A5A12` / `#3F6B47` | Status |
+| `-color-sidebar` | `#3F4B3C` | Sidomeny, dialogrubrik, inloggningens vänstra panel |
+| `-color-brand-light` | `#82916E` | Logans gröna. Endast dekoration. |
+
+Se `theme.css` för alla färger, inklusive hover-, skugg- och glödfärger.
 
 ## Typografi
+Basstorlek 19px. Inloggningen 19px.
 
-### Font family
-- Standard: `System`, `Segoe UI`, eller annan läsbar sans-serif som finns tillgänglig i JavaFX.
-- Undvik dekorativa typsnitt (rent och enkelt).
+| Klass | Storlek | Vikt | Används till |
+|---|---|---|---|
+| `.text-title` | 2.15em | 700 | Sidrubrik i varje vy |
+| `.text-header` | 1.38em | 600 | Sektionsrubrik i en vy, dialogrubrik |
+| `.text-body` | 1em | 400 | Brödtext |
+| `.text-small` | 0.92em | – | Summeringar, hjälptext |
+| `.text-secondary` / `.text-muted` | – | – | Textfärg, kombineras med en storlek |
+| `.text-error` / `.text-warning` | – | 700 / 600 | Fel och varningar |
 
-### Storlekar
-- Base text: `13px`
-- Small text: `12px`
-- Large text: `16px`
-- Section heading: `18px`
-- Page heading: `22px`
-- Display heading: `28px`
+## Avstånd
+xs 0.31em · sm 0.62em · md 0.92em · lg 1.23em · xl 1.54em · xxl 1.85em
 
-### Vikt
-- Normal text: `400`
-- Emphasized text: `600`
-- Headings: `700`
+| Klass | Används till |
+|---|---|
+| `.content-area` | Varje vy (`BaseView`): padding och avstånd mellan delar |
+| `.toolbar` | Knappraden under en vys rubrik |
+| `.view-header` | Rubrik med knapp till höger |
+| `.section` / `.section-stack` | Sektion med rubrik och tabell / kolumn av sektioner |
+| `.inline-row` | Kontroll med en knapp bredvid |
+| `.form-content` / `.form-grid` | Innehåll och rutnät i formulärdialoger (sätts av `FormDialog`) |
 
-### Rubriknivåer
-- `h1`: övergripande sidrubrik
-- `h2`: sektionstitel
-- `h3`: kortare underrubrik
-- `text-muted`: sekundär eller stödjande text
-
-## Färgsystem
-
-### Basfärger
-- **Background:** `#212121`
-- **Surface:** `#2B2B2B`
-- **Surface elevated:** `#333333`
-- **Border/divider:** `#3D3D3D`
-
-### Textfärger
-- **Primary text:** `#F2F2F2`
-- **Secondary text:** `#B5B5B5`
-- **Disabled text:** `#7A7A7A`
-
-### Accentfärger
-- **Primary accent:** `#4A90E2`
-- **Secondary accent:** `#5C6BC0`
-- **Hover accent:** `#66A3FF`
-
-### Statusfärger
-- **Success:** `#4CAF50`
-- **Warning:** `#F2C94C`
-- **Error:** `#E57373`
-
-### Användningsprincip
-- Bakgrunder ska vara mörka och neutrala.
-- Accentfärger ska användas sparsamt för fokus, val och primära handlingar.
-- Statusfärger ska endast användas för tydlig semantik.
-
-## Spacing
-
-Sidonavigation använder `padding: 20px` och `spacing: 8px`
-Detta utgör grunden för vår återanvändbara layoutspacing;
-
-- `4px`
-- `8px`
-- `12px`
-- `16px`
-- `20px`
-- `24px`
-- `32px`
-
-### Rekommenderad användning
-- Tight intern spacing: `4-8px`
-- Standard mellan element: `12-16px`
-- Mellan sektioner: `20-24px`
-- Yttre sidpadding: `20-32px`
-
-
-## Kontrollers
+## Komponenter
 
 ### Knappar
-- Standardhöjd: `32-36px`
-- Rundade hörn: `6-8px`
-- Primär knapp ska använda accentfärg
-- Sekundär knapp ska använda neutral surface-färg
+| Klass | Används till |
+|---|---|
+| (ingen) / `.btn-secondary` | Neutral handling |
+| `.btn-primary` | Vyns huvudhandling, högst en eller två per vy |
+| `.btn-danger` | Ta bort, avboka, avbryt order |
 
-### Input
-- Bakgrund: mörk surface
-- Tydlig border
-- Fokus ska markeras tydligt
-- Text ska ha hög kontrast
+Standardknappen i en dialog (OK, Spara) blir primär automatiskt.
 
-### Labels
-- Vanlig label: primary text
-- Hjälptext: secondary text
-- Felmeddelande: error-färg
+### Fält, listor och tabeller
+Fält har en intryckt yta, grön ram och glöd vid fokus, och röd ram vid fel (`.input-error`).
+Tabeller har platta rader med skiljelinje, svag hover och grön markerad rad.
+Ingen justering i CSS på tabellceller: beloppskolumner högerjusteras i Java.
 
-### Tables
-- Mörk bakgrund
-- Tydlig radseparation eller subtil hover
-- Selected row ska markeras med accent eller höjd surface
+### Dialoger
+Mörkgrön rubrik (när rubriktext finns), ljust innehåll och beige knappfält.
+Felruta överst i formulär: `.form-error`.
 
-### Dialogs
-- Dialogyta ska använda elevated surface
-- Tydlig rubrik överst
-- Primär handling tydligt markerad
+### Sidomeny
+Mörk bakgrund. Aktiv rad är intryckt (`-color-sidebar-sunken`). Fokusring endast vid tangentbordsnavigering (`:focus-visible`).
 
-### Cards
-- Card-yta ska använda `surface` eller `surface elevated`
-- Padding: `16-24px`
-- Border eller subtil shadow för separation
-
-## Interaktion
-
-### Hover
-- Förstärk yta eller accent svagt
-- Undvik kraftiga färgskiften
-
-### Pressed
-- Mörkare eller mer komprimerad känsla
-
-### Focused
-- Tydlig fokusram i accentfärg
-- Fokus ska alltid vara synligt på tangentbordsstyrda kontroller
-
-### Disabled
-- Reducerad opacitet eller dämpad textfärg
-- Ingen stark accent
-
-### Selected
-- Använd accentfärg eller tydligt markerad surface
-- Särskilt viktig för navigation och tabellrader
-
-## Återanvändbara utility-/theme-klasser
-
-### Layoutklasser
-- `.main-layout` - huvudskal för appen
-- `.side-navigation` - sidopanel för navigation
-- `.content-area` - huvudytan för visning av vyer
-
-### Typografiklasser
-- `.text-muted`
-- `.text-secondary`
-- `.text-title`
-- `.text-section`
-- `.text-caption`
-
-### Ytklasser
-- `.surface`
-- `.surface-elevated`
-- `.surface-muted`
-- `.card`
-
-### Knappklasser
-- `.btn`
-- `.btn-primary`
-- `.btn-secondary`
-- `.btn-danger`
-- `.btn-ghost`
-
-### Formklasser
-- `.input`
-- `.input-error`
-- `.label`
-- `.helper-text`
-
-### Statusklasser
-- `.state-success`
-- `.state-warning`
-- `.state-error`
-- `.state-info`
-
-## Konsekvent namngivning
-
-### Rekommenderat format
-- Använd `kebab-case` i CSS-klasser.
-- Håll samma språk och stil i hela filen.
-
-### Rekommenderat mönster
-- Layout: `main-layout`, `side-navigation`, `content-area`
-- Komponent: `nav-button`, `primary-button`, `form-input`
-- State: `is-active`, `is-disabled`, `is-selected`
-- Utility: `text-muted`, `surface-elevated`
-
-För konsekvent namngivning, undvik blandade format som `side_navigation` och `nav-button`.
-Nya klasser bör följa samma konsekventa stil med kebab-case.
-
-## Gemensam stil för appen
-För en gemensam styleguide i hela JavaFX-applikationen delar projektet upp styling i:
-1. **Tema/färger** i en central CSS-fil
-2. **Layoutklasser** för struktur
-3. **Komponentklasser** för knappar, inputs och kort
-4. **State-klasser** för aktiv, disabled, selected och hover
+## Kontrast
+All text klarar minst 4.5:1 och fokusmarkeringar minst 3:1 mot sin bakgrund.
+Inaktiverade kontroller är undantagna. Kontrollera nya färgkombinationer innan de används.
