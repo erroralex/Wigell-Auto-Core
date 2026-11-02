@@ -1,6 +1,7 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.Invoice;
+import com.wac.autocore.service.PaymentService;
 import com.wac.autocore.view.util.StringConverterUtil;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.scene.Node;
@@ -18,11 +19,15 @@ import javafx.scene.layout.VBox;
 public class ProcessPaymentDialog extends FormDialog<ProcessPaymentDialog.Result> {
 
     private final Invoice invoice;
+    private final PaymentService paymentService;
 
     private final ComboBox<String> paymentTypeSelection = new ComboBox<>();
 
-    public ProcessPaymentDialog(Invoice invoice) {
+
+
+    public ProcessPaymentDialog(Invoice invoice, PaymentService paymentService) {
         this.invoice = invoice;
+        this.paymentService = paymentService;
 
         // The values are stored as they are (CARD/SWISH/CASH), only the display is translated
         paymentTypeSelection.getItems().addAll("CARD", "SWISH", "CASH");
@@ -60,6 +65,7 @@ public class ProcessPaymentDialog extends FormDialog<ProcessPaymentDialog.Result
 
     @Override
     protected void submit() {
+        paymentService.processPayment(invoice.getId(), paymentTypeSelection.getValue());
     }
 
     @Override

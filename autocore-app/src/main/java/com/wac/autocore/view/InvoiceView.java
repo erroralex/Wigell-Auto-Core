@@ -9,7 +9,6 @@ import com.wac.autocore.view.dialog.CreateInvoiceDialog;
 import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
 import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;

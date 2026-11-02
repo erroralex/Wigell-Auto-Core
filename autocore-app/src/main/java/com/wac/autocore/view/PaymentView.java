@@ -183,22 +183,16 @@ public class PaymentView extends BaseView {
     }
 
     private void openProcessPaymentDialog() {
-
         Invoice selected = this.invoiceTable.getSelectionModel().getSelectedItem();
 
         if (selected == null)
             return;
 
-        ProcessPaymentDialog dialog = new ProcessPaymentDialog(selected);
+        ProcessPaymentDialog dialog = new ProcessPaymentDialog(selected, paymentService);
 
         dialog.showAndWait().ifPresent(result -> {
-            try {
-                paymentService.processPayment(result.getInvoiceId(), result.getPaymentType());
-                refreshData();
-                AlertHelper.showInfo(lang.get("payment.registered"), lang.get("payment.registeredMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-            }
+            refreshData();
+            AlertHelper.showInfo(lang.get("payment.registered"), lang.get("payment.registeredMsg"));
         });
     }
 }
