@@ -166,6 +166,7 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
         datePicker.valueProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
         startTimeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
         mechanicComboBox.valueProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        serviceSelector.emptyProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
     }
 
     // Hidden until a copied booking has price changes
