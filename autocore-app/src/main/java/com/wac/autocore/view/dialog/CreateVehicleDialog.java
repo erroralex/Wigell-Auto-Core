@@ -142,6 +142,11 @@ public class CreateVehicleDialog extends FormDialog<Vehicle> {
                     .findFirst()
                     .ifPresent(customerComboBox::setValue);
         }
+
+        registrationNumberField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        makeField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        modelField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        yearField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
     }
 
     private void resetFieldErrorState() {

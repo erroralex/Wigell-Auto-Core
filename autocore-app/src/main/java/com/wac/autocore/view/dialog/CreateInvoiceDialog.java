@@ -1,6 +1,7 @@
 package com.wac.autocore.view.dialog;
 
 import com.wac.autocore.model.WorkOrder;
+import com.wac.autocore.service.InvoiceService;
 import com.wac.autocore.service.WorkOrderService;
 import com.wac.autocore.view.util.StringConverterUtil;
 import javafx.beans.value.ObservableBooleanValue;
@@ -21,13 +22,17 @@ public class CreateInvoiceDialog extends FormDialog<CreateInvoiceDialog.Result> 
 
     private final ComboBox<WorkOrder> workOrderSelection = new ComboBox<>();
     private final TextField discountCodeInput = new TextField();
+    private final InvoiceService invoiceService;
 
-    public CreateInvoiceDialog(WorkOrderService workOrderService) {
+
+    public CreateInvoiceDialog(WorkOrderService workOrderService, InvoiceService invoiceService) {
         workOrderSelection.getItems().addAll(workOrderService.findCompletedNotInvoiced());
 
         workOrderSelection.setConverter(StringConverterUtil.display(workOrder -> "#" + workOrder.getId()));
 
         discountCodeInput.setPromptText(lang.get("invoice.discountPrompt"));
+
+        this.invoiceService = invoiceService;
 
         initDialog();
     }
@@ -60,6 +65,7 @@ public class CreateInvoiceDialog extends FormDialog<CreateInvoiceDialog.Result> 
 
     @Override
     protected void submit() {
+        invoiceService.create(workOrderSelection.getValue().getId(), discountCodeInput.getText());
     }
 
     @Override

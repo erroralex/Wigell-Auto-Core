@@ -9,7 +9,6 @@ import com.wac.autocore.view.dialog.CreateInvoiceDialog;
 import com.wac.autocore.view.dialog.InvoiceDetailDialog;
 import com.wac.autocore.view.util.AlertHelper;
 import com.wac.autocore.view.util.DialogUtil;
-import com.wac.autocore.view.util.ErrorFacade;
 import com.wac.autocore.view.util.ViewPermissionUtil;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -179,16 +178,11 @@ public class InvoiceView extends BaseView {
     }
 
     private void openCreateInvoiceDialog() {
-        CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService);
+        CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService, invoiceService);
 
         dialog.showAndWait().ifPresent(result -> {
-            try {
-                invoiceService.create(result.getWorkOrderId(), result.getDiscountCode());
-                refreshData();
-                AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-            }
+            refreshData();
+            AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
         });
     }
 

@@ -78,6 +78,10 @@ public class CreateCustomerDialog extends FormDialog<Customer> {
         nameField.getStyleClass().add("input");
         phoneField.getStyleClass().add("input");
         emailField.getStyleClass().add("input");
+
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        phoneField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        emailField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
     }
 
     private String getTrimmedValue(TextField field) {

@@ -10,6 +10,7 @@ import com.wac.autocore.logging.LogKeys;
 import com.wac.autocore.logging.SafeLog;
 import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.application.Platform;
+import javafx.scene.control.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -36,6 +37,7 @@ public final class ErrorFacade {
 
     private static final Logger log = LoggerFactory.getLogger(ErrorFacade.class);
     private static final ErrorHandler CHAIN = ErrorHandlerChain.createDefault();
+
 
     private static final ErrorReportFormatter FORMATTER =
             new ErrorReportFormatter(LanguageManager.getInstance());
@@ -116,5 +118,15 @@ public final class ErrorFacade {
                 MDC.put(LogKeys.CORR_ID, previous);
             }
         }
+    }
+
+    public static LocalizedError getLocalizedText(Throwable error) {
+        if (error == null) {
+            return null;
+        }
+        final ErrorReport report = CHAIN.resolve(error);
+        final String reference = resolveReference(error);
+        logReport(report, reference);
+        return FORMATTER.format(report);
     }
 }
