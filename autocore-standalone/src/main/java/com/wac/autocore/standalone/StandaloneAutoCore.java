@@ -24,6 +24,7 @@ import com.wac.autocore.standalone.repository.InMemoryServiceItemRepository;
 import com.wac.autocore.standalone.repository.InMemoryVehicleRepo;
 import com.wac.autocore.standalone.repository.InMemoryWorkOrderRepository;
 import com.wac.autocore.standalone.security.WorkOrderLifecycleAccessProxy;
+import com.wac.autocore.standalone.validation.ValidatingProxy;
 
 import java.util.List;
 import java.util.Objects;
@@ -79,7 +80,9 @@ public final class StandaloneAutoCore {
         this.mechanicService = new MechanicService(mechanicRepo, bookingRepo, workOrderRepo);
         this.serviceItemService = new ServiceItemService(serviceItemRepo);
 
-        this.workOrderLifecycle = new WorkOrderLifecycleAccessProxy(workOrderService, role);
+        // Validation first, then access check outside it: the same order as Spring in autocore-app
+        WorkOrderLifecycle validated = ValidatingProxy.of(WorkOrderLifecycle.class, workOrderService);
+        this.workOrderLifecycle = new WorkOrderLifecycleAccessProxy(validated, role);
     }
 
     private DropInScenario dropInScenario() {

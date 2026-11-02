@@ -20,7 +20,9 @@ language keys and texts.
 - [Structure](#structure)
 - [Building and running](#building-and-running)
   - [The GUI](#the-gui)
+  - [Using the GUI](#using-the-gui)
   - [Users and roles](#users-and-roles)
+  - [Configuration and secrets](#configuration-and-secrets)
   - [Logging](#logging)
 - [Running without a UI (headless)](#running-without-a-ui-headless)
 - [Standalone mode](#standalone-mode)
@@ -142,36 +144,49 @@ wigell-auto-core/
 │       ├── main/java/com/wac/autocore/
 │       │   ├── Main.java                    # Entry point: picks GUI or headless before Spring starts
 │       │   ├── AutoCoreConfig.java          # @SpringBootApplication – scans com.wac.autocore in all modules
-│       │   ├── headless/HeadlessRunner.java # @Profile("headless"): logs in, then runs DropInScenario without a GUI
+│       │   ├── headless/                    # @Profile("headless"): signs in, then runs DropInScenario without a GUI
+│       │   │   └── HeadlessRunner  HeadlessAuthenticator  HeadlessProperties
 │       │   ├── security/AccessEvaluator     # Bean behind @PreAuthorize("@access.can('...')"), asks AccessPolicy
-│       │   ├── logging/CorrelationAspect    # Proxy (AOP): correlation id, operation and user in MDC per service call
+│       │   ├── logging/
+│       │   │   ├── CorrelationAspect        # Proxy (AOP): correlation id, operation and user in MDC per service call
+│       │   │   ├── SecurityEventLogger      # Logs sign-in success/failure and denied access (never the password)
+│       │   │   └── WorkOrderEventLogger     # Observer: logs the lifecycle events published by WorkOrderService
 │       │   └── view/                        # JavaFX views, built in code (no FXML)
-│       │       ├── AutoCoreApp              # Application: starts/stops Spring, signs in, builds the scene
-│       │       ├── MainLayout  SideNavigation  NavigationItem   # Shell and side menu
+│       │       ├── AutoCoreApp              # Application: starts/stops Spring, signs in and out, builds the scene
+│       │       ├── LoginView                # Sign-in screen with brand mark and gear decoration
+│       │       ├── MainLayout  SideNavigation   # Shell and dark side menu
+│       │       ├── NavigationItem  NavigationGroup  # Menu items and the sections they are grouped under
 │       │       ├── BaseView                 # Template Method: common frame for all views
 │       │       ├── HomeView  CustomerView  VehicleView  BookingView  MechanicView  MechanicBookingsView
 │       │       ├── ServiceItemView  ServicePackageView  WorkOrderView  InvoiceView  PaymentView
 │       │       ├── component/               # Reusable controls
-│       │       │   └── CustomerVehiclePicker  MultiSelectListView  ServiceSelectorBox  ServicePackageSelectorBox
+│       │       │   ├── CustomerVehiclePicker  MultiSelectListView  ServiceSelectorBox  ServicePackageSelectorBox
+│       │       │   └── BrandMark  Gear  LanguageSwitch  QuickLink   # Side menu, login and home view
 │       │       ├── dialog/                  # Create*/Edit* dialogs, InvoiceDetail, ProcessPayment, QuickDraftWorkOrder etc.
 │       │       ├── i18n/LanguageManager     # Language switching sv/en in the GUI, built on core's Translator
 │       │       └── util/
 │       │           ├── ErrorFacade          # Facade: a single entry point for showing errors via the handler chain
 │       │           ├── GlobalExceptionHandler   # Catches unhandled exceptions and passes them to ErrorFacade
+│       │           ├── ViewPermissionUtil   # Hides controls the signed-in role may not use (the services still decide)
+│       │           ├── ZoomManager          # One zoom level for every window: Ctrl+scroll, Ctrl+plus/minus/0
+│       │           ├── Stylesheets          # The single place that lists the theme's CSS files and their order
 │       │           └── AlertHelper  DialogUtil  StringConverterUtil
 │       ├── main/resources/
 │       │   ├── application.properties           # SQLite (autocore.db), foreign_keys=true, ddl-auto=none, Flyway
 │       │   ├── application-headless.properties  # Separate database file autocore-headless.db
+│       │   ├── application-local.properties.example  # Template for local credentials (the real file is git-ignored)
 │       │   ├── logback-spring.xml               # One logging profile per run mode, see Logging
 │       │   ├── db/migration/                    # Flyway owns the schema, V1–V14 (+ .conf where the migration runs without a transaction)
-│       │   └── com/wac/autocore/view/           # style.css and assets/ (logo, icon)
+│       │   └── com/wac/autocore/view/           # theme.css, style.css, login.css and assets/ (logo, icon)
 │       └── test/
 │           ├── java/com/wac/autocore/
 │           │   ├── integration/             # Against a real SQLite database built by Flyway: migrations, table rebuilds,
 │           │   │                            # price history, inheritance, the headless scenario, preservation of 3.5 data
-│           │   ├── security/                # @PreAuthorize per role on the services
-│           │   ├── service/                 # Validation via Spring, the language files, LanguageManager
-│           │   └── view/i18n/               # The same error texts in GUI and headless
+│           │   ├── security/                # @PreAuthorize per role on the services, unauthenticated vs denied
+│           │   ├── headless/                # HeadlessRunner stops before any operation without credentials
+│           │   ├── logging/                 # SecurityEventLogger
+│           │   ├── service/                 # Validation via Spring, correlation aspect, the language files, LanguageManager
+│           │   └── view/                    # The same error texts in GUI and headless, Stylesheets, ViewPermissionUtil
 │           └── resources/
 │               ├── application-test.properties   # ddl-auto=validate
 │               └── fixtures/autocore-3.5.db      # Copy of a WAC 3.5 database for the data test
@@ -179,7 +194,7 @@ wigell-auto-core/
 └── autocore-standalone/                 # Standalone mode without Spring, GUI and database
     ├── pom.xml                          # Depends only on autocore-core. maven-shade-plugin builds autocore-standalone.jar
     └── src/
-        ├── main/resources/logback.xml       # Logging for the standalone jar (WARN to the console)
+        ├── main/resources/logback.xml       # Logging for the standalone jar: com.wac at INFO, everything else WARN, console
         ├── main/java/com/wac/autocore/standalone/
         │   ├── StandaloneMain               # Entry point: reads --role and --lang, prints the report, sets the exit code
         │   ├── StandaloneAutoCore           # Composition root: repositories, seed data, services and proxy with new
@@ -192,8 +207,9 @@ wigell-auto-core/
             ├── architecture/StandaloneArchitectureTest  # No Spring, JavaFX or views
             └── com/wac/autocore/
                 ├── integration/WorkOrderLifeCycleIntegrationTest  # The whole lifecycle without Spring and database
-                └── standalone/              # Every role runs as expected, the proxy, shared language texts,
-                                             # StandaloneMainProcessTest (own JVM, exit code 0, no Spring output)
+                └── standalone/              # Every role runs as expected, shared language texts,
+                    │                        # StandaloneMainProcessTest (own JVM, exit code 0, no Spring output)
+                    └── security/            # WorkOrderLifecycleAccessProxy per role
 ```
 
 # Building and running
@@ -221,6 +237,42 @@ java -jar autocore-app/target/autocore-app-4.0.0.jar
 > The database file `autocore.db` is created in the folder you start from. Start from the root of the repo so
 > the same database is used every time.
 
+## Using the GUI
+
+The app opens on a sign-in screen. After signing in, the main window has a dark side menu on the left and the
+selected view on the right.
+
+**Side menu**, from top to bottom:
+- The Wigell Auto brand mark and the signed-in user's role
+- **Home**, then the menu items grouped in sections:
+
+  | Section | Items |
+    |---|---|
+  | Register | Customers, Vehicles, Mechanics, Service items, Service packages |
+  | Operations | Bookings, Work orders |
+  | Finance | Invoices, Payments |
+
+- A language switch (**Svenska** / **English**). The whole UI, including open views and the window title,
+  changes language at once
+- **Log out**, which clears the signed-in user and returns to the sign-in screen
+
+Items and sections are defined in `NavigationItem` and `NavigationGroup`, so a new view only needs a new enum
+constant with its section to appear in the right place.
+
+**Home view:** the logo, a short welcome text and shortcut cards to Bookings, Customers and Work orders.
+
+**Zoom:** every size in the CSS is in `em`, so the whole UI scales together. The zoom level is shared by the main
+window, dialogs and alerts.
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl` + scroll | Zoom in or out |
+| `Ctrl` + `+` / `Ctrl` + `-` | Zoom in / out |
+| `Ctrl` + `0` | Reset to 100 % |
+
+Controls the signed-in role may not use are hidden with `ViewPermissionUtil`. That is a convenience only: the
+services decide with `@PreAuthorize`, so hiding a button is never what stops an operation (see below).
+
 ### Users and roles
 
 Users are stored in the `app_user` table (migration V14). Three users are seeded, one per role:
@@ -234,7 +286,11 @@ Users are stored in the `app_user` table (migration V14). Three users are seeded
 The rules live in `AccessPolicy` in core. The services are protected with `@PreAuthorize`, so a denied operation
 gives the same error whether it comes from a button or another entry point.
 
-The GUI starts with a login dialog. Sign in with one of the users above to try a role.
+The system tells two cases apart, with different error texts:
+- **Not signed in** (no authentication at all) → `error.notAuthenticated`
+- **Signed in, but the role lacks the permission** → `error.accessDenied`
+
+Sign in with one of the users above to try a role. Use **Log out** in the side menu to switch user.
 
 ### Configuration and secrets
 
@@ -273,8 +329,20 @@ Logging is configured in `autocore-app/src/main/resources/logback-spring.xml`, w
 Every line contains time, level, logger and the MDC fields `corrId`, `op`, `user` and `wo`. The correlation id
 is set by `CorrelationAspect` for each service call, and the same id is shown as a reference in the error dialog.
 
-The standalone program has no logging backend yet, so its log output is discarded and SLF4J prints a warning
-at startup. A backend is added in a separate card.
+What is logged:
+
+| Event | Level | Logged by |
+|---|---|---|
+| Work order created, confirmed, started, completed, cancelled, reopened, updated | INFO | `WorkOrderService`, and `WorkOrderEventLogger` after commit |
+| Sign-in succeeded | INFO | `SecurityEventLogger` |
+| Sign-in failed, access denied | WARN | `SecurityEventLogger` |
+| Business error, such as invalid input or a disallowed status change | INFO | `ErrorFacade` |
+| Database error or unexpected exception, with stack trace | ERROR | `ErrorFacade` |
+
+Passwords, tokens and other secrets are never logged. `SafeLog` keeps personal data and user input out of
+exception descriptions: only our own domain messages are logged in full, other exceptions by type only. The user only sees a translated message and the reference id, never the technical details.
+
+The standalone program logs with its own `logback.xml` (see [Running it](#running-it)).
 
 **Colors in IntelliJ:** Spring Boot only turns on colors when output goes to a terminal, and with Java 21
 IntelliJ's console does not count as one. Add the following to the run configuration's VM options:

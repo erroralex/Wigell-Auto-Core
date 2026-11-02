@@ -14,7 +14,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
  */
 @SpringBootApplication
 // Turns on method-level security so @PreAuthorize rules on the services are enforced.
-// Placed here in autocore-app so autocore-core stays free of Spring Security.
+// autocore-core only declares the rules (it depends on spring-security-core for the annotations).
+// They take effect here, where Spring creates the service proxies. autocore-standalone has no Spring
+// and protects the work order operations with WorkOrderLifecycleAccessProxy instead.
 @EnableMethodSecurity
 public class AutoCoreConfig {
 
