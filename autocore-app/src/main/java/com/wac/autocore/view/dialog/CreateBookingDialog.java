@@ -39,6 +39,8 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
     private final BookingService bookingService;
     private final ServicePackageSelectorBox servicePackageSelector;
     private final ServiceSelectorBox serviceSelector;
+    Booking previous;
+
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
@@ -46,6 +48,7 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
     private final Label priceNoticeLabel = new Label();
+
 
     // previous may be null
     public CreateBookingDialog(
@@ -101,6 +104,27 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
 
     @Override
     protected void submit() {
+        Vehicle vehicle = vehicleComboBox.getValue();
+        Mechanic mechanic = mechanicComboBox.getValue();
+
+        Integer vehicleId = vehicle == null ? null : vehicle.getId();
+        Integer mechanicId = mechanic == null ? null : mechanic.getId();
+        LocalDate date = datePicker.getValue();
+        LocalTime startTime = startTimeComboBox.getValue();
+        String description = descriptionTextField.getText();
+        List<Integer> serviceIds = serviceSelector.getSelectedServiceIds();
+
+        if (previous == null) {
+            // Create a completely new booking
+            bookingService.create(vehicleId, mechanicId, date, startTime, description, serviceIds);
+        } else {
+            // Create a booking based on a previous one
+            if (mechanicId == null) {
+                bookingService.create(vehicleId, null, date, startTime, description, serviceIds);
+            } else {
+                bookingService.createFromPrevious(previous.getId(), date, startTime, mechanicId, vehicleId, description, serviceIds);
+            }
+        }
     }
 
     @Override
@@ -136,6 +160,12 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
                     }
                     serviceSelector.selectServiceIds(serviceIds);
                 });
+
+        descriptionTextField.textProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        vehicleComboBox.valueProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        datePicker.valueProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        startTimeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
+        mechanicComboBox.valueProperty().addListener((obs, oldVal, newVal) -> clearInlineError());
     }
 
     // Hidden until a copied booking has price changes
