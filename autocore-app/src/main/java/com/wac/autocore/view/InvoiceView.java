@@ -179,16 +179,11 @@ public class InvoiceView extends BaseView {
     }
 
     private void openCreateInvoiceDialog() {
-        CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService);
+        CreateInvoiceDialog dialog = new CreateInvoiceDialog(workOrderService, invoiceService);
 
         dialog.showAndWait().ifPresent(result -> {
-            try {
-                invoiceService.create(result.getWorkOrderId(), result.getDiscountCode());
-                refreshData();
-                AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-            }
+            refreshData();
+            AlertHelper.showInfo(lang.get("invoice.created"), lang.get("invoice.createdMsg"));
         });
     }
 
