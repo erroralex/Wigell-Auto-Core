@@ -5,10 +5,12 @@ import com.wac.autocore.model.value.MoneyFormat;
 import com.wac.autocore.view.AutoCoreApp;
 import com.wac.autocore.view.i18n.LanguageManager;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -16,7 +18,6 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -32,9 +33,10 @@ public class DialogUtil {
     private DialogUtil() {
     }
 
-    // Applies the app's theme to the given DialogPane
+    // Applies the app's theme and the app-wide zoom to the given DialogPane
     public static void applyTheme(DialogPane pane) {
         Stylesheets.applyTo(pane);
+        ZoomManager.getInstance().install(pane);
     }
 
     // Applies the app's theme to the given Dialog and sets the _owner to the main window_ if it is not already set
@@ -66,22 +68,14 @@ public class DialogUtil {
             });
         });
 
-        double[] zoom = {1.0};
-
-        // Zoom the dialog's content with Ctrl + mouse wheel.
-        pane.addEventFilter(ScrollEvent.SCROLL, event -> {
-            if (!event.isControlDown() || event.getDeltaY() == 0) {
-                return;
+        ChangeListener<Number> refitOnZoom = (obs, oldZoom, newZoom) ->
+                Platform.runLater(() -> resizeDialog(pane));
+        dialog.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) {
+                ZoomManager.getInstance().zoomProperty().addListener(refitOnZoom);
+            } else {
+                ZoomManager.getInstance().zoomProperty().removeListener(refitOnZoom);
             }
-
-            double step = 1.05;
-            zoom[0] = Math.max(0.7, Math.min(3.0,
-                    zoom[0] * (event.getDeltaY() > 0 ? step : 1 / step)));
-            pane.setStyle("-fx-font-size: " + (AutoCoreApp.BASE_FONT_SIZE * zoom[0]) + "px;");
-
-            Platform.runLater(() -> resizeDialog(pane));
-
-            event.consume();
         });
 
         dialog.setOnShown(event -> Platform.runLater(() -> {
@@ -212,9 +206,33 @@ public class DialogUtil {
         ));
     }
 
-    // Applies the app's theme to the given Alert and sets the _owner to the main window_ if it is not already set
     public static void applyTheme(Alert alert) {
         applyTheme(alert.getDialogPane());
+        DialogPane pane = alert.getDialogPane();
+
+        // The pane may never be smaller than its content.
+        pane.setMinWidth(Region.USE_PREF_SIZE);
+        pane.setMinHeight(Region.USE_PREF_SIZE);
+        alert.setResizable(true);
+
+        for (ButtonType type : alert.getButtonTypes()) {
+            Node button = pane.lookupButton(type);
+            if (button instanceof Button) {
+                ButtonBar.setButtonUniformSize(button, false);
+                ((Button) button).setMinWidth(Region.USE_PREF_SIZE);
+            }
+        }
+
+        // Grow or shrink the window when the zoom changes while the alert is open
+        ChangeListener<Number> refitOnZoom = (obs, oldZoom, newZoom) ->
+                Platform.runLater(() -> pane.getScene().getWindow().sizeToScene());
+        alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) {
+                ZoomManager.getInstance().zoomProperty().addListener(refitOnZoom);
+            } else {
+                ZoomManager.getInstance().zoomProperty().removeListener(refitOnZoom);
+            }
+        });
 
         Stage owner = AutoCoreApp.getPrimaryStage();
         if (owner != null && alert.getOwner() == null) {

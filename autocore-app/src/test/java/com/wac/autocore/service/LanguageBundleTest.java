@@ -3,6 +3,7 @@ package com.wac.autocore.service;
 import com.wac.autocore.model.BookingStatus;
 import com.wac.autocore.model.WorkOrderChangeType;
 import com.wac.autocore.model.WorkOrderStatus;
+import com.wac.autocore.view.NavigationGroup;
 import com.wac.autocore.view.NavigationItem;
 import org.junit.jupiter.api.Test;
 
@@ -24,10 +25,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * <b>LanguageBundleTest</b>
@@ -150,6 +148,12 @@ class LanguageBundleTest {
         for (NavigationItem item : NavigationItem.values()) {
             if (!sv.containsKey(item.getKey())) {
                 missing.add(item.getKey());
+            }
+        }
+
+        for (NavigationGroup group : NavigationGroup.values()) {
+            if (group.hasLabel() && !sv.containsKey(group.getKey())) {
+                missing.add(group.getKey());
             }
         }
 
