@@ -136,9 +136,9 @@ public class SideNavigation extends VBox {
         return btn;
     }
 
-    // Two outline gears above the language switch
+    // A pair of meshing outline gears above the language switch
     private HBox createDecoration() {
-        HBox gears = new HBox(new Gear("gear-large"), new Gear("gear-small"));
+        HBox gears = new HBox(new Gear("gear-menu"));
         gears.getStyleClass().add("nav-decoration");
         return gears;
     }

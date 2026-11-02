@@ -591,10 +591,13 @@
 
 /* ── Gear (Gear) ───────────────────────────────────────────────────────────── */
 
-/* The Region takes this SVG shape; scale-shape fits it to the size in em,
-   and the transparent background with a border gives an outline. */
+/* Two meshing gears in one shape: 12 and 8 teeth with the same tooth size, the small one
+   up to the right. One shape keeps the teeth in each other's gaps at any size; sizing or
+   rotating the gears separately would make them collide.
+   The shape is 197 x 172, so a size class must keep width : height = 1 : 0.87,
+   otherwise scale-shape stretches the teeth. */
 .gear {
-    -fx-shape: "M177.5 80.3 L179.4 89.9 L195.4 89.5 L195.4 110.5 L179.4 110.1 L177.5 119.7 L177.0 121.7 L173.8 130.9 L187.9 138.6 L177.4 156.8 L163.7 148.4 L157.3 155.8 L155.8 157.3 L148.4 163.7 L156.8 177.4 L138.6 187.9 L130.9 173.8 L121.7 177.0 L119.7 177.5 L110.1 179.4 L110.5 195.4 L89.5 195.4 L89.9 179.4 L80.3 177.5 L78.3 177.0 L69.1 173.8 L61.4 187.9 L43.2 177.4 L51.6 163.7 L44.2 157.3 L42.7 155.8 L36.3 148.4 L22.6 156.8 L12.1 138.6 L26.2 130.9 L23.0 121.7 L22.5 119.7 L20.6 110.1 L4.6 110.5 L4.6 89.5 L20.6 89.9 L22.5 80.3 L23.0 78.3 L26.2 69.1 L12.1 61.4 L22.6 43.2 L36.3 51.6 L42.7 44.2 L44.2 42.7 L51.6 36.3 L43.2 22.6 L61.4 12.1 L69.1 26.2 L78.3 23.0 L80.3 22.5 L89.9 20.6 L89.5 4.6 L110.5 4.6 L110.1 20.6 L119.7 22.5 L121.7 23.0 L130.9 26.2 L138.6 12.1 L156.8 22.6 L148.4 36.3 L155.8 42.7 L157.3 44.2 L163.7 51.6 L177.4 43.2 L187.9 61.4 L173.8 69.1 L177.0 78.3 Z M144 100 A44 44 0 1 0 56 100 A44 44 0 1 0 144 100 Z M116 100 A16 16 0 1 0 84 100 A16 16 0 1 0 116 100 Z";
+    -fx-shape: "M92.6 61.4 L103.8 51.9 L112.2 59.0 L104.9 71.6 L111.3 80.8 L125.6 78.2 L129.4 88.6 L116.7 95.8 L117.7 106.9 L131.5 111.8 L129.5 122.7 L114.9 122.6 L110.2 132.8 L119.7 143.9 L112.6 152.4 L100.0 145.0 L90.8 151.4 L93.4 165.8 L83.0 169.6 L75.8 156.9 L64.7 157.9 L59.8 171.6 L48.9 169.7 L49.0 155.1 L38.8 150.4 L27.7 159.8 L19.2 152.7 L26.6 140.1 L20.2 130.9 L5.8 133.6 L2.0 123.2 L14.7 116.0 L13.7 104.8 L0.0 99.9 L1.9 89.0 L16.5 89.1 L21.2 79.0 L11.8 67.8 L18.9 59.4 L31.5 66.7 L40.7 60.3 L38.0 46.0 L48.4 42.2 L55.7 54.9 L66.8 53.9 L71.7 40.1 L82.6 42.1 L82.5 56.7 Z M96.1 105.9 A30.4 30.4 0 1 0 35.4 105.9 A30.4 30.4 0 1 0 96.1 105.9 Z M76.9 105.9 A11.2 11.2 0 1 0 54.5 105.9 A11.2 11.2 0 1 0 76.9 105.9 Z M130.5 70.2 L117.1 76.7 L110.8 67.6 L121.4 57.2 L119.4 48.4 L105.4 43.4 L107.3 32.6 L122.2 32.7 L127.1 25.1 L120.6 11.7 L129.7 5.4 L140.0 16.0 L148.9 14.0 L153.8 0.0 L164.7 1.9 L164.5 16.8 L172.2 21.7 L185.6 15.2 L191.9 24.3 L181.3 34.6 L183.2 43.5 L197.3 48.4 L195.3 59.3 L180.5 59.1 L175.6 66.8 L182.1 80.2 L173.0 86.5 L162.6 75.9 L153.8 77.8 L148.8 91.9 L138.0 89.9 L138.1 75.1 Z M172.5 45.9 A21.2 21.2 0 1 0 130.2 45.9 A21.2 21.2 0 1 0 172.5 45.9 Z M159.2 45.9 A7.8 7.8 0 1 0 143.5 45.9 A7.8 7.8 0 1 0 159.2 45.9 Z";
     -fx-scale-shape: true;
     -fx-position-shape: true;
     -fx-background-color: transparent;
@@ -748,23 +751,17 @@
 
 /* ── Gears ─────────────────────────────────────────────────────────────────── */
 
-/* Top-aligned with negative spacing: the small gear sits higher and overlaps. */
 .nav-decoration {
     -fx-alignment: top-left;
-    -fx-spacing: -0.9em;
-    -fx-padding: 0 0 0.92em 0.31em;
+    -fx-padding: 0 0 0.92em 0;
     -fx-opacity: 0.7;
 }
 
-.nav-decoration .gear-large {
-    -fx-min-width: 6em;  -fx-pref-width: 6em;  -fx-max-width: 6em;
-    -fx-min-height: 6em; -fx-pref-height: 6em; -fx-max-height: 6em;
-}
-
-.nav-decoration .gear-small {
-    -fx-min-width: 4em;  -fx-pref-width: 4em;  -fx-max-width: 4em;
-    -fx-min-height: 4em; -fx-pref-height: 4em; -fx-max-height: 4em;
-    -fx-rotate: 15;
+/* Full content width of the menu (17em minus 2 x 1.5em padding), so the pair lines up with
+   the language switch and Log out. 14 x 12.18em keeps the shape's 1 : 0.87 ratio. */
+.nav-decoration .gear-menu {
+    -fx-min-width: 14em;     -fx-pref-width: 14em;     -fx-max-width: 14em;
+    -fx-min-height: 12.18em; -fx-pref-height: 12.18em; -fx-max-height: 12.18em;
 }
 
 

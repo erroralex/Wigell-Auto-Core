@@ -104,9 +104,9 @@ public class LoginView extends HBox {
         return panel;
     }
 
-    // Large gear in the bottom right corner and a smaller one above it
+    // A large pair of meshing gears in the bottom right corner, the small gear up to the left
     private HBox createGears() {
-        HBox gears = new HBox(new Gear("gear-small"), new Gear("gear-large"));
+        HBox gears = new HBox(new Gear("gear-login"));
         gears.getStyleClass().add("login-gears");
         gears.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         StackPane.setAlignment(gears, Pos.BOTTOM_RIGHT);
