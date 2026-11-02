@@ -12,6 +12,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -43,18 +44,8 @@ public class SideNavigation extends VBox {
 
         // Icon and app name at the top of the menu, with the signed-in role right under it
         this.getChildren().addAll(new BrandMark(lang.get("app.brand")), createRoleLabel());
-
-        // One section per group, in the groups' declaration order
-        Map<NavigationGroup, List<NavigationItem>> itemsByGroup = Arrays.stream(NavigationItem.values())
-                .collect(Collectors.groupingBy(NavigationItem::getGroup,
-                        () -> new EnumMap<>(NavigationGroup.class),
-                        Collectors.toList()));
-        itemsByGroup.forEach((group, items) -> this.getChildren().add(createGroup(group, items)));
-
-        // Pushes the gears, language switch and log out button down to the bottom of the menu
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-        this.getChildren().addAll(spacer, createDecoration(), new LanguageSwitch(), createLogoutButton(onLogout));
+        this.getChildren().add(createScrollableMenu());
+        this.getChildren().addAll(new LanguageSwitch(), createLogoutButton(onLogout));
 
         // Show the first section as selected at startup
         select(NavigationItem.values()[0]);
@@ -141,6 +132,34 @@ public class SideNavigation extends VBox {
         HBox gears = new HBox(new Gear("gear-menu"));
         gears.getStyleClass().add("nav-decoration");
         return gears;
+    }
+
+    private ScrollPane createScrollableMenu() {
+        VBox menu = new VBox();
+        menu.getStyleClass().add("nav-menu");
+
+        // One section per group, in the groups' declaration order
+        Map<NavigationGroup, List<NavigationItem>> itemsByGroup = Arrays.stream(NavigationItem.values())
+                .collect(Collectors.groupingBy(NavigationItem::getGroup,
+                        () -> new EnumMap<>(NavigationGroup.class),
+                        Collectors.toList()));
+        itemsByGroup.forEach((group, items) -> menu.getChildren().add(createGroup(group, items)));
+
+        // Pushes the gears down to the bottom of the scroll area
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        menu.getChildren().addAll(spacer, createDecoration());
+
+        ScrollPane scroll = new ScrollPane(menu);
+        scroll.getStyleClass().add("nav-scroll");
+        scroll.setFitToWidth(true);
+        scroll.setFitToHeight(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        // Tab moves between the nav buttons, not onto the pane itself
+        scroll.setFocusTraversable(false);
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+        return scroll;
     }
 
     // Updates the CSS class to visually mark which section is selected

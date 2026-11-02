@@ -36,6 +36,8 @@ public class AutoCoreApp extends Application {
     private static Stage primaryStage;
     private static final int WIDTH = 1200;
     private static final int HEIGHT = 800;
+    private static final int MIN_WIDTH = 1000;
+    private static final int MIN_HEIGHT = 800;
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -65,8 +67,11 @@ public class AutoCoreApp extends Application {
         primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
 
         primaryStage.setScene(scene);
+        primaryStage.setMinWidth(MIN_WIDTH);
+        primaryStage.setMinHeight(MIN_HEIGHT);
         primaryStage.setMaximized(true);
         primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
+
         primaryStage.show();
     }
 
