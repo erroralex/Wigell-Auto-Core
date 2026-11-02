@@ -257,21 +257,8 @@ public class BookingView extends BaseView {
         CreateBookingDialog dialog = newBookingDialog(null);
 
         dialog.showAndWait().ifPresent(result -> {
-            try {
-                bookingService.create(
-                        result.getVehicleId(),
-                        result.getMechanicId(),
-                        result.getDate(),
-                        result.getStartTime(),
-                        result.getDescription(),
-                        result.getServiceItemIds()
-                );
-
-                refreshBookings();
-                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-            }
+            refreshBookings();
+            AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
         });
     }
 
