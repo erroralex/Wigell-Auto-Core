@@ -39,8 +39,7 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
     private final BookingService bookingService;
     private final ServicePackageSelectorBox servicePackageSelector;
     private final ServiceSelectorBox serviceSelector;
-    Booking previous;
-
+    private final Booking previous;
 
     private final ComboBox<Vehicle> vehicleComboBox = new ComboBox<>();
     private final DatePicker datePicker = new DatePicker();
@@ -48,7 +47,6 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
     private final TextField descriptionTextField = new TextField();
     private final ComboBox<Mechanic> mechanicComboBox = new ComboBox<>();
     private final Label priceNoticeLabel = new Label();
-
 
     // previous may be null
     public CreateBookingDialog(
@@ -60,6 +58,7 @@ public class CreateBookingDialog extends FormDialog<CreateBookingDialog.Result> 
             Booking previous
     ) {
         this.bookingService = bookingService;
+        this.previous = previous;
         this.servicePackageSelector = new ServicePackageSelectorBox(servicePackageService.findAll());
         this.serviceSelector = new ServiceSelectorBox(serviceItems);
 

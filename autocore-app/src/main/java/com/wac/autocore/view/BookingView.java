@@ -272,35 +272,9 @@ public class BookingView extends BaseView {
         CreateBookingDialog dialog = newBookingDialog(selected);
 
         dialog.showAndWait().ifPresent(result -> {
-            try {
-                // createFromPrevious interprets mechanicId == null as "inherit the suggestion". If the user has cleared the suggestion,
-                // the booking is instead created with create, which gives the same result (today's prices) but without a suggestion.
-                if (result.getMechanicId() == null) {
-                    bookingService.create(
-                            result.getVehicleId(),
-                            null,
-                            result.getDate(),
-                            result.getStartTime(),
-                            result.getDescription(),
-                            result.getServiceItemIds()
-                    );
-                } else {
-                    bookingService.createFromPrevious(
-                            selected.getId(),
-                            result.getDate(),
-                            result.getStartTime(),
-                            result.getMechanicId(),
-                            result.getVehicleId(),
-                            result.getDescription(),
-                            result.getServiceItemIds()
-                    );
-                }
 
-                refreshBookings();
-                AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
-            } catch (RuntimeException e) {
-                ErrorFacade.handle(e);
-            }
+            refreshBookings();
+            AlertHelper.showInfo(lang.get("booking.created"), lang.get("booking.createdMsg"));
         });
     }
 
