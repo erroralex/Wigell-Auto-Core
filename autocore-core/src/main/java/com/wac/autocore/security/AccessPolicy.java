@@ -46,7 +46,9 @@ public final class AccessPolicy {
                 Permission.CUSTOMER_WRITE,
                 Permission.VEHICLE_WRITE,
                 Permission.BOOKING_WRITE,
-                Permission.WORK_ORDER_WRITE
+                Permission.WORK_ORDER_WRITE,
+                Permission.INVOICE_CREATE,
+                Permission.PAYMENT_REGISTER
         )));
 
         // Read-only has limited permissions

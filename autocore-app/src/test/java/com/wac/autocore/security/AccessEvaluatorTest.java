@@ -68,8 +68,8 @@ class AccessEvaluatorTest {
     void workshopFollowsThePolicy() {
         login("ROLE_WORKSHOP");
         assertTrue(access.can("WORK_ORDER_WRITE"));
-        assertFalse(access.can("INVOICE_CREATE"));
-        assertFalse(access.can("PAYMENT_REGISTER"));
+        assertTrue(access.can("INVOICE_CREATE"));
+        assertTrue(access.can("PAYMENT_REGISTER"));
         assertFalse(access.can("CUSTOMER_DELETE"));
     }
 

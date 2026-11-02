@@ -49,5 +49,8 @@ autocore.db
 autocore-headless.db
 !src/test/resources/fixtures/*.db
 
+# Local credentials (headless account etc.). Never commit.
+application-local.properties
+
 # Logs
 logs/

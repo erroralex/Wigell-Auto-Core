@@ -71,7 +71,7 @@ class LanguageManagerTest {
     void textWithoutArgumentsKeepsApostrophe() {
         // Without arguments MessageFormat is not run, so a single apostrophe is ok
         lang.toggleLanguage();
-        assertEquals(true, lang.get("home.welcome").contains("Wigell Auto's"));
+        assertEquals(true, lang.get("home.heading").contains("Wigell Auto's"));
     }
 
     @Test

@@ -17,8 +17,7 @@ import java.util.Locale;
  * <p>Arguments: {@code --role=ADMIN|WORKSHOP|READ_ONLY} (default ADMIN) and
  * {@code --lang=sv|en} (default sv). Exits with 0 when every step went as expected,
  * 1 when a step did not, and 2 for invalid arguments.</p>
- * <p>Known limits without Spring: Bean Validation and {@code @Transactional} have no effect;
- * the domain rules apply fully, and only work order operations are access checked.</p>
+ * <p>Known limits without Spring: {@code @Transactional} has no effect; Bean Validation applies to work order operations through {@code ValidatingProxy}.</p>
  */
 public final class StandaloneMain {
 

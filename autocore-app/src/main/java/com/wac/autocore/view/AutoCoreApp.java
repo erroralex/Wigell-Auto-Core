@@ -14,9 +14,9 @@ import com.wac.autocore.view.i18n.LanguageManager;
 import com.wac.autocore.view.util.ErrorFacade;
 import com.wac.autocore.view.util.GlobalExceptionHandler;
 import com.wac.autocore.view.util.Stylesheets;
+import com.wac.autocore.view.util.ZoomManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -36,13 +36,8 @@ public class AutoCoreApp extends Application {
     private static Stage primaryStage;
     private static final int WIDTH = 1200;
     private static final int HEIGHT = 800;
-
-    private static final double MIN_ZOOM = 0.7;
-    private static final double MAX_ZOOM = 3.0;
-    private static final double ZOOM_STEP = 1.05;
-
-    public static final double BASE_FONT_SIZE = 19;
-    private double currentZoom = 1.0;
+    private static final int MIN_WIDTH = 1000;
+    private static final int MIN_HEIGHT = 800;
 
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -64,19 +59,34 @@ public class AutoCoreApp extends Application {
 
         AutoCoreApp.primaryStage = primaryStage;
 
-        LoginView loginView = new LoginView();
-        loginView.show();
-        loginView.getLoginButton().setOnAction(e -> handleLogin(loginView));
-
-        Scene scene = new Scene(loginView, WIDTH, HEIGHT);
+        Scene scene = new Scene(createLoginView(), WIDTH, HEIGHT);
         Stylesheets.applyTo(scene);
+
+        ZoomManager.getInstance().install(scene);
 
         primaryStage.getIcons().add(new javafx.scene.image.Image(getClass().getResource("assets/wigell_auto_icon.png").toExternalForm()));
 
         primaryStage.setScene(scene);
+        primaryStage.setMinWidth(MIN_WIDTH);
+        primaryStage.setMinHeight(MIN_HEIGHT);
         primaryStage.setMaximized(true);
         primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));
+
         primaryStage.show();
+    }
+
+    // A fresh login view, used at start-up and after logging out
+    private LoginView createLoginView() {
+        LoginView loginView = new LoginView();
+        loginView.show();
+        loginView.getLoginButton().setOnAction(e -> handleLogin(loginView));
+        return loginView;
+    }
+
+    // Clears the signed-in user and shows a fresh login view.
+    private void logout() {
+        SecurityContextHolder.clearContext();
+        primaryStage.getScene().setRoot(createLoginView());
     }
 
     private void handleLogin(LoginView loginView) {
@@ -118,21 +128,11 @@ public class AutoCoreApp extends Application {
                     workOrderService,
                     serviceItemService,
                     mechanicService,
-                    servicePackageService
+                    servicePackageService,
+                    this::logout
             );
 
             currentScene.setRoot(layout);
-
-            // UI Ctrl-scroll Zoom
-            currentScene.addEventFilter(ScrollEvent.SCROLL, event -> {
-                if (event.isControlDown()) {
-                    double factor = event.getDeltaY() > 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
-                    currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom * factor));
-
-                    layout.setStyle("-fx-font-size: " + (BASE_FONT_SIZE * currentZoom) + "px;");
-                    event.consume();
-                }
-            });
 
             // The window title is bound, otherwise it stays in Swedish after a language switch
             primaryStage.titleProperty().bind(LanguageManager.getInstance().bind("app.title"));

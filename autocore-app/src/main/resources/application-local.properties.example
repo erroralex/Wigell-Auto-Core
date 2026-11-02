@@ -1,0 +1,4 @@
+# Copy this file to application-local.properties (git-ignored) and fill in your own values.
+# Environment variables AUTOCORE_HEADLESS_USERNAME / AUTOCORE_HEADLESS_PASSWORD work too.
+autocore.headless.username=
+autocore.headless.password=

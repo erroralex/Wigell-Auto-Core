@@ -7,17 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Supplier;
 
 /**
  * <b>HeadlessRunner</b>
@@ -26,6 +20,8 @@ import java.util.function.Supplier;
  * program. Errors are translated the same way as in the UI, and the language key is printed
  * so it can be compared with the UI.</p>
  * <p>The language is chosen with {@code --headless.lang=en} (default is Swedish).</p>
+ * <p>Before the scenario runs, {@link HeadlessAuthenticator} logs in with the configured account. If the
+ * credentials are missing or wrong, the run stops before any operation.</p>
  * <p>If any step did not go as expected, an exception is thrown instead of {@code System.exit}:
  * Spring then closes the context and the process exits with an error code, and tests that load
  * the profile do not kill the test JVM.</p>
@@ -37,24 +33,17 @@ import java.util.function.Supplier;
 @Profile("headless")
 public class HeadlessRunner implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(HeadlessRunner.class);
+
     private final DropInScenario scenario;
+    private final HeadlessAuthenticator authenticator;
     private final String lang;
 
-    private final AuthenticationManager authenticationManager;
-
-    @Value("${AUTOCORE_HEADLESS_USERNAME:}")
-    private String username;
-
-    @Value("${AUTOCORE_HEADLESS_PASSWORD:}")
-    private String password;
-    private static final Logger logger = LoggerFactory.getLogger(HeadlessRunner.class);
-
-
-    public HeadlessRunner(DropInScenario scenario, @Value("${headless.lang:sv}") String lang, AuthenticationManager authenticationManager) {
+    public HeadlessRunner(DropInScenario scenario, HeadlessAuthenticator authenticator,
+                          @Value("${headless.lang:sv}") String lang) {
         this.scenario = scenario;
+        this.authenticator = authenticator;
         this.lang = lang;
-
-        this.authenticationManager = authenticationManager;
     }
 
     @Override
@@ -62,41 +51,35 @@ public class HeadlessRunner implements CommandLineRunner {
         Translator translator = new ResourceBundleTranslator(resolveLocale());
         ScenarioReportPrinter printer = new ScenarioReportPrinter(System.out, translator);
 
-        // Validate credentials exist before doing anything
-        if (username == null || username.isBlank() || password == null || password.isBlank()) {
-            logger.warn("Headless run aborted: AUTOCORE_HEADLESS_USERNAME and AUTOCORE_HEADLESS_PASSWORD are missing.");
-            throw new IllegalStateException("Missing headless credentials");
-        }
-
-        // Authenticate before running the scenario
-        try {
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
-        } catch (AuthenticationException e) {
-            logger.warn("Headless run aborted: Invalid credentials provided.");
-            throw new IllegalStateException("Invalid headless credentials", e);
-        }
-
         System.out.println();
         System.out.println("=== Wigell AutoCore - headless drop-in flow ===");
 
-        try {
-            // Run the scenario now that we are authenticated
-            List<StepResult> results = scenario.run();
-            printer.print(results);
+        // Stops here if the credentials are missing or wrong, so no operation has run.
+        authenticate();
 
-            if (results.stream().anyMatch(result -> !result.isAsExpected())) {
-                throw new IllegalStateException("The headless scenario did not go as expected");
-            }
+        List<StepResult> results;
+        try {
+            results = scenario.run();
         } finally {
-            // Always clear the context afterwards
-            SecurityContextHolder.clearContext();
+            authenticator.clear();
+        }
+        printer.print(results);
+
+        if (results.stream().anyMatch(result -> !result.isAsExpected())) {
+            throw new IllegalStateException("The headless scenario did not go as expected");
         }
     }
 
-
+    // The message never contains the password: it is either "credentials are missing" or "Bad credentials".
+    private void authenticate() {
+        try {
+            authenticator.authenticate();
+        } catch (AuthenticationException ex) {
+            log.warn("Headless run stopped before any operation: {}", ex.getMessage());
+            System.err.println("Headless login failed. See logs/autocore-headless.log.");
+            throw new IllegalStateException("Headless authentication failed", ex);
+        }
+    }
 
     private Locale resolveLocale() {
         return "en".equalsIgnoreCase(lang) ? ResourceBundleTranslator.ENGLISH : ResourceBundleTranslator.SWEDISH;
